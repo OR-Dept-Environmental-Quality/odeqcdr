@@ -1,0 +1,14 @@
+^odeqcdr\.Rproj$
+^\.Rproj\.user$
+^data_raw$
+^shiny_app$
+^.*_old\\.R$
+^example\\.R$
+^.*\\.xlsx$
+^test_templates$
+^R_dev$
+R_dev
+test_templates
+shiny_app
+example.R
+data_raw
