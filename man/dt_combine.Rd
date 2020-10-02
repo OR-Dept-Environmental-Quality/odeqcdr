@@ -30,6 +30,6 @@ See OlsonNames() for more info. Default is tz_col="Activity.Start.End.Time.Zone"
 vector of POSIXct datetime
 }
 \description{
-This function will combine POSIXct date and time values pulled from an excel using odeqcdr::import_contin() to make a POSIXct datetime.
+This function will combine POSIXct date and time values pulled from an excel using \code{\link[=contin_import]{contin_import()}} to make a POSIXct datetime.
 There are various options on how to handle the time and timezone column. If the datetime falls in a daylight savings break NA is returned.
 }

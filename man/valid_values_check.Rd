@@ -8,7 +8,7 @@ valid_values_check(col, vals)
 }
 \arguments{
 \item{col}{Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
-The name can be formatted as shown the xlsx template or in R format derived using make.names().}
+The name can be formatted as shown the xlsx template or in R format derived using \code{\link[=make.names]{make.names()}}.}
 
 \item{val}{vector of values to evaluate.}
 }
@@ -16,5 +16,6 @@ The name can be formatted as shown the xlsx template or in R format derived usin
 vector of valid values or list of all valid values.
 }
 \description{
-This function will return valid values for certain columns in the continuous data submission template xlsx file v2.03. NA is included as a valid value for columns that are optional or conditional.
+This function will return valid values for certain columns in the continuous
+data submission template xlsx file v2.03. NA is included as a valid value for columns that are optional or conditional.
 }

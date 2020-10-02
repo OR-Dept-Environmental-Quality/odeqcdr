@@ -7,11 +7,11 @@
 dql_precision(audits, results, deployment, audits_only = FALSE)
 }
 \arguments{
-\item{audits}{Data frame of the audit data generated using odeqcdr::import_contin().}
+\item{audits}{Data frame of the audit data generated using \code{\link[=contin_import]{contin_import()}}.}
 
-\item{results}{Data frame of the results data generated using odeqcdr::import_contin().}
+\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
 
-\item{deployment}{Data frame of the deployment data generated using odeqcdr::import_contin().}
+\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
 
 \item{audit_only}{Boolean to indicate if the audit data frame should be returned with new columns for the audit sample DQL,
 corresponding result value, result units, absolute difference between the result and audit, and an auto assigned row number. Default is FALSE.}
@@ -25,10 +25,10 @@ such as field duplicates, field audits, or split samples. The data quality level
 The data quality matrix defines the accuracy and precision criteria for equipment calibration and field audits respectively respectively.
 }
 \details{
-use odeqcdr::dql_accuracy() to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
+use \link{dql_accuracy(}) to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
 
 Inputs into this function must retrieved from Oregon DEQ's continuous data submission template xlsx file v2.03.
-Use odeqcdr::import_contin() to get the list that hold the data frames used for this function's inputs.
+Use \code{\link[=contin_import]{contin_import()}} to get the list that hold the data frames used for this function's inputs.
 
 Oregon Department of Environmental Quality (DEQ). 2013. "Data validation criteria for water quality parameters measured in the field.
 DEQ04-LAB-0003-QAG Version5.0." http://www.oregon.gov/deq/FilterDocs/DataQualMatrix.pdf

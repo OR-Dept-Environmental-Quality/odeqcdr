@@ -8,13 +8,14 @@ pre_checks(template_list)
 }
 \arguments{
 \item{template_list}{A continuous data list object with each list holding
-a different worksheet from the xlsx data template. Use import_contin() to make the list.}
+a different worksheet from the xlsx data template. Use \code{\link[=contin_import]{contin_import()}} to make the list.}
 }
 \value{
 data frame of the check and check result.
 }
 \description{
-This function will execute a basic completeness review for Oregon DEQ's continuous data submission template xlsx file v2.03.
-The function checks for missing data, missing values in required columns, invalid domain values, and flags potential errors.
+This function will execute a basic completeness review for Oregon DEQ's continuous
+data submission template xlsx file v2.03. The function checks for missing data,
+missing values in required columns, invalid domain values, and flags potential errors.
 If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 }
