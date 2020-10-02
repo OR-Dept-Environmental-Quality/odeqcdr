@@ -5,7 +5,7 @@
 #' columns that are optional or conditional.
 #'
 #' @param col Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
-#' The name can be formatted as shown the xlsx template or in R format derived using [make.names()]. if col=NULL All valid values are
+#' The name can be formatted as shown in the xlsx template or in R format derived using [make.names()]. if col=NULL All valid values are
 #' returned as a list with the column name as the list lookup. Default is NULL
 #' @export
 #' @return vector of valid values or list of all valid values.
