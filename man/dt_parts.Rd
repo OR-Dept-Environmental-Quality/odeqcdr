@@ -19,6 +19,8 @@ dt_parts(
 \arguments{
 \item{df}{Data frame to be evaluated.}
 
+\item{datetime_col}{Column name in df holding the POSIXct datetime values. Default is "datetime"}
+
 \item{date_col}{Destination column name in df holding the POSIXct date values. Default is "Activity.Start.Date"}
 
 \item{time_col}{Destination column name in df holding the POSIXct time values. Default is "Activity.Start.Time".}
@@ -32,8 +34,6 @@ dt_parts(
 \item{dst_comment}{Comment in string format to add to comment_col if their was a time change. Default is "corrected for DST".}
 
 \item{tzdst_comment}{Comment in string format to add to comment_col if their was a timezone and time change. Default is "corrected timezone and for DST".}
-
-\item{dattime_col}{Column name in df holding the POSIXct datetime values. Default is "datetime"}
 }
 \value{
 returned data frame.

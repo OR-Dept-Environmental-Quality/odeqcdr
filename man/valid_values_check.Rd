@@ -10,7 +10,7 @@ valid_values_check(col, vals)
 \item{col}{Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
 The name can be formatted as shown the xlsx template or in R format derived using \code{\link[=make.names]{make.names()}}.}
 
-\item{val}{vector of values to evaluate.}
+\item{vals}{vector of values to evaluate.}
 }
 \value{
 vector of valid values or list of all valid values.
