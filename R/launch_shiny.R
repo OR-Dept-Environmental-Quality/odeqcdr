@@ -2,6 +2,21 @@
 #'
 #' A shiny application to review data
 #'
+#' The data must first be formatted as a named list and saved as an RData file.
+#'
+#' The object must be named 'shiny_list' with the named listed elements as follows:
+#'   'Deployment'
+#'   'Audit_Stats'
+#'   'Results_Anom'
+#'
+#' Example code:
+#'
+#' shiny_list <-list(Deployment=df1.deployment,
+#'                   Audit_Stats=df3.audits.dql,
+#'                   Results_Anom=df5.results.anom)
+#'
+#' save(shiny_list, file=paste0(CDR_template_for_shiny_review.Rdata"))
+#'
 #' @export
 #' @return Launches a Shiny app
 

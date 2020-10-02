@@ -4,17 +4,17 @@
 #' such as field duplicates, field audits, or split samples. The data quality levels are assigned following DEQ’s Data Quality Matrix (DEQ, 2013).
 #' The data quality matrix defines the accuracy and precision criteria for equipment calibration and field audits respectively respectively.
 #'
-#' use odeqcdr::dql_accuracy() to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
+#' use [odeqcdr::dql_accuracy(]) to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
 #'
 #' Inputs into this function must retrieved from Oregon DEQ's continuous data submission template xlsx file v2.03.
-#' Use odeqcdr::import_contin() to get the list that hold the data frames used for this function's inputs.
+#' Use [odeqcdr::contin_import()] to get the list that hold the data frames used for this function's inputs.
 #'
 #' Oregon Department of Environmental Quality (DEQ). 2013. "Data validation criteria for water quality parameters measured in the field.
 #' DEQ04-LAB-0003-QAG Version5.0." http://www.oregon.gov/deq/FilterDocs/DataQualMatrix.pdf
 #'
-#' @param audits Data frame of the audit data generated using odeqcdr::import_contin().
-#' @param results Data frame of the results data generated using odeqcdr::import_contin().
-#' @param deployment Data frame of the deployment data generated using odeqcdr::import_contin().
+#' @param audits Data frame of the audit data generated using [odeqcdr::contin_import()].
+#' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
+#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
 #' @param audit_only Boolean to indicate if the audit data frame should be returned with new columns for the audit sample DQL,
 #' corresponding result value, result units, absolute difference between the result and audit, and an auto assigned row number. Default is FALSE.
 #' @export

@@ -1,16 +1,19 @@
 #' Return a vector of valid values for a column.
 #'
-#' This function will return valid values for certain columns in the continuous data submission template xlsx file v2.03. NA is included as a valid value for columns that are optional or conditional.
-#' @param col Name of the column in the continuous data submission template xlsx file v2.03 to return valid values. 
-#' The name can be formatted as shown the xlsx template or in R format derived using make.names(). if col=NULL All valid values are 
+#' This function will return valid values for certain columns in the continuous
+#' data submission template xlsx file v2.03. NA is included as a valid value for
+#' columns that are optional or conditional.
+#'
+#' @param col Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
+#' The name can be formatted as shown the xlsx template or in R format derived using [make.names()]. if col=NULL All valid values are
 #' returned as a list with the column name as the list lookup. Default is NULL
 #' @export
 #' @return vector of valid values or list of all valid values.
 
 valid_values <- function(col=NULL) {
-  
+
   #- General -------------------------------------------------------------------
-  
+
   Characteristic.Name <- c("Algae, blue-green (phylum cyanophyta) density",
                            "Chlorophyll",
                            "Chlorophyll a",
@@ -28,16 +31,16 @@ valid_values <- function(col=NULL) {
                            "Temperature, water",
                            "Temperature, wet bulb",
                            "Turbidity")
-  
+
   Activity.Start.End.Time.Zone <- c("PST",
                                     "PDT",
                                     "MST",
                                     "MDT",
                                     "America/Los_Angeles",
                                     "America/Boise", NA)
-  
+
   Result.Unit <- c("cfm", "cfs", "MGD", "deg C", "deg F", "umho/cm", "ft", "in", "m",
-                   "ug/l", "mg/l", "ppth", "%", "FTU", "NTU", "SU", "pH Units", "%saturatn", 
+                   "ug/l", "mg/l", "ppth", "%", "FTU", "NTU", "SU", "pH Units", "%saturatn",
                    "cm", "cm/sec", "count", "counts/sec", "cm3", "cm3/hr",
                    "cm3/l", "cm3/min", "cm3/sec", "m3/hr", "m3/min", "m3/sec", "um3/l",
                    "um3/ml", "um3/cm2", "mm3/l", "yd3", "dm", "umho", "mho/cm",
@@ -54,52 +57,52 @@ valid_values <- function(col=NULL) {
                    "Normal", "nu", "ppb", "ppm", "ppt", "per m", "% CaCO3", "PSS", "PSU",
                    "mmHg", "S/m", "AU", "BU", "FBU", "FNMU", "FNRU", "FNU", "FAU", "JTU",
                    "NTMU", "NTRU")
-  
+
   Result.Status.ID <- c("Accepted",
                         "Final",
                         "Preliminary",
                         "Rejected",
                         "Validated")
-  
+
   #- Projects ------------------------------------------------------------------
-  
+
   Approved.QAPP.Indicator <- c("Yes", "No", NA)
-  
+
   Project.Attachment.Type <- c(".pdf",".zip",".doc", NA)
-  
+
   #- Monitoring_Locations ------------------------------------------------------
-  
-  
-  Monitoring.Location.Type <- c("Canal Transport", "Estuary", "Facility Industrial", 
+
+
+  Monitoring.Location.Type <- c("Canal Transport", "Estuary", "Facility Industrial",
                                 "Facility Municipal Sewage (POTW)", "Facility Other", "Lake", "Ocean",
                                 "Other-Surface Water", "Pipe, Unspecified Source", "Reservoir",
                                 "River/Stream", "Seep", "Spring", "Storm Sewer")
-  
+
   Horizontal.Datum <- c("NAD27",
                         "NAD83",
                         "WGS84")
-  
+
   Coordinate.Collection.Method <- c("GPS-Unspecified",
                                     "Interpolation-Map",
                                     "Unknown")
-  
+
   Tribal.Land. <- c("Yes", "No")
-  
+
   Tribal.Land <- c("Yes", "No")
-  
+
   County.Name <- c("BAKER", "BENTON", "CLACKAMAS", "CLATSOP", "COLUMBIA", "COOS",
                    "CROOK", "CURRY", "DESCHUTES", "DOUGLAS", "GILLIAM", "GRANT",
                    "HARNEY", "HOOD RIVER", "JACKSON", "JEFFERSON", "JOSEPHINE",
                    "KLAMATH", "LAKE", "LANE", "LINCOLN", "LINN", "MALHEUR", "MARION",
                    "MORROW", "MULTNOMAH", "POLK", "SHERMAN", "TILLAMOOK", "UMATILLA",
                    "UNION", "WALLOWA", "WASCO", "WASHINGTON", "WHEELER", "YAMHILL", NA)
-  
+
   State.Code <- c("OR",
                   "WA",
                   "CA",
                   "ID",
                   "NV", NA)
-  
+
   HUC.8.Code <- c("17100205", "17120009", "17100309", "17070303", "17050201",
                   "17050118", "17050202", "18010205", "17100312", "17090011",
                   "17090002", "17100304", "17100305", "17050109", "17120003",
@@ -119,34 +122,34 @@ valid_values <- function(col=NULL) {
                   "16040201", "17100307", "17090003", "17070102", "17060105",
                   "17120007", "18010201", "17050119", "17070104", "17100203",
                   "17090008", NA)
-  
+
   #- Deployment ----------------------------------------------------------------
-  
+
   Sample.Depth.Unit <- Result.Unit
-  
+
   Sample.Media <- c("Air",
                     "Water",
                     "Other")
-  
+
   Sample.Sub.Media <- c("Ambient Air", "Borrow Soil, Waste Rock, and Protore material",
                         "Const. Material", "Drinking Water", "Dry Fall Material", "Elutriate",
                         "Filter Residue", "Finished Water", "Groundwater", "Indoor Air",
-                        "Industrial Effluent", "Industrial Waste", "Interstitial Water", 
-                        "Lake Sediment", "Leachate", "Mine Tailings Pond", 
-                        "Municipal Sewage Effluent", "Municipal Waste", "Ocean Water", 
-                        "Rainwater", "Rock/Cobbles/Gravel", "Septic Effluent", "Sieved Sediment", 
+                        "Industrial Effluent", "Industrial Waste", "Interstitial Water",
+                        "Lake Sediment", "Leachate", "Mine Tailings Pond",
+                        "Municipal Sewage Effluent", "Municipal Waste", "Ocean Water",
+                        "Rainwater", "Rock/Cobbles/Gravel", "Septic Effluent", "Sieved Sediment",
                         "Sludge", "Snowmelt", "Soil Gas", "Stack Gases",
                         "Stormwater", "Subsurface Soil/Sediment", "Surface Soil/Sediment",
                         "Surface Water", NA)
-  
+
   #- PrePost -------------------------------------------------------------------
-  
+
   Equipment.Result.Unit <- Result.Unit
-  
+
   Reference.Result.Unit <- Result.Unit
-  
+
   #- Audit Data ----------------------------------------------------------------
-  
+
   Activity.Type <- c("Field Measurement/Observation",
                      "Field Measurement/Observation-Portable Data Logger",
                      "Sample-Routine",
@@ -163,13 +166,13 @@ valid_values <- function(col=NULL) {
                      "Sample-Other",
                      "Sample-Positive Control",
                      "Sample-Routine Resample")
-  
+
   Sample.Collection.Method <- c("Composite",
                                 "Continuous Summar",
                                 "Field Meter",
                                 "Grab",
                                 "Staff Gage")
-  
+
   Result.Analytical.Method.ID <- c("446",
                                    "120.1",
                                    "120.1",
@@ -182,67 +185,67 @@ valid_values <- function(col=NULL) {
                                    "170.1",
                                    "180.1",
                                    "D5413(A)")
-  
+
   Result.Value.Type <- c("Actual",
                          "Blank Corrected Calc",
                          "Calculated",
                          "Control Adjusted",
                          "Estimated", NA)
-  
+
   Result.Analytical.Method.Context <- c("USEPA",
                                         "YSI",
                                         "HACH",
                                         "USDOI/USGS",
                                         "ASTM", NA)
-  
+
   Result.Measure.Qualifier <- c("FDC",
                                 "PBH",
                                 "PBL",
                                 "R",
                                 "SUS", NA)
-  
+
   # Add everying to a list
-  val_list <-list(Characteristic.Name=Characteristic.Name, 
-                  Activity.Start.End.Time.Zone=Activity.Start.End.Time.Zone, 
-                  Result.Unit=Result.Unit, 
-                  Result.Status.ID=Result.Status.ID, 
-                  Monitoring.Location.Type= Monitoring.Location.Type, 
-                  Approved.QAPP.Indicator=Approved.QAPP.Indicator, 
+  val_list <-list(Characteristic.Name=Characteristic.Name,
+                  Activity.Start.End.Time.Zone=Activity.Start.End.Time.Zone,
+                  Result.Unit=Result.Unit,
+                  Result.Status.ID=Result.Status.ID,
+                  Monitoring.Location.Type= Monitoring.Location.Type,
+                  Approved.QAPP.Indicator=Approved.QAPP.Indicator,
                   Project.Attachment.Type=Project.Attachment.Type,
-                  Horizontal.Datum=Horizontal.Datum, 
+                  Horizontal.Datum=Horizontal.Datum,
                   Coordinate.Collection.Method=Coordinate.Collection.Method,
-                  Tribal.Land.=Tribal.Land., 
-                  Tribal.Land=Tribal.Land, 
-                  County.Name=County.Name, 
+                  Tribal.Land.=Tribal.Land.,
+                  Tribal.Land=Tribal.Land,
+                  County.Name=County.Name,
                   State.Code=State.Code,
-                  HUC.8.Code=HUC.8.Code, 
-                  Sample.Depth.Unit=Sample.Depth.Unit, 
-                  Sample.Media=Sample.Media, 
+                  HUC.8.Code=HUC.8.Code,
+                  Sample.Depth.Unit=Sample.Depth.Unit,
+                  Sample.Media=Sample.Media,
                   Sample.Sub.Media=Sample.Sub.Media,
-                  Equipment.Result.Unit=Equipment.Result.Unit, 
+                  Equipment.Result.Unit=Equipment.Result.Unit,
                   Reference.Result.Unit=Reference.Result.Unit,
-                  Activity.Type=Activity.Type, 
+                  Activity.Type=Activity.Type,
                   Sample.Collection.Method=Sample.Collection.Method,
-                  Result.Analytical.Method.ID=Result.Analytical.Method.ID, 
+                  Result.Analytical.Method.ID=Result.Analytical.Method.ID,
                   Result.Value.Type=Result.Value.Type,
-                  Result.Analytical.Method.Context=Result.Analytical.Method.Context, 
+                  Result.Analytical.Method.Context=Result.Analytical.Method.Context,
                   Result.Measure.Qualifier=Result.Measure.Qualifier)
-  
+
   if(is.null(col)) {
     # Return entire list
-    
+
     return(val_list)
-    
+
   } else {
-    
+
     if(!col %in% names(val_list)) {
       print(paste(col, "is not a column name with valid domain values."))
-      stop() 
+      stop()
     } else {
-      
+
       col <- make.names(col, unique=TRUE)
       vals <- val_list[[col]]
-      
+
       return(vals)
     }
   }
