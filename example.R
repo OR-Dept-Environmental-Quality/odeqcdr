@@ -10,7 +10,7 @@ xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
 output_dir <-"E:/GitHub/odeqcdr/tests"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
-df0 <- odeqcdr::import_contin(file=xlsx_input)
+df0 <- odeqcdr::contin_import(file=xlsx_input)
 
 df0.projects <- df0[["Projects"]]
 
@@ -270,7 +270,7 @@ df.results.final <- df.results.final %>%
   as.data.frame()
 
 # Export
-odeqcdr::export_contin(file=paste0(output_dir, "/", xlsx_output),
+odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
                        projects=df0.projects,
                        mloc=df0.mloc,
