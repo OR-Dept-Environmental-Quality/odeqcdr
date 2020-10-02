@@ -4,7 +4,7 @@
 #' such as field duplicates, field audits, or split samples. The data quality levels are assigned following DEQ’s Data Quality Matrix (DEQ, 2013).
 #' The data quality matrix defines the accuracy and precision criteria for equipment calibration and field audits respectively respectively.
 #'
-#' use [odeqcdr::dql_accuracy(]) to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
+#' use [odeqcdr::dql_accuracy()] to assign the data quality level using calibration verifications and/or pre- and post-deployment checks.
 #'
 #' Inputs into this function must retrieved from Oregon DEQ's continuous data submission template xlsx file v2.03.
 #' Use [odeqcdr::contin_import()] to get the list that hold the data frames used for this function's inputs.
