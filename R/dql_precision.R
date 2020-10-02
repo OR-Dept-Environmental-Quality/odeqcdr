@@ -15,7 +15,7 @@
 #' @param audits Data frame of the audit data generated using [odeqcdr::contin_import()].
 #' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
 #' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
-#' @param audit_only Boolean to indicate if the audit data frame should be returned with new columns for the audit sample DQL,
+#' @param audits_only Boolean to indicate if the audit data frame should be returned with new columns for the audit sample DQL,
 #' corresponding result value, result units, absolute difference between the result and audit, and an auto assigned row number. Default is FALSE.
 #' @export
 #' @return Vector of the precision DQL indexed in the same order as the result input. Or if audit_only=TRUE a data frame.

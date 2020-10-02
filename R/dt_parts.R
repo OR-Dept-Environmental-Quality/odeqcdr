@@ -16,7 +16,7 @@
 #' the timezone and the date/time changes. A date/time change is usually due to adjustment for DST.
 #'
 #' @param df Data frame to be evaluated.
-#' @param dattime_col Column name in df holding the POSIXct datetime values. Default is "datetime"
+#' @param datetime_col Column name in df holding the POSIXct datetime values. Default is "datetime"
 #' @param date_col Destination column name in df holding the POSIXct date values. Default is "Activity.Start.Date"
 #' @param time_col Destination column name in df holding the POSIXct time values. Default is "Activity.Start.Time".
 #' @param tz_col Destination column name in df holding the timezone string values. Default is "Activity.Start.End.Time.Zone".
