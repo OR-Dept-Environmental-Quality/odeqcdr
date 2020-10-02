@@ -4,10 +4,10 @@ library(odeqcdr)
 
 setwd("E://GitHub/odeqcdr/tests")
 
-#xlsx_input <- "ContinuousDataTemplate_example.xlsx"
-xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
+xlsx_input <- "ContinuousDataTemplate_example.xlsx"
+#xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
 
-output_dir <-"E:/GitHub/odeqcdr/tests"
+output_dir <-"E:/GitHub/odeqcdr/test_templates"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 df0 <- odeqcdr::contin_import(file=xlsx_input)
@@ -231,7 +231,8 @@ odeqcdr::launch_shiny()
 
 #- Make DQL and Status edits based on Shiny Review------------------------------
 # Edits can also be made in the xlsx. Just skip this step.
-# Results Worksheet
+
+# Results Worksheet edits
 reject.rows <- c(NA)
 final.rows <- c(NA)
 A.rows <- c(NA)
