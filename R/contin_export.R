@@ -2,7 +2,9 @@
 #'
 #' Export monitoring results into Oregon DEQ's continuous data submission template xlsx file format v2.03.
 #' This function will export a list with each element holding a data frame of the information for each spreadsheet in the template.
-#' The cell colors and quality control elements from the actual template are not included in the output
+#' The cell colors and quality control elements from the actual template are not included in the output xlsx.
+#'
+#' This function relies upon the [openxlsx] package.
 #'
 #' @param file The path and file name to the output xlsx file.
 #' @param org data frame holding Organization Details
@@ -12,9 +14,10 @@
 #' @param results data frame holding Results
 #' @param prepost data frame holding PrePost
 #' @param audits data frame holding Audit_Data
+#' @seealso [openxlsx]
 #' @export
 
-export_contin <- function(file, org, projects, mloc, deployment, results, prepost, audits) {
+contin_export <- function(file, org, projects, mloc, deployment, results, prepost, audits) {
 
   # remove period from column names
   names(projects) <- gsub("\\."," ", names(projects))
