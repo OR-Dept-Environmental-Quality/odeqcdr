@@ -6,14 +6,16 @@ A R package that provides QA/QC support for review of continuous data entered in
 ## Install
 
 ```R
-devtools::install_github('ODEQrmichie/odeqcdr', host = 'https://api.github.com', force = TRUE, upgrade='never')
+devtools::install_github('ODEQrmichie/odeqcdr', 
+                         host = 'https://api.github.com', 
+                         force = TRUE, upgrade='never')
 ```
 
 ## General Workflow
 
 This outlines the general workflow using the odeqcdr functions. Not all steps are included.
 
-See `r example.R` for a specfic example.
+See `example.R` for a specfic example.
 
 
 ```R
