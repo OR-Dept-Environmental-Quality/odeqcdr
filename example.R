@@ -237,20 +237,22 @@ reject.rows <- c(NA)
 final.rows <- c(NA)
 A.rows <- c(NA)
 B.rows <- c(NA)
-c.rows <- c(NA)
+C.rows <- c(NA)
 D.rows <- c(NA)
 E.rows <- c(NA)
 F.rows <- c(NA)
 
 df.results.final <- df4.results %>%
-  dplyr::mutate(Results.Status=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                row.results %in% final.rows ~ "Final"),
+  dplyr::mutate(Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
+                                                row.results %in% final.rows ~ "Final",
+                                                TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
                                       row.results %in% B.rows ~ "B",
-                                      row.results %in% B.rows ~ "C",
-                                      row.results %in% B.rows ~ "D",
-                                      row.results %in% B.rows ~ "E",
-                                      row.results %in% B.rows ~ "F"))
+                                      row.results %in% C.rows ~ "C",
+                                      row.results %in% D.rows ~ "D",
+                                      row.results %in% E.rows ~ "E",
+                                      row.results %in% F.rows ~ "F",
+                                      TRUE ~ rDQL))
 
 
 #- Output updated data back to xlsx template -----------------------------------
@@ -261,12 +263,12 @@ df.results.final <- df4.results %>%
 df.results.final <- df.results.final %>%
   dplyr::left_join(df1.results.units, by="row.results") %>%
   dplyr::mutate(Result.Value=dplyr::case_when(Result.Unit.orig=="deg F" ~ (Result.Value * (9 / 5)) + 32,
-                                              Result.Unit.org=="ug/l" ~ Result.Value * 1000,
+                                              Result.Unit.orig=="ug/l" ~ Result.Value * 1000,
                                               TRUE ~ Result.Value),
                 Result.Unit=dplyr::case_when(Result.Unit.orig=="deg F" ~ "deg F",
                                              Result.Unit.orig=="ug/l" ~ "ug/l",
                                              TRUE ~ Result.Unit)) %>%
-  dplyr::select(-Result.Unit.org) %>%
+  dplyr::select(-Result.Unit.orig) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
