@@ -2,7 +2,7 @@ library(dplyr)
 library(lutz)
 library(odeqcdr)
 
-setwd("E://GitHub/odeqcdr/tests")
+setwd("E://GitHub/odeqcdr/test_templates")
 
 xlsx_input <- "ContinuousDataTemplate_example.xlsx"
 #xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
@@ -243,14 +243,14 @@ E.rows <- c(NA)
 F.rows <- c(NA)
 
 df.results.final <- df4.results %>%
-  dplyr::mutate(Results.Status=dplyr::case_when(results.row %in% reject.rows ~ "Rejected",
-                                                results.row %in% final.rows ~ "Final"),
-                rDQL=dplyr::case_when(results.row %in% A.rows ~ "A",
-                                      results.row %in% B.rows ~ "B",
-                                      results.row %in% B.rows ~ "C",
-                                      results.row %in% B.rows ~ "D",
-                                      results.row %in% B.rows ~ "E",
-                                      results.row %in% B.rows ~ "F"))
+  dplyr::mutate(Results.Status=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
+                                                row.results %in% final.rows ~ "Final"),
+                rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
+                                      row.results %in% B.rows ~ "B",
+                                      row.results %in% B.rows ~ "C",
+                                      row.results %in% B.rows ~ "D",
+                                      row.results %in% B.rows ~ "E",
+                                      row.results %in% B.rows ~ "F"))
 
 
 #- Output updated data back to xlsx template -----------------------------------
