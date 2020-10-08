@@ -64,14 +64,14 @@ contin_export <- function(file, org, projects, mloc, deployment, results, prepos
     openxlsx::setColWidths(wb, sheet=sheet_name, cols=c(1:ncol(xlsx_list[[sheet_name]])), widths = "auto")
 
     openxlsx::addStyle(wb, sheet=sheet_name,
-                       rows=c(1:nrow(xlsx_list[[sheet_name]])),
+                       rows=c(1:nrow(xlsx_list[[sheet_name]])+1),
                        cols=c(1:ncol(xlsx_list[[sheet_name]])),
                        stack=TRUE, gridExpand = TRUE,
                        style=openxlsx::createStyle(valign = "top", fontName = "Arial", fontSize = 10))
 
   }
 
-  # Format datesand times
+  # Format dates and times
   date_format <- openxlsx::createStyle(numFmt = "yyyy/mm/dd")
   time_format <- openxlsx::createStyle(numFmt = "hh:mm")
   openxlsx::addStyle(wb,  sheet="Deployment", style = date_format, rows = 2:(nrow(deployment)+1), cols = c(4:5), stack=TRUE, gridExpand = TRUE)
