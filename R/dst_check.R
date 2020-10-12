@@ -24,21 +24,23 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
 
   #- Test---
   # df_test <- data.frame(Monitoring.Location.ID= rep("ORDEQ-12345",5),
-  #                       Activity.Start.Date=lubridate::ymd(rep("2020/03/08", 5),  tz = "UTC"),
-  #                       Activity.Start.Time=as.POSIXct(c("1:00:00", "1:30:00", "2:00:00", "2:30:00", "3:00:00"),
+  #                       Activity.Start.Date=lubridate::ymd(c(rep("2020/03/08", 5),
+  #                                                            rep("2020/11/01", 5)), tz = "UTC"),
+  #                       Activity.Start.Time=as.POSIXct(c("1:00:00", "1:30:00", "2:00:00", "2:30:00", "3:00:00",
+  #                                                        "1:00:00", "1:30:00", "2:00:00", "2:30:00", "3:00:00"),
   #                                                      format = "%H:%M:%S", origin = "1970-01-01", tz ="UTC"),
-  #                       Activity.Start.End.Time.Zone=c("PST", "PST", "PDT", "PDT", "PDT"),
-  #                       Characteristic.Name=rep("Temperature, water", 5),
-  #                       Equipment.ID=rep("abc", 5),
-  #                       tz_name=rep('America/Los_Angeles', 5))
+  #                       Activity.Start.End.Time.Zone=c("PST", "PST", "PDT", "PDT", "PDT",
+  #                                                      "PDT", "PDT", "PST", "PST", "PST"),
+  #                       Characteristic.Name=rep("Temperature, water", 10),
+  #                       Equipment.ID=rep("abc", 10),
+  #                       tz_name=rep('America/Los_Angeles', 10),
+  #                       tz_utc=rep('UTC', 10), stringsAsFactors = FALSE)
   #
-  # df_test$datetime <- datetime_make(date_col = df_test$Activity.Start.Date,
-  #                                   time_col = df_test$Activity.Start.Time,
-  #                                   tz_col=df_test$tz_name)
+  # df_test$datetime <- odeqcdr::dt_combine(df=df_test,
+  #                                         tz_col="tz_name")
   #
-  # df_test$datetime_utc <- datetime_make(date_col = df_test$Activity.Start.Date,
-  #                                   time_col = df_test$Activity.Start.Time,
-  #                                   tz_col="UTC")
+  # df_test$datetime_utc <- odeqcdr::dt_combine(df = df_test,
+  #                                             tz_col="tz_utc")
   # df <- df_test
   #
   # date_col <- "Activity.Start.Date"
