@@ -122,7 +122,6 @@ launch_shiny <- function(){
         shiny::dataTableOutput("intermediate")
       })
 
-
       ranges <- shiny::reactiveValues(x = NULL, y = NULL)
 
       shiny::observeEvent(input$plot1_dblclick, {
@@ -161,6 +160,11 @@ launch_shiny <- function(){
 
         p
       })
+
+      session$onSessionEnded(function() {
+        shiny::stopApp()
+      })
+
     })
   )
   shiny::runApp(app, launch.browser = TRUE)

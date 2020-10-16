@@ -146,7 +146,13 @@ launch_map <- function(mloc){
         map
 
       })
-    }))
+
+      session$onSessionEnded(function() {
+        shiny::stopApp()
+        })
+
+      })
+    )
 
   shiny::runApp(app, launch.browser = TRUE)
 
