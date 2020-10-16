@@ -1,4 +1,4 @@
-#' Pull PoSIXct datetime back into date, time, and time zone columns. Add comments if there are any differences.
+#' Pull POSIXct datetime back into date, time, and time zone columns. Add comments if there are any differences.
 #'
 #' This function will take a datetime POSIXct vector and save the date, time, and
 #' timezone elements into their respective destination columns. This is intended to apply any
