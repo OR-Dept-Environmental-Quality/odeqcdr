@@ -6,7 +6,7 @@ Authors@R:
            family = "Michie",
            role = c("aut", "cre"),
            email = "Ryan.Michie@state.or.us")
-Description: This package provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's Continuous Water Quality Data Template v2.03..
+Description: This package provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's Continuous Water Quality Data Template v2.03.
 Depends:
     R (>= 3.5),
 Imports:
