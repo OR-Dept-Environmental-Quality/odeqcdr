@@ -3,7 +3,6 @@
 #' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
 #' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
 #' @param project_id Unique Project ID from the projects data frame generated using  [odeqcdr::contin_import()]. Only accepts one project ID.
-#' @importFrom utils, setTxtProgressBar txtProgressBar
 #' @export
 #' @return returned data frame.
 
@@ -40,7 +39,7 @@ sumstats <-function(results, deployment, project_id) {
 
   # For loop for summary statistics -----------------------------------------
 
-  # Loop goes through each characteristc and generates summary stats
+  # Loop goes through each characteristic and generates summary stats
   # After loop, data gets pushed in to single table
   for (i in 1:length(unique_characteritics)){
 
