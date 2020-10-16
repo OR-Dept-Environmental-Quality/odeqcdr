@@ -14,10 +14,11 @@
 #' @param results data frame holding Results
 #' @param prepost data frame holding PrePost
 #' @param audits data frame holding Audit_Data
+#' @param sumstats Optional data frame holding the AWQMS summary statistics generated using [odeqcdr::sumstats]. Default is NULL.
 #' @seealso [openxlsx]
 #' @export
 
-contin_export <- function(file, org, projects, mloc, deployment, results, prepost, audits) {
+contin_export <- function(file, org, projects, mloc, deployment, results, prepost, audits, sumstats=NULL) {
 
   # remove period from column names
   names(projects) <- gsub("\\."," ", names(projects))
@@ -35,25 +36,50 @@ contin_export <- function(file, org, projects, mloc, deployment, results, prepos
   prepost <- prepost[, odeqcdr::cols_prepost()]
   audits <- audits[,odeqcdr::cols_audit()]
 
-  xlsx_list <- list(org, projects, mloc, deployment, results, prepost, audits)
-  names(xlsx_list) <- c("Organization Details",
-                        "Projects",
-                        "Monitoring_Locations",
-                        "Deployment",
-                        "Results",
-                        "PrePost",
-                        "Audit_Data")
+  if(is.null(sumstats)) {
+    xlsx_list <- list(org, projects, mloc, deployment, results, prepost, audits)
+    names(xlsx_list) <- c("Organization Details",
+                          "Projects",
+                          "Monitoring_Locations",
+                          "Deployment",
+                          "Results",
+                          "PrePost",
+                          "Audit_Data")
 
-  openxlsx::write.xlsx(xlsx_list,
-                       file=file,
-                       colWidths="auto",
-                       firstActiveRow=c(5,2,2,2,2,2,2),
-                       firstRow=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE),
-                       rowNames=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE), borders="rows",
-                       startCol=c(2,1,1,1,1,1,1), startRow=c(5,1,1,1,1,1,1),
-                       headerStyle=openxlsx::createStyle(fgFill = "#000000", halign = "LEFT", textDecoration = "Bold",
-                                                         wrapText = TRUE, border = "Bottom", fontColour = "white",
-                                                         fontName = "Arial", fontSize = 10))
+    openxlsx::write.xlsx(xlsx_list,
+                         file=file,
+                         colWidths="auto",
+                         firstActiveRow=c(5,2,2,2,2,2,2),
+                         firstRow=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE),
+                         rowNames=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE), borders="rows",
+                         startCol=c(2,1,1,1,1,1,1), startRow=c(5,1,1,1,1,1,1),
+                         headerStyle=openxlsx::createStyle(fgFill = "#000000", halign = "LEFT", textDecoration = "Bold",
+                                                           wrapText = TRUE, border = "Bottom", fontColour = "white",
+                                                           fontName = "Arial", fontSize = 10))
+
+  } else {
+
+    xlsx_list <- list(org, projects, mloc, deployment, results, prepost, audits, sumstats)
+    names(xlsx_list) <- c("Organization Details",
+                          "Projects",
+                          "Monitoring_Locations",
+                          "Deployment",
+                          "Results",
+                          "PrePost",
+                          "Audit_Data",
+                          "AWQMS_Sum_Stats")
+
+    openxlsx::write.xlsx(xlsx_list,
+                         file=file,
+                         colWidths="auto",
+                         firstActiveRow=c(5,2,2,2,2,2,2,2),
+                         firstRow=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE),
+                         rowNames=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE), borders="rows",
+                         startCol=c(2,1,1,1,1,1,1,1), startRow=c(5,1,1,1,1,1,1,1),
+                         headerStyle=openxlsx::createStyle(fgFill = "#000000", halign = "LEFT", textDecoration = "Bold",
+                                                           wrapText = TRUE, border = "Bottom", fontColour = "white",
+                                                           fontName = "Arial", fontSize = 10))
+  }
 
   wb <- openxlsx::loadWorkbook(file=file, isUnzipped = FALSE)
 
