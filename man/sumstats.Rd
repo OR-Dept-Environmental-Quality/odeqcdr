@@ -11,7 +11,7 @@ sumstats(results, deployment, project_id)
 
 \item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
 
-\item{projects_id}{Unique Project ID from the projects data frame generated using  \code{\link[=contin_import]{contin_import()}}. Only accepts one project ID.}
+\item{project_id}{Unique Project ID from the projects data frame generated using  \code{\link[=contin_import]{contin_import()}}. Only accepts one project ID.}
 }
 \value{
 returned data frame.
