@@ -2,7 +2,7 @@
 % Please edit documentation in R/dt_parts.R
 \name{dt_parts}
 \alias{dt_parts}
-\title{Pull PoSIXct datetime back into date, time, and time zone columns. Add comments if there are any differences.}
+\title{Pull POSIXct datetime back into date, time, and time zone columns. Add comments if there are any differences.}
 \usage{
 dt_parts(
   df,

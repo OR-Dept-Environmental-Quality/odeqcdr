@@ -4,7 +4,17 @@
 \alias{contin_export}
 \title{Export continuous result information from to template xlsx file.}
 \usage{
-contin_export(file, org, projects, mloc, deployment, results, prepost, audits)
+contin_export(
+  file,
+  org,
+  projects,
+  mloc,
+  deployment,
+  results,
+  prepost,
+  audits,
+  sumstats = NULL
+)
 }
 \arguments{
 \item{file}{The path and file name to the output xlsx file.}
@@ -22,6 +32,8 @@ contin_export(file, org, projects, mloc, deployment, results, prepost, audits)
 \item{prepost}{data frame holding PrePost}
 
 \item{audits}{data frame holding Audit_Data}
+
+\item{sumstats}{Optional data frame holding the AWQMS summary statistics generated using \link{sumstats}. Default is NULL.}
 }
 \description{
 Export monitoring results into Oregon DEQ's continuous data submission template xlsx file format v2.03.
