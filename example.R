@@ -3,11 +3,13 @@ library(lutz)
 library(odeqcdr)
 
 setwd("E://GitHub/odeqcdr/test_templates")
+#setwd("/Users/rmichie/GitHub/odeqcdr/test_templates")
 
 xlsx_input <- "ContinuousDataTemplate_example.xlsx"
 #xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
 
 output_dir <-"E:/GitHub/odeqcdr/test_templates"
+#output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 df0 <- odeqcdr::contin_import(file=xlsx_input)
@@ -46,6 +48,10 @@ df1.prepost <- dplyr::mutate(df0.prepost, row.prepost=dplyr::row_number())
 # Only needed for Results worksheet
 
 df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Result.Unit)
+
+#- Review Station Location -----------------------------------------------------
+
+odeqcdr::launch_map(mloc=df0.mloc)
 
 #- Check if the correct timezone is used ---------------------------------------
 # Check that monitoring stations located in the Pacific time zone have pacific time
@@ -254,6 +260,10 @@ df.results.final <- df4.results %>%
                                       row.results %in% F.rows ~ "F",
                                       TRUE ~ rDQL))
 
+# Generate Summary Stats -------------------------------------------------------
+
+df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df0.projects$Project.ID)
+
 
 #- Output updated data back to xlsx template -----------------------------------
 
@@ -280,4 +290,5 @@ odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        deployment=df1.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df2.audits)
+                       audits=df2.audits,
+                       sumstats=df.sumstats)
