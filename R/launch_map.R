@@ -6,6 +6,22 @@
 
 launch_map <- function(mloc){
 
+
+
+
+
+  popup_fun <- htmlwidgets::JS("
+          function (error, featureCollection) {
+            if (error || featureCollection.features.length === 0) {
+              return false;
+            } else {
+              return featureCollection.features[0].properties.ReachCode;
+            }
+          }
+          ")
+
+
+
   df.mloc <-  mloc %>%
     dplyr::mutate(choices=paste(Monitoring.Location.ID, Monitoring.Location.Name, sep = " - "))
 
@@ -36,18 +52,6 @@ launch_map <- function(mloc){
 
         zoom_mloc <- zoom_reactive()
 
-        #setView(-122.6006, 45.295541, 12)
-
-        popup_fun <- htmlwidgets::JS("
-          function (error, featureCollection) {
-            if (error || featureCollection.features.length === 0) {
-              return false;
-            } else {
-              return featureCollection.features[0].properties.CLASS_DESC;
-            }
-          }
-          ")
-
         map <- leaflet::leaflet() %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = zoom_mloc$zoom_level[1]) %>%
           leaflet::addTiles() %>%
@@ -74,7 +78,10 @@ launch_map <- function(mloc){
                                                                                          fillOpacity = 0.8,
                                                                                          bringToFront = TRUE,
                                                                                          sendToBack = TRUE),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\", \"+props.MonLocType+ \" \"+props.StationDes+\" \"}")
+                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.GNIS_Name+
+                                                                            \"<br><b>GNIS_ID: </b>\"+props.GNIS_ID+
+                                                                            \"<br><b>ReachCode: </b>\"+props.ReachCode+
+                                                                            \"<br><b>Permanent_Identifier: </b>\"+props.Permanent_Identifier+\" \"}")
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
@@ -88,8 +95,8 @@ launch_map <- function(mloc){
                                             markerType="circleMarker",
                                             markerOptions = leaflet::markerOptions(pane = "Points",
                                                                                    riseOnHover = TRUE),
-                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\", \"+props.MonLocType+ \" \"+props.StationDes+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\", \"+props.MonLocType+ \" \"+props.StationDes+\" \"}")
+                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\",\"+props.MonLocType+\",\"+props.StationDes+\" \"}"),
+                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\"<br> \"+props.MonLocType+ \"<br> \"+props.StationDes+\" \"}")
           )
 
         map <- map %>%
@@ -135,6 +142,24 @@ launch_map <- function(mloc){
                                                       "Hydrography",
                                                       "World Imagery"),
                                     options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
+          leaflet::addEasyButton(leaflet::easyButton(
+            icon = "fa-globe",
+            title = "Zoom to all Review Monitoring Statons",
+            onClick = htmlwidgets::JS("function(btn, map){
+                var groupLayer = map.layerManager.getLayerGroup('Review Stations');
+                map.fitBounds(groupLayer.getBounds());
+                 }"))) %>%
+          leaflet.extras::addDrawToolbar(
+            position = "bottomleft",
+            polylineOptions = FALSE,
+            polygonOptions = FALSE,
+            circleOptions = FALSE,
+            rectangleOptions = FALSE,
+            markerOptions = leaflet.extras::drawMarkerOptions(),
+            circleMarkerOptions = FALSE,
+            singleFeature = TRUE,
+            editOptions = leaflet.extras::editToolbarOptions()
+          ) %>%
           leaflet::addMeasure(
             position = "bottomleft",
             primaryLengthUnit = "meters",
