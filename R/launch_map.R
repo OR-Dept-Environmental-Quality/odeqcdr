@@ -6,21 +6,15 @@
 
 launch_map <- function(mloc){
 
-
-
-
-
-  popup_fun <- htmlwidgets::JS("
-          function (error, featureCollection) {
-            if (error || featureCollection.features.length === 0) {
-              return false;
-            } else {
-              return featureCollection.features[0].properties.ReachCode;
-            }
-          }
-          ")
-
-
+  # htmlwidgets::JS("
+  #         function (error, featureCollection) {
+  #           if (error || featureCollection.features.length === 0) {
+  #             return false;
+  #           } else {
+  #             return featureCollection.features[0].properties.ReachCode;
+  #           }
+  #         }
+  #         ")
 
   df.mloc <-  mloc %>%
     dplyr::mutate(choices=paste(Monitoring.Location.ID, Monitoring.Location.Name, sep = " - "))
@@ -32,7 +26,8 @@ launch_map <- function(mloc){
         shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
         shiny::selectInput(inputId="selectStation", label="Zoom to Station", choices = unique(df.mloc$choices), multiple=FALSE,
                            width='100%'),
-        leaflet::leafletOutput(outputId="map", width = "100%", height = "600px")
+        leaflet::leafletOutput(outputId="map", width = "100%", height = "600px"),
+        shiny::verbatimTextOutput("coords")
       )
     ),
 
@@ -48,6 +43,10 @@ launch_map <- function(mloc){
 
       })
 
+      x_reactive <-shiny::reactive({input$mouse_coords[1]})
+
+      y_reactive <-shiny::reactive({input$mouse_coords[2]})
+
       output$map <- leaflet::renderLeaflet({
 
         zoom_mloc <- zoom_reactive()
@@ -55,6 +54,20 @@ launch_map <- function(mloc){
         map <- leaflet::leaflet() %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = zoom_mloc$zoom_level[1]) %>%
           leaflet::addTiles() %>%
+          htmlwidgets::onRender(
+            "function(e,x){
+                    this.on('mousemove', function(e) {
+                        var lat = e.latlng.lat;
+                        var lng = e.latlng.lng;
+                        var coord = [lat, lng];
+                        Shiny.onInputChange('mouse_coords', coord)
+                    });
+                    this.on('mouseout', function(e) {
+                        Shiny.onInputChange('mouse_coords', null)
+                    })
+                }"
+          ) %>%
+          leafem::addMouseCoordinates() %>%
           leaflet::addMapPane("Tiles", zIndex = 420) %>%
           leaflet::addMapPane("Lines", zIndex = 430) %>%
           leaflet::addMapPane("Points", zIndex= 440) %>%
@@ -78,10 +91,14 @@ launch_map <- function(mloc){
                                                                                          fillOpacity = 0.8,
                                                                                          bringToFront = TRUE,
                                                                                          sendToBack = TRUE),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.GNIS_Name+
+                                            popupProperty = htmlwidgets::JS(paste0('function(error, feature){var props = feature.properties; return props.GNIS_Name+
                                                                             \"<br><b>GNIS_ID: </b>\"+props.GNIS_ID+
                                                                             \"<br><b>ReachCode: </b>\"+props.ReachCode+
-                                                                            \"<br><b>Permanent_Identifier: </b>\"+props.Permanent_Identifier+\" \"}")
+                                                                            \"<br><b>Measure: </b>\"',
+                                                                                   odeqcdr::get_measure(pid=htmlwidgets::JS('feature.properties.Permanent_Identifier'),
+                                                                                                        x=x_reactive(),
+                                                                                                        y=y_reactive()),'
+                                                                            \"<br><b>Permanent_Identifier: </b>\"+props.Permanent_Identifier+\" \"}'))
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
@@ -171,6 +188,16 @@ launch_map <- function(mloc){
         map
 
       })
+
+      output$coords <- shiny::renderText({
+        if(is.null(input$mouse_coords)) {
+          "Mouse outside of map"
+        } else {
+          paste0("Lat: ", input$mouse_coords[1],
+                 "\nLong: ", input$mouse_coords[2])
+        }
+      })
+
 
       session$onSessionEnded(function() {
         shiny::stopApp()
