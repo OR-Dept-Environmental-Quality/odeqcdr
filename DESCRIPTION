@@ -12,8 +12,10 @@ Depends:
 Imports:
     cellranger (>= 1.1.0),
     dplyr (>= 1.0.0),
+    geojsonsf (>= 2.0.0),
     ggplot2 (>= 3.3.0),
     htmlwidgets (>= 1.5.1),
+    httr (>= 1.4.0),
     leaflet (>= 2.0.0),
     leaflet.esri (>= 1.0.0),
     lubridate (>= 1.7.0),
