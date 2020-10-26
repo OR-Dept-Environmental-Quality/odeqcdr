@@ -4,10 +4,17 @@
 \alias{contin_import}
 \title{Import continuous information from a template xlsx file.}
 \usage{
-contin_import(file)
+contin_import(
+  file,
+  sheets = c("Organization Details", "Projects", "Monitoring_Locations", "Deployment",
+    "Results", "PrePost", "Audit_Data")
+)
 }
 \arguments{
 \item{file}{The path and file name to template xlsx file.}
+
+\item{sheets}{Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
+Accetable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".}
 }
 \value{
 list of each continuous template data
