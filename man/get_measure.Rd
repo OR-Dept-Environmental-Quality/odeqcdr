@@ -4,23 +4,28 @@
 \alias{get_measure}
 \title{Get measure value along Oregon DEQ's NHDH_OR_931v220.}
 \usage{
-get_measure(pid, x, y)
+get_measure(pid, x, y, return_sf = FALSE)
 }
 \arguments{
-\item{pid}{The NHD Permanent_Identifier}
+\item{pid}{The NHD Permanent_Identifier value as a string.}
 
-\item{x}{The longitude in decimal degrees}
+\item{x}{The longitude in decimal degrees.}
 
-\item{y}{The latitude in decimal degrees}
+\item{y}{The latitude in decimal degrees.}
+
+\item{return_sf}{Boolean. A TRUE value will return the sf object with data frame columns for Permanent_Identifier, ReachCode, measure, and snap_distance.
+FALSE will return the measure value as a character. Default is FALSE.}
 }
 \value{
 sf object with data frame columns for Permanent_Identifier, ReachCode, measure, and snap_distance
 }
 \description{
 The function will query Oregon DEQ's NHD feature service to determine the measure value along a target NHD flowline. The Permanent Identifier (pid) is
-used to select a specific reach from the feature service. The x and y coordinates are snapped to the nearest vertex on the selected flowline and the measure value determined. The point is
-This function is intended to be a helper function for \link{launch_map} although it may be used independently also.
+used to select a specific reach from the feature service. The x and y coordinates are snapped to the nearest vertex on the selected flowline and the measure value determined.
+If return_sf=TRUE the sf is projected into ESPG:4326 (WGS84) which is the expected default for \link{leaflet}.
 }
 \details{
+This function is intended to be a helper function for \link{launch_map} although it may be used independently as well.
+
 The feature service can be accessed at https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1
 }
