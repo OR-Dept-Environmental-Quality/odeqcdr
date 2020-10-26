@@ -10,6 +10,7 @@ xlsx_input <- "ContinuousDataTemplate_example.xlsx"
 
 output_dir <-"E:/GitHub/odeqcdr/test_templates"
 #output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
+
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 df0 <- odeqcdr::contin_import(file=xlsx_input)
@@ -36,6 +37,12 @@ checks_df <- odeqcdr::pre_checks(template_list = df0)
 # Show any failed checks (check_result=TRUE)
 checks_df[checks_df$check_result,]
 
+#- Review Station Location -----------------------------------------------------
+
+odeqcdr::launch_map(mloc=df0.mloc)
+
+# Make manual changes to the xlsx spreadsheet and re import if needed:
+df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
 #- Row numbers for indexing
 df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
@@ -48,10 +55,6 @@ df1.prepost <- dplyr::mutate(df0.prepost, row.prepost=dplyr::row_number())
 # Only needed for Results worksheet
 
 df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Result.Unit)
-
-#- Review Station Location -----------------------------------------------------
-
-odeqcdr::launch_map(mloc=df0.mloc)
 
 #- Check if the correct timezone is used ---------------------------------------
 # Check that monitoring stations located in the Pacific time zone have pacific time
