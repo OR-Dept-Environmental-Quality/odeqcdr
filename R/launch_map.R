@@ -26,8 +26,16 @@ launch_map <- function(mloc){
         shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
         shiny::selectInput(inputId="selectStation", label="Zoom to Station", choices = unique(df.mloc$choices), multiple=FALSE,
                            width='100%'),
-        leaflet::leafletOutput(outputId="map", width = "100%", height = "600px"),
-        shiny::verbatimTextOutput("coords")
+        leaflet::leafletOutput(outputId="map", width = "100%", height = "500px"),
+        #shiny::br(),
+        shiny::h6("NHD Info"),
+        shiny::verbatimTextOutput("NHDprintout"),
+        #shiny::br(),
+        shiny::h6("LLID Info"),
+        shiny::verbatimTextOutput("LLIDprintout"),
+        #shiny::br(),
+        shiny::h6("Latitude Longitude of Click"),
+        shiny::verbatimTextOutput("xyprintout")
       )
     ),
 
@@ -37,15 +45,11 @@ launch_map <- function(mloc){
 
         df.mloc.zoom <- df.mloc %>%
           dplyr::filter(choices==input$selectStation) %>%
-          dplyr::mutate(zoom_level=18)
+          dplyr::mutate(zoom_level=16)
 
         df.mloc.zoom
 
       })
-
-      x_reactive <-shiny::reactive({input$mouse_coords[1]})
-
-      y_reactive <-shiny::reactive({input$mouse_coords[2]})
 
       output$map <- leaflet::renderLeaflet({
 
@@ -54,23 +58,11 @@ launch_map <- function(mloc){
         map <- leaflet::leaflet() %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = zoom_mloc$zoom_level[1]) %>%
           leaflet::addTiles() %>%
-          htmlwidgets::onRender(
-            "function(e,x){
-                    this.on('mousemove', function(e) {
-                        var lat = e.latlng.lat;
-                        var lng = e.latlng.lng;
-                        var coord = [lat, lng];
-                        Shiny.onInputChange('mouse_coords', coord)
-                    });
-                    this.on('mouseout', function(e) {
-                        Shiny.onInputChange('mouse_coords', null)
-                    })
-                }"
-          ) %>%
           leafem::addMouseCoordinates() %>%
           leaflet::addMapPane("Tiles", zIndex = 420) %>%
-          leaflet::addMapPane("Lines", zIndex = 430) %>%
-          leaflet::addMapPane("Points", zIndex= 440) %>%
+          leaflet::addMapPane("Select", zIndex = 430) %>%
+          leaflet::addMapPane("Lines", zIndex = 440) %>%
+          leaflet::addMapPane("Points", zIndex= 450) %>%
           leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "World Imagery") %>%
           leaflet::addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer",
                                group = "Hydrography",
@@ -80,25 +72,34 @@ launch_map <- function(mloc){
                                attribution = '<a href="https://basemap.nationalmap.gov/arcgis/rest/services/USGSHydroCached/MapServer">USGS The National Map: National Hydrography Dataset.</a>',
                                layers = "0") %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1",
-                                            group = "NHD",
+                                            group = "NHD Streams",
+                                            layerId = "NHD",
                                             useServiceSymbology = FALSE,
                                             fitBounds = FALSE,
                                             stroke=TRUE,
                                             weight=2,
                                             fill=FALSE,
+                                            options = leaflet::leafletOptions(pane="Lines"),
                                             highlightOptions = leaflet::highlightOptions(color="black",
                                                                                          weight = 4,
                                                                                          fillOpacity = 0.8,
                                                                                          bringToFront = TRUE,
                                                                                          sendToBack = TRUE),
-                                            popupProperty = htmlwidgets::JS(paste0('function(error, feature){var props = feature.properties; return props.GNIS_Name+
-                                                                            \"<br><b>GNIS_ID: </b>\"+props.GNIS_ID+
-                                                                            \"<br><b>ReachCode: </b>\"+props.ReachCode+
-                                                                            \"<br><b>Measure: </b>\"',
-                                                                                   odeqcdr::get_measure(pid=htmlwidgets::JS('feature.properties.Permanent_Identifier'),
-                                                                                                        x=x_reactive(),
-                                                                                                        y=y_reactive()),'
-                                                                            \"<br><b>Permanent_Identifier: </b>\"+props.Permanent_Identifier+\" \"}'))
+          ) %>%
+          leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0",
+                                            group = "LLID Streams",
+                                            layerId = "LLID",
+                                            useServiceSymbology = FALSE,
+                                            fitBounds = FALSE,
+                                            stroke=TRUE,
+                                            weight=2,
+                                            fill=FALSE,
+                                            options = leaflet::leafletOptions(pane="Lines"),
+                                            highlightOptions = leaflet::highlightOptions(color="black",
+                                                                                         weight = 4,
+                                                                                         fillOpacity = 0.8,
+                                                                                         bringToFront = TRUE,
+                                                                                         sendToBack = TRUE),
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
@@ -155,7 +156,8 @@ launch_map <- function(mloc){
                                                                        pane = "Points")) %>%
           leaflet::addLayersControl(overlayGroups = c("Review Stations",
                                                       "AWQMS Stations",
-                                                      "NHD",
+                                                      "NHD Streams",
+                                                      "LLID Streams",
                                                       "Hydrography",
                                                       "World Imagery"),
                                     options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
@@ -166,45 +168,125 @@ launch_map <- function(mloc){
                 var groupLayer = map.layerManager.getLayerGroup('Review Stations');
                 map.fitBounds(groupLayer.getBounds());
                  }"))) %>%
-          leaflet.extras::addDrawToolbar(
-            position = "bottomleft",
-            polylineOptions = FALSE,
-            polygonOptions = FALSE,
-            circleOptions = FALSE,
-            rectangleOptions = FALSE,
-            markerOptions = leaflet.extras::drawMarkerOptions(),
-            circleMarkerOptions = FALSE,
-            singleFeature = TRUE,
-            editOptions = leaflet.extras::editToolbarOptions()
-          ) %>%
           leaflet::addMeasure(
             position = "bottomleft",
             primaryLengthUnit = "meters",
             primaryAreaUnit = "sqmeters",
             activeColor = "#3D535D",
             completedColor = "#7D4479") %>%
-          leaflet::hideGroup(c("Hydrography","World Imagery"))
+          leaflet::hideGroup(c("LLID Streams","Hydrography","World Imagery"))
 
         map
 
       })
 
-      output$coords <- shiny::renderText({
-        if(is.null(input$mouse_coords)) {
-          "Mouse outside of map"
+      shiny::observe({
+        leaflet::leafletProxy("map") %>%
+          leaflet::clearPopups()
+
+        click <- input$map_geojson_click
+        if(is.null(click))
+          return(NULL)
+
+        if(click$id=="NHD") {
+
+          NHDpoint <-odeqcdr::get_measure(pid=click$properties$Permanent_Identifier,
+                                       x=click$lng,
+                                       y=click$lat,
+                                       return_sf=TRUE)
+
+          reachcode <- click$properties$ReachCode
+          request_NHD <- httr::GET(url = paste0("https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1/query?where=",
+                                                "ReachCode='",reachcode,
+                                                "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
+          response_NHD <- httr::content(request_NHD, as = "text", encoding = "UTF-8")
+
+          shiny::isolate({
+            leaflet::leafletProxy("map") %>%
+              leaflet::removeGeoJSON(layerId="reachcodeClick") %>%
+              leaflet::removeMarker(layerId="measurePoint") %>%
+              leaflet::addGeoJSON(geojson = response_NHD,
+                                  layerId = "reachcodeClick",
+                                  group = "NHD Streams",
+                                  fill=FALSE,
+                                  color="orange",
+                                  weight = 6,
+                                  opacity = 0.7,
+                                  options=leaflet::leafletOptions(pane="Select")) %>%
+              leaflet::addCircleMarkers(data=NHDpoint,
+                                        layerId = "measurePoint",
+                                        group = "NHD Streams",
+                                        color="red")
+
+            output$NHDprintout <- shiny::renderPrint({
+              df <- sf::st_drop_geometry(NHDpoint)
+              df
+            })
+
+          })
         } else {
-          paste0("Lat: ", input$mouse_coords[1],
-                 "\nLong: ", input$mouse_coords[2])
+
+          # LLID
+          rm_point <-odeqcdr::get_llidrm(llid=click$properties$LLID,
+                                      x=click$lng,
+                                      y=click$lat,
+                                      max_length = 150,
+                                      return_sf=TRUE)
+
+          llid <- click$properties$LLID
+          pathLLID <- "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/query?where="
+
+          request_LLID <- httr::GET(url = paste0(pathLLID,
+                                                 "LLID='",
+                                                 llid,
+                                                 "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
+          response_LLID <- httr::content(request_LLID, as = "text", encoding = "UTF-8")
+
+          shiny::isolate({
+            leaflet::leafletProxy("map") %>%
+              leaflet::removeGeoJSON(layerId="llidClick") %>%
+              leaflet::removeMarker(layerId="llidrmPoint") %>%
+              leaflet::addGeoJSON(geojson = response_LLID,
+                                  layerId = "llidClick",
+                                  group = "LLID Streams",
+                                  fill=FALSE,
+                                  color="green",
+                                  weight = 6,
+                                  opacity = 0.7,
+                                  options=leaflet::leafletOptions(pane="Select")) %>%
+              leaflet::addCircleMarkers(data=rm_point,
+                                        layerId = "llidrmPoint",
+                                        group = "LLID Streams",
+                                        color="blue")
+
+            output$LLIDprintout <- shiny::renderPrint({
+              df <- sf::st_drop_geometry(rm_point)
+              df
+            })
+
+          })
         }
+
       })
 
+      output$xyprintout <- shiny::renderPrint({
+
+        map_click <- input$map_click
+
+        if(is.null(map_click))
+          return("NULL")
+
+        df <- data.frame(Latitude=map_click$lat,
+                         Longitude=map_click$lng)
+        df
+      })
 
       session$onSessionEnded(function() {
         shiny::stopApp()
-        })
-
       })
-    )
+
+    })
+  )
 
   shiny::runApp(app, launch.browser = TRUE)
 
