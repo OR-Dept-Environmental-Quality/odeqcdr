@@ -48,7 +48,7 @@ split_lines <- function(input_lines, max_length, id) {
 
   rm(too_long)
 
-  split_lines <- st_sf(split_points[c(id, "split_fID")], geometry = st_sfc(split_lines, crs = input_crs))
+  split_lines <- sf::st_sf(split_points[c(id, "split_fID")], geometry = st_sfc(split_lines, crs = input_crs))
 
   return(split_lines)
 }
