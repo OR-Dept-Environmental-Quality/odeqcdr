@@ -7,7 +7,7 @@ A R package that provides QA/QC support for review of continuous data entered in
 
 ```R
 devtools::install_github('DEQrmichie/odeqcdr', host = 'https://api.github.com', 
-                         force = TRUE, upgrade='never')
+                         dependencies= TRUE, force = TRUE, upgrade='never')
 ```
 
 ## General Workflow
@@ -24,6 +24,9 @@ odeqcdr::contin_import()
 #- Completeness Pre checks -
 odeqcdr::pre_checks()
 
+#- Monitoring Station location checks
+odeqcdr::launch_map()
+
 #- Datetime Checks
 
 # timezone check
@@ -34,7 +37,7 @@ odeqcdr::dst_check()
 # Make a datetime
 odeqcdr::dt_combine()
 
-# Apply datetime corrections and make comments
+# Apply datetime corrections
 odeqcdr::dt_parts()
 
 #- Unit Conversion -
