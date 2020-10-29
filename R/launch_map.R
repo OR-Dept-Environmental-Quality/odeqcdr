@@ -27,13 +27,10 @@ launch_map <- function(mloc){
         shiny::selectInput(inputId="selectStation", label="Zoom to Station", choices = unique(df.mloc$choices), multiple=FALSE,
                            width='100%'),
         leaflet::leafletOutput(outputId="map", width = "100%", height = "500px"),
-        #shiny::br(),
         shiny::h6("NHD Info"),
         shiny::verbatimTextOutput("NHDprintout"),
-        #shiny::br(),
         shiny::h6("LLID Info"),
         shiny::verbatimTextOutput("LLIDprintout"),
-        #shiny::br(),
         shiny::h6("Latitude Longitude of Click"),
         shiny::verbatimTextOutput("xyprintout")
       )
@@ -103,8 +100,8 @@ launch_map <- function(mloc){
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
+                                            layerId = "AWQMS_Stations",
                                             fill= TRUE,
-                                            color= "red",
                                             fillColor="red",
                                             stroke = FALSE,
                                             fillOpacity = 0.5,
@@ -113,13 +110,14 @@ launch_map <- function(mloc){
                                             markerType="circleMarker",
                                             markerOptions = leaflet::markerOptions(pane = "Points",
                                                                                    riseOnHover = TRUE),
-                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\",\"+props.MonLocType+\",\"+props.StationDes+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\"<br> \"+props.MonLocType+ \"<br> \"+props.StationDes+\" \"}")
+                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\",\"+props.StationDes+\",\"+props.MonLocType+\" \"}"),
+                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.mloc_uid+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
           )
 
         map <- map %>%
           leaflet::addAwesomeMarkers(data = unique(df.mloc),
                                      group ="Review Stations",
+                                     layerId = "Review_Stations",
                                      popup = ~paste0("<b>Monitoring.Location.ID:</b> ", Monitoring.Location.ID, "<br>",
                                                      "<b>Monitoring.Location.Name:</b> ", Monitoring.Location.Name, "<br>",
                                                      "<b>Monitoring.Location.Type:</b> ", Monitoring.Location.Type, "<br>",
@@ -149,7 +147,7 @@ launch_map <- function(mloc){
                                                                   iconColor = 'black',
                                                                   library = 'glyphicon',
                                                                   markerColor = "orange"),
-                                     popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 300),
+                                     popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
                                      labelOptions = list(offset = c(0,-25), opacity = 0.9, textsize = "14px"),
                                      options = ~leaflet::markerOptions(zIndexOffset = 0,
                                                                        riseOnHover = TRUE,
@@ -187,6 +185,10 @@ launch_map <- function(mloc){
         click <- input$map_geojson_click
         if(is.null(click))
           return(NULL)
+
+        if(click$id=="AWQMS_Stations") {
+          return(NULL)
+        }
 
         if(click$id=="NHD") {
 
@@ -274,7 +276,7 @@ launch_map <- function(mloc){
         map_click <- input$map_click
 
         if(is.null(map_click))
-          return("NULL")
+          return(NULL)
 
         df <- data.frame(Latitude=map_click$lat,
                          Longitude=map_click$lng)
