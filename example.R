@@ -44,7 +44,7 @@ odeqcdr::launch_map(mloc=df0.mloc)
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
-#- Row numbers for indexing
+#- Row numbers for indexing ----------------------------------------------------
 df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
 df1.audits <- dplyr::mutate(df0.audits, row.audits=dplyr::row_number())
 df1.deployment <- dplyr::mutate(df0.deployment, row.deployment=dplyr::row_number())
@@ -91,7 +91,7 @@ df1.audits <- df1.audits %>%
 df1.results[df1.results$tz_wrong, c("row.results")]
 df1.audits[df1.audits$tz_wrong, c("row.audits")]
 
-# check and correct for DST ---------------------------------------------------
+# check and correct for DST ----------------------------------------------------
 # dst_check() checks that date and time conform to changes between
 # Daylight Time and Standard Time. The output is an updated PoSIXct datetime.
 # This also runs dt_combine(). Time change corrections will be identified by stations and periods.
@@ -123,7 +123,7 @@ df1.deployment$Deployment.End.Date <- odeqcdr::dt_combine(df=df1.deployment,
                                                           time_val = "23:59:00",
                                                           tz_col="tz_name")
 
-#- Apply any corrections back to date and time columns Adds Comments ------------
+#- Apply any corrections back to date and time columns Adds Comments -----------
 
 df2.results <- odeqcdr::dt_parts(df=df1.results)
 
