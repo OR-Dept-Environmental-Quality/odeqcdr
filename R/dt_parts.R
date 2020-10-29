@@ -20,7 +20,7 @@
 #' @param date_col Destination column name in df holding the POSIXct date values. Default is "Activity.Start.Date"
 #' @param time_col Destination column name in df holding the POSIXct time values. Default is "Activity.Start.Time".
 #' @param tz_col Destination column name in df holding the timezone string values. Default is "Activity.Start.End.Time.Zone".
-#' @param comment_col Column name in df holding the comment column. Default is "Result.Comment".
+#' @param comment_col Column name in df holding the comment column. Default is "Datetime.Comment".
 #' @param tz_comment Comment in string format to add to comment_col if the timezone changed. Default is "corrected timezone".
 #' @param dst_comment Comment in string format to add to comment_col if their was a time change. Default is "corrected for DST".
 #' @param tzdst_comment Comment in string format to add to comment_col if their was a timezone and time change. Default is "corrected timezone and for DST".
@@ -29,7 +29,7 @@
 
 dt_parts <- function(df, datetime_col="datetime", date_col="Activity.Start.Date",
                      time_col="Activity.Start.Time",  tz_col="Activity.Start.End.Time.Zone",
-                     comment_col="Result.Comment",
+                     comment_col="Datetime.Comment",
                      tz_comment="corrected timezone",
                      dst_comment="corrected for DST",
                      tzdst_comment="corrected timezone and for DST") {
@@ -81,7 +81,7 @@ dt_parts <- function(df, datetime_col="datetime", date_col="Activity.Start.Date"
   }
 
   if(!comment_col %in% names(df)) {
-    stop(print(paste("comment_col",comment_col,"is not a column in df.")))
+    df[,c(comment_col)] <- NA
   }
 
   # Add temporary fields

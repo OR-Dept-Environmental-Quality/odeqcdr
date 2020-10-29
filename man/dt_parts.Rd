@@ -10,7 +10,7 @@ dt_parts(
   date_col = "Activity.Start.Date",
   time_col = "Activity.Start.Time",
   tz_col = "Activity.Start.End.Time.Zone",
-  comment_col = "Result.Comment",
+  comment_col = "Datetime.Comment",
   tz_comment = "corrected timezone",
   dst_comment = "corrected for DST",
   tzdst_comment = "corrected timezone and for DST"
@@ -27,7 +27,7 @@ dt_parts(
 
 \item{tz_col}{Destination column name in df holding the timezone string values. Default is "Activity.Start.End.Time.Zone".}
 
-\item{comment_col}{Column name in df holding the comment column. Default is "Result.Comment".}
+\item{comment_col}{Column name in df holding the comment column. Default is "Datetime.Comment".}
 
 \item{tz_comment}{Comment in string format to add to comment_col if the timezone changed. Default is "corrected timezone".}
 
