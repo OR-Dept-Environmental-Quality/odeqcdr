@@ -101,23 +101,25 @@ launch_map <- function(mloc){
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
                                             layerId = "AWQMS_Stations",
-                                            fill= TRUE,
-                                            fillColor="red",
-                                            stroke = FALSE,
                                             fillOpacity = 0.5,
-                                            useServiceSymbology = FALSE,
+                                            useServiceSymbology = TRUE,
                                             fitBounds = FALSE,
-                                            markerType="circleMarker",
-                                            markerOptions = leaflet::markerOptions(pane = "Points",
-                                                                                   riseOnHover = TRUE),
-                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.mloc_uid+\",\"+props.StationDes+\",\"+props.MonLocType+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.mloc_uid+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
+                                            #markerType="circleMarker",
+                                            markerOptions = leaflet::markerOptions(zIndexOffset = 0,
+                                                                                   riseOnHover = TRUE,
+                                                                                   pane = "Points"),
+                                            labelOptions = leaflet::labelOptions(offset = c(0,0),
+                                                                                 opacity = 0.9,
+                                                                                 textsize = "14px",
+                                                                                 sticky = FALSE),
+                                            popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
+                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.MLocID+\": \"+props.StationDes+\" \"}"),
+                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.MLocID+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
           )
 
         map <- map %>%
           leaflet::addAwesomeMarkers(data = unique(df.mloc),
                                      group ="Review Stations",
-                                     layerId = "Review_Stations",
                                      popup = ~paste0("<b>Monitoring.Location.ID:</b> ", Monitoring.Location.ID, "<br>",
                                                      "<b>Monitoring.Location.Name:</b> ", Monitoring.Location.Name, "<br>",
                                                      "<b>Monitoring.Location.Type:</b> ", Monitoring.Location.Type, "<br>",
@@ -148,10 +150,13 @@ launch_map <- function(mloc){
                                                                   library = 'glyphicon',
                                                                   markerColor = "orange"),
                                      popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
-                                     labelOptions = list(offset = c(0,-25), opacity = 0.9, textsize = "14px"),
+                                     labelOptions = list(offset = c(0,-25), opacity = 0.9, textsize = "14px", sticky = FALSE),
                                      options = ~leaflet::markerOptions(zIndexOffset = 0,
                                                                        riseOnHover = TRUE,
                                                                        pane = "Points")) %>%
+          leaflet::groupOptions(group="NHD Streams", zoomLevels = 12:20) %>%
+          leaflet::groupOptions(group="LLID Streams", zoomLevels = 10:20) %>%
+          leaflet::groupOptions(group="AWQMS Stations", zoomLevels = 10:20) %>%
           leaflet::addLayersControl(overlayGroups = c("Review Stations",
                                                       "AWQMS Stations",
                                                       "NHD Streams",
