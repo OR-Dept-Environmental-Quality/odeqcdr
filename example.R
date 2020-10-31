@@ -44,6 +44,16 @@ odeqcdr::launch_map(mloc=df0.mloc)
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
+# Record Final Status
+reject.mlocs <- c(NA)
+final.mlocs <- c("BXDW", "BXON", "BXOS", "GRZL", "JNSX", "JNYI", "JNYU", "LWRX", "SDAL")
+
+df1.mloc <- df0.mloc %>%
+  dplyr::mutate(Monitoring.Location.Status.ID=dplyr::case_when(Monitoring.Location.ID %in% reject.mlocs  ~ "Rejected",
+                                                  Monitoring.Location.ID %in% final.mlocs  ~ "Final",
+                                                  TRUE ~ Monitoring.Location.Status.ID))
+
+
 #- Row numbers for indexing ----------------------------------------------------
 df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
 df1.audits <- dplyr::mutate(df0.audits, row.audits=dplyr::row_number())
