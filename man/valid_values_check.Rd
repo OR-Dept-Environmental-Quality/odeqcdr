@@ -8,14 +8,20 @@ valid_values_check(col, vals)
 }
 \arguments{
 \item{col}{Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
-The name can be formatted as shown in the xlsx template or in R format derived using \code{\link[=make.names]{make.names()}}.}
+col is passed to \link{valid_values} to get the valid values.
+The col name can be formatted as shown in the xlsx template or in R format derived using \link{make.names}.
+If you need to determine the correct value for col see \link{cols_audit}, \link{cols_deploy}, \link{cols_mloc}, \link{cols_prepost}, or \link{cols_results}.}
 
-\item{vals}{vector of values to evaluate.}
+\item{vals}{Vector of values to evaluate.}
 }
 \value{
-vector of valid values or list of all valid values.
+Vector of boolean values indicating if the value is a valid value
 }
 \description{
-This function will return valid values for certain columns in the continuous
-data submission template xlsx file v2.03. NA is included as a valid value for columns that are optional or conditional.
+This function will evaluate if a value for certain columns in the continuous
+data submission template xlsx file v2.03 are valid values. Returns TRUE if valid and FALSE if not.
+NA is included as a valid value for columns that are optional or conditional.
+}
+\seealso{
+\link{valid_values}
 }
