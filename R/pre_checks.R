@@ -21,127 +21,40 @@ pre_checks <- function(template_list) {
   prepost_import <- template_list[["PrePost"]]
   audit_import <- template_list[["Audit_Data"]]
 
-
   mlocid_locations <- unique(locations_import$Monitoring.Location.ID)
   mlocid_results <- unique(results_import$Monitoring.Location.ID)
-
-  mlocid_char_deploy <- unique(paste(deployment_import$Monitoring.Location.ID, deployment_import$Characteristic.Name))
-  mlocid_char_results <- unique(paste(results_import$Monitoring.Location.ID, results_import$Characteristic.Name))
-  mlocid_char_audits <- unique(paste(audit_import$Monitoring.Location.ID, audit_import$Characteristic.Name))
 
   eqiupid_char_results <- unique(paste(results_import$Equipment.ID, results_import$Characteristic.Name))
   eqiupid_char_prepost <- unique(paste(prepost_import$Equipment.ID, prepost_import$Characteristic.Name))
 
-  #- Valid Value checks --------------------------------------------------------
-
-  mloc_val_msg <- c(
-    "Invalid value in column Monitoring.Location.Type",
-    "Invalid value in column Horizontal.Datum",
-    "Invalid value in column Coordinate.Collection.Method",
-    "Invalid value in column Tribal.Land",
-    "Invalid value in column County.Name",
-    "Invalid value in column State.Code",
-    "Invalid value in column HUC.8.Code"
-  )
-
-  mloc_val_check <- c(
-    any(!valid_values_check(col="Monitoring.Location.Type", vals=locations_import$Monitoring.Location.Type)),
-    any(!valid_values_check(col="Horizontal.Datum", vals=locations_import$Horizontal.Datum)),
-    any(!valid_values_check(col="Coordinate.Collection.Method", vals=locations_import$Coordinate.Collection.Method)),
-    any(!valid_values_check(col="Tribal.Land", vals=locations_import$Tribal.Land)),
-    any(!valid_values_check(col="County.Name", vals=locations_import$County.Name)),
-    any(!valid_values_check(col="State.Code", vals=locations_import$State.Code)),
-    any(!valid_values_check(col="HUC.8.Code", vals=locations_import$HUC.8.Code))
-  )
-
-
-  deploy_val_msg <- c(
-    "Invalid value in column Characteristic.Name",
-    "Invalid value in column Sample.Depth.Unit",
-    "Invalid value in column Sample.Media",
-    "Invalid value in column Sample.Sub.Media"
-  )
-
-  deploy_val_check <- c(
-    any(!valid_values_check(col="Characteristic.Name", vals=deployment_import$Characteristic.Name)),
-    any(!valid_values_check(col="Sample.Depth.Unit", vals=deployment_import$Sample.Depth.Unit)),
-    any(!valid_values_check(col="Sample.Media", vals=deployment_import$Sample.Media)),
-    any(!valid_values_check(col="Sample.Sub.Media", vals=deployment_import$Sample.Sub.Media))
-  )
-
-  results_val_msg <- c(
-    "Invalid value in column Activity.Start.End.Time.Zone",
-    "Invalid value in column Characteristic.Name",
-    "Invalid value in column Result.Unit",
-    "Invalid value in column Result.Status.ID"
-  )
-
-  results_val_check <- c(
-    any(!valid_values_check(col="Activity.Start.End.Time.Zone", vals=results_import$Activity.Start.End.Time.Zone)),
-    any(!valid_values_check(col="Characteristic.Name", vals=results_import$Characteristic.Name)),
-    any(!valid_values_check(col="Result.Unit", vals=results_import$Result.Unit)),
-    any(!valid_values_check(col="Result.Status.ID", vals=results_import$Result.Status.ID))
-  )
-
-  prepost_val_msg <- c(
-    "Invalid value in column Characteristic.Name",
-    "Invalid value in column Equipment.Result.Unit",
-    "Invalid value in column Reference.Result.Unit"
-  )
-
-  prepost_val_check <- c(
-    any(!valid_values_check(col="Characteristic.Name", vals=prepost_import$Characteristic.Name)),
-    any(!valid_values_check(col="Equipment.Result.Unit", vals=prepost_import$Equipment.Result.Unit)),
-    any(!valid_values_check(col="Reference.Result.Unit", vals=prepost_import$Reference.Result.Unit))
-  )
-
-  audit_val_msg <- c(
-    "Invalid value in column ctivity.Start.End.Time.Zone",
-    "Invalid value in column Activity.Type",
-    "Invalid value in column Sample.Collection.Method",
-    "Invalid value in column Characteristic.Name",
-    "Invalid value in column Result.Unit",
-    "Invalid value in column Result.Analytical.Method.ID",
-    "Invalid value in column Result.Analytical.Method.Context",
-    "Invalid value in column Result.Value.Type",
-    "Invalid value in column Result.Status.ID",
-    "Invalid value in column Result.Measure.Qualifier"
-  )
-
-  audit_val_check <- c(
-    any(!valid_values_check(col="Activity.Start.End.Time.Zone", vals=audit_import$Activity.Start.End.Time.Zone)),
-    any(!valid_values_check(col="Activity.Type", vals=audit_import$Activity.Type)),
-    any(!valid_values_check(col="Sample.Collection.Method", vals=audit_import$Sample.Collection.Method)),
-    any(!valid_values_check(col="Characteristic.Name", vals=audit_import$Characteristic.Name)),
-    any(!valid_values_check(col="Result.Unit", vals=audit_import$Result.Unit)),
-    any(!valid_values_check(col="Result.Analytical.Method.ID", vals=audit_import$Result.Analytical.Method.ID)),
-    any(!valid_values_check(col="Result.Analytical.Method.Context", vals=audit_import$Result.Analytical.Method.Context)),
-    any(!valid_values_check(col="Result.Value.Type", vals=audit_import$Result.Value.Type)),
-    any(!valid_values_check(col="Result.Status.ID", vals=audit_import$Result.Status.ID)),
-    any(!valid_values_check(col="Result.Measure.Qualifier", vals=audit_import$Result.Measure.Qualifier))
-  )
+  audits_deploy <- unique(paste0("[",audit_import$Monitoring.Location.ID," - ",audits_import$Equipment.ID," - ",audit_import$Characteristic.Name,"]"))
+  results_deploy <- unique(paste0("[",results_import$Monitoring.Location.ID," - ",results_import$Equipment.ID," - ", results_import$Characteristic.Name,"]"))
+  deploy_deploy <- unique(paste0("[",deployment_import$Monitoring.Location.ID," - ",deployment_import$Equipment.ID," - ", deployment_import$Characteristic.Name,"]"))
 
   #- Projects --------------------------------------------------------------------
 
-  projects_msg <- c("No data",
+  projects_msg <- c("Worksheet is empty",
                     "Missing Project IDs",
                     "Missing Project Name",
                     "Missing Project Description",
                     "Missing Approved QAPP Indicator",
                     "Approval Agency Name is NA but QAPP Approved QAPP Indicator = 'Yes'")
 
-  projects_checks <- c(
-    (nrow(projects_import) <= 0),
-    any(is.na(projects_import$Project.ID)),
-    any(is.na(projects_import$Project.Name)),
-    any(is.na(projects_import$Project.Description)),
-    any(is.na(projects_import$Approved.QAPP.Indicator)),
-    any(!projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name))
+  projects_checks <- list((nrow(projects_import) <= 0),
+                          is.na(projects_import$Project.ID),
+                          is.na(projects_import$Project.Name),
+                          is.na(projects_import$Project.Description),
+                          is.na(projects_import$Approved.QAPP.Indicator),
+                          !projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name)
   )
+
+  projects_result <- unlist(lapply(projects_checks, FUN=any, na.rm = TRUE))
+  projects_t_row <- unlist(lapply(projects_checks, FUN=odeqcdr:::tstr))
 
   projects_df <- data.frame(worksheet=rep("Projects",length(projects_msg)),
                             check=projects_msg,
-                            check_result=projects_checks)
+                            check_result=projects_result,
+                            TRUE_row=projects_t_row)
 
   #- Monitoring_Locations-------------------------------------------------------
 
@@ -150,102 +63,118 @@ pre_checks <- function(template_list) {
   if(mloc_ml_check) {
 
     mloc_ml_missing <- mlocid_results[!mlocid_results %in% locations_import$Monitoring.Location.ID]
-    mloc_ml_msg <- paste0("Monitoring Location ID in results and not in Monitoring_Locations. Missing IDs include: ",
-                          paste0(mloc_ml_missing, collapse = ", "))
+    mloc_ml_msg <- "Monitoring Location ID in Results and not in Monitoring_Locations. Missing IDs listed in TRUE_row."
+    mloc_ml_t <- paste0(mloc_ml_missing, collapse = ", ")
 
   } else {
 
     mloc_ml_msg <- paste0("Monitoring Location ID in results and not in Monitoring_Locations")
+    mloc_ml_t <- NA
   }
 
-  mloc_msg <- c("No data",
+  mloc_msg <- c("Worksheet is empty",
                 mloc_ml_msg,
                 "Missing Monitoring Location Name",
-                "Missing Monitoring Location Type",
+                "Invalid value in column Monitoring.Location.Type",
                 "Missing Latitude",
                 "Missing Longitude",
+                "Invalid value in column Horizontal.Datum",
+                "Invalid value in column Coordinate.Collection.Method",
+                "Invalid value in column Tribal.Land",
+                "Invalid value in column County.Name",
+                "Invalid value in column State.Code",
+                "Invalid value in column HUC.8.Code",
                 "One or more Latitude values outside of Oregon",
                 "One or more Longitude values outside of Oregon",
-                "Missing Horizontal Datum",
-                "Missing Coordinate Collection Method",
                 "Source Map Scale is NA but Coordinate Collection Method ='Interpolation-Map'",
-                "Missing Tribal Land",
                 "County Name is NA but State Code=='OR'",
                 "Missing Alternatve Context 1 because Alternate ID 1 has information",
                 "Missing Alternatve Context 2 because Alternate ID 2 has information",
                 "Missing Reach code",
                 "Missing Measure",
                 "Missing LLID",
-                "Missing River Mile",
-                mloc_val_msg
+                "Missing River Mile"
   )
 
-  mloc_checks <- c((nrow(locations_import) <= 0),
-                   mloc_ml_check,
-                   any(is.na(locations_import$Monitoring.Location.Name)),
-                   any(is.na(locations_import$Monitoring.Location.Type)),
-                   any(is.na(locations_import$Latitude)),
-                   any(is.na(locations_import$Longitude)),
-                   any(!(locations_import$Latitude >= 41.8075 & locations_import$Latitude <= 46.3586)),
-                   any(!(locations_import$Longitude >= -124.7777 & locations_import$Longitude <= -116.3519)),
-                   any(is.na(locations_import$Horizontal.Datum)),
-                   any(is.na(locations_import$Coordinate.Collection.Method)),
-                   any((locations_import$Coordinate.Collection.Method=="Interpolation-Map" & is.na(locations_import$Source.Map.Scale))),
-                   any(is.na(locations_import$Tribal.Land)),
-                   any(!is.na(locations_import$County.Name) & !locations_import$State.Code=="OR"),
-                   any((!is.na(locations_import$Alternate.ID.1) & is.na(locations_import$Alternate.Context.1))),
-                   any((!is.na(locations_import$Alternate.ID.2) & is.na(locations_import$Alternate.Context.2))),
-                   any(is.na(locations_import$Reachcode)),
-                   any(is.na(locations_import$Measure)),
-                   any(is.na(locations_import$LLID)),
-                   any(is.na(locations_import$River.Mile)),
-                   mloc_val_check
+  mloc_checks <- list((nrow(locations_import) <= 0),
+                      mloc_ml_check,
+                      is.na(locations_import$Monitoring.Location.Name),
+                      !valid_values_check(col="Monitoring.Location.Type", vals=locations_import$Monitoring.Location.Type),
+                      is.na(locations_import$Latitude),
+                      is.na(locations_import$Longitude),
+                      !valid_values_check(col="Horizontal.Datum", vals=locations_import$Horizontal.Datum),
+                      !valid_values_check(col="Coordinate.Collection.Method", vals=locations_import$Coordinate.Collection.Method),
+                      !valid_values_check(col="Tribal.Land", vals=locations_import$Tribal.Land),
+                      !valid_values_check(col="County.Name", vals=locations_import$County.Name),
+                      !valid_values_check(col="State.Code", vals=locations_import$State.Code),
+                      !valid_values_check(col="HUC.8.Code", vals=locations_import$HUC.8.Code),
+                      (locations_import$Latitude < 41.8075 | locations_import$Latitude > 46.3586),
+                      (locations_import$Longitude < -124.6155 | locations_import$Longitude > -116.3519),
+                      (locations_import$Coordinate.Collection.Method=="Interpolation-Map" & is.na(locations_import$Source.Map.Scale)),
+                      !is.na(locations_import$County.Name) & !locations_import$State.Code=="OR",
+                      (!is.na(locations_import$Alternate.ID.1) & is.na(locations_import$Alternate.Context.1)),
+                      (!is.na(locations_import$Alternate.ID.2) & is.na(locations_import$Alternate.Context.2)),
+                      is.na(locations_import$Reachcode),
+                      is.na(locations_import$Measure),
+                      is.na(locations_import$LLID),
+                      is.na(locations_import$River.Mile)
   )
 
-  mloc_df <- data.frame(worksheet=rep("Monitoring_Locations",length(mloc_msg)),
-                                      check=mloc_msg,
-                        check_result=mloc_checks)
+  mloc_result <- unlist(lapply(mloc_checks, FUN=any, na.rm = TRUE))
+  mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr))
+  mloc_t_row[2] <- mloc_ml_t
+
+  mloc_df <- data.frame(worksheet=rep("Monitoring_Locations", length(mloc_msg)),
+                        check=mloc_msg,
+                        check_result=mloc_result,
+                        TRUE_row=mloc_t_row)
 
   #- Deployment-----------------------------------------------------------------
 
-  deploy_ml_check <- any(!mlocid_char_deploy %in% mlocid_char_results)
+  deploy_d_check <- any(!deploy_deploy %in% results_deploy)
 
-  if(deploy_ml_check) {
-    deploy_ml_missing <- mlocid_char_deploy[!mlocid_char_deploy %in% mlocid_char_results]
+  if(deploy_d_check) {
+    deploy_d_missing <- deploy_deploy[!deploy_deploy %in% results_deploy]
 
-    deploy_ml_msg <- paste0("Monitoring Location ID in Results and not in Deployment. Missing IDs include: ",
-                            paste0(deploy_ml_missing, collapse = ", "))
+    deploy_d_msg <- "Deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results and not in Deployment. Missing deployments listed in TRUE_row."
+    deploy_d_t <-paste0(deploy_d_missing, collapse = ", ")
   } else {
-    deploy_ml_msg <- paste0("Monitoring Location ID in Results and not in Deployment")
+    deploy_d_msg <- "Deployments in Results and not in Deployment."
+    deploy_d_t <- NA
   }
 
-  deploy_msg <- c("No data",
-                  deploy_ml_msg,
+  deploy_msg <- c("Worksheet is empty",
+                  deploy_d_msg,
                   "Missing Equipment ID",
-                  "Missing Characteristic Name",
+                  "Invalid value in column Characteristic.Name",
                   "Missing Deployment Start Date",
                   "Missing Deployment End Date",
                   "Missing Sample Depth",
-                  "Missing Sample Depth Unit",
-                  "Missing Sample Media",
-                  deploy_val_msg
+                  "Invalid value in column Sample.Depth.Unit",
+                  "Invalid value in column Sample.Media",
+                  "Invalid value in column Sample.Sub.Media"
   )
 
-  deploy_checks <- c((nrow(deployment_import) <= 0),
-                     deploy_ml_check,
-                     any(is.na(deployment_import$Equipment.ID)),
-                     any(is.na(deployment_import$Characteristic.Name)),
-                     any(is.na(deployment_import$Deployment.Start.Date)),
-                     any(is.na(deployment_import$Deployment.End.Date)),
-                     any(is.na(deployment_import$Sample.Depth)),
-                     any(is.na(deployment_import$Sample.Depth.Unit)),
-                     any(is.na(deployment_import$Sample.Media)),
-                     deploy_val_check
+  deploy_checks <- list((nrow(deployment_import) <= 0),
+                        deploy_d_check,
+                        is.na(deployment_import$Equipment.ID),
+                        !valid_values_check(col="Characteristic.Name", vals=deployment_import$Characteristic.Name),
+                        is.na(deployment_import$Deployment.Start.Date),
+                        is.na(deployment_import$Deployment.End.Date),
+                        is.na(deployment_import$Sample.Depth),
+                        !valid_values_check(col="Sample.Depth.Unit", vals=deployment_import$Sample.Depth.Unit),
+                        !valid_values_check(col="Sample.Media", vals=deployment_import$Sample.Media),
+                        !valid_values_check(col="Sample.Sub.Media", vals=deployment_import$Sample.Sub.Media)
   )
+
+  deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
+  deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr))
+  deploy_t_row[2] <- deploy_d_t
 
   deploy_df <- data.frame(worksheet=rep("Deployment",length(deploy_msg)),
                           check=deploy_msg,
-                          check_result=deploy_checks)
+                          check_result=deploy_result,
+                          TRUE_row=deploy_t_row)
 
   #- Results--------------------------------------------------------------------
 
@@ -254,42 +183,46 @@ pre_checks <- function(template_list) {
   if(result_ml_check) {
     result_ml_missing <- mlocid_results[!mlocid_results %in% locations_import$Monitoring.Location.ID]
 
-    result_ml_msg <- paste0("Monitoring Location ID in Monitoring_Locations and not in Results. Missing IDs include: ",
-                            paste0(result_ml_missing, collapse = ", "))
+    result_ml_msg <- paste0("Monitoring Location ID in Monitoring_Locations and not in Results. Missing IDs listed in TRUE_row.")
+    result_ml_t <- paste0(result_ml_missing, collapse = ", ")
   } else {
     result_ml_msg <- paste0("Monitoring Location ID in Monitoring_Locations and not in Results")
+    result_ml_t <- NA
   }
 
-  result_msg <- c("No data",
-                  result_ml_msg,
-                  "Missing Activity Start Date",
-                  "Missing Activity Start Time",
-                  "Missing Activity Start/End Time Zone",
-                  "Missing Equipment ID #",
-                  "Missing Characteristic Name",
-                  "Missing Result Value",
-                  "Missing Result Unit",
-                  "Missing Result Status ID",
-                  results_val_msg
+  results_msg <- c(
+    "Worksheet is empty",
+    result_ml_msg,
+    "Missing Activity Start Date",
+    "Missing Activity Start Time",
+    "Invalid value in column Activity.Start.End.Time.Zone",
+    "Missing Equipment ID #",
+    "Invalid value in column Characteristic.Name",
+    "Missing Result Value",
+    "Invalid value in column Result.Unit",
+    "Invalid value in column Result.Status.ID"
   )
 
-
-  result_checks <- c((nrow(results_import) <= 0),
-                     result_ml_check,
-                     any(is.na(results_import$Activity.Start.Date)),
-                     any(is.na(results_import$Activity.Start.Time)),
-                     any(is.na(results_import$Activity.Start.End.Time.Zone)),
-                     any(is.na(results_import$Equipment.ID)),
-                     any(is.na(results_import$Characteristic.Name)),
-                     any(is.na(results_import$Result.Value)),
-                     any(is.na(results_import$Result.Unit)),
-                     any(is.na(results_import$Result.Status.ID)),
-                     results_val_check
+  results_checks <- list((nrow(results_import) <= 0),
+                         result_ml_check,
+                         is.na(results_import$Activity.Start.Date),
+                         is.na(results_import$Activity.Start.Time),
+                         !valid_values_check(col="Activity.Start.End.Time.Zone", vals=results_import$Activity.Start.End.Time.Zone),
+                         is.na(results_import$Equipment.ID),
+                         !valid_values_check(col="Characteristic.Name", vals=results_import$Characteristic.Name),
+                         is.na(results_import$Result.Value),
+                         !valid_values_check(col="Result.Unit", vals=results_import$Result.Unit),
+                         !valid_values_check(col="Result.Status.ID", vals=results_import$Result.Status.ID)
   )
 
-  result_df <- data.frame(worksheet=rep("Results",length(result_msg)),
-                          check=result_msg,
-                          check_result=result_checks)
+  results_result <- unlist(lapply(results_checks, FUN=any, na.rm = TRUE))
+  results_t_row <- unlist(lapply(results_checks, FUN=odeqcdr:::tstr))
+  results_t_row[2] <- result_ml_t
+
+  result_df <- data.frame(worksheet=rep("Results",length(results_msg)),
+                          check=results_msg,
+                          check_result=results_result,
+                          TRUE_row=results_t_row)
 
   #- PrePost--------------------------------------------------------------------
 
@@ -298,95 +231,110 @@ pre_checks <- function(template_list) {
   if(prepost_eqid_check) {
     prepost_eqid_missing <- eqiupid_char_prepost[!eqiupid_char_prepost %in% eqiupid_char_results]
 
-    prepost_eqid_msg <- paste0("Missing PrePost Results for Equipment IDs that are in Results worksheet. Missing IDs include: ",
-                               paste0(prepost_eqid_missing, collapse = ", "))
+    prepost_eqid_msg <- "Missing PrePost Results for Equipment IDs that are in Results worksheet. Missing IDs listed in TRUE_row"
+    prepost_eqid_t <- paste0(prepost_eqid_missing, collapse = ", ")
   } else {
     prepost_eqid_msg <- paste0("Missing PrePost Results for Equipment IDs that are in Results worksheet.")
+    prepost_eqid_t <- NA
   }
 
-  prepost_msg <- c("No data",
+
+  prepost_msg <- c("Worksheet is empty",
                    prepost_eqid_msg,
-                   "Missing Characteristic Name",
+                   "Invalid value in column Characteristic.Name",
                    "Missing Equipment Result Value",
-                   "Missing Equipment Result Unit",
+                   "Invalid value in column Equipment.Result.Unit",
                    "Missing Reference Result Value",
-                   "Missing Reference Result Unit",
-                   "Missing Reference ID",
-                   prepost_val_msg
+                   "Invalid value in column Reference.Result.Unit",
+                   "Missing Reference ID"
   )
 
-  prepost_checks <- c((nrow(prepost_import) <= 0),
-                      prepost_eqid_check,
-                      any(is.na(prepost_import$Characteristic.Name)),
-                      any(is.na(prepost_import$Equipment.Result.Value)),
-                      any(is.na(prepost_import$Equipment.Result.Unit)),
-                      any(is.na(prepost_import$Reference.Result.Value)),
-                      any(is.na(prepost_import$Reference.Result.Unit)),
-                      any(is.na(prepost_import$Reference.ID)),
-                      prepost_val_check
+  prepost_checks <- list((nrow(prepost_import) <= 0),
+                         prepost_eqid_check,
+                         !valid_values_check(col="Characteristic.Name", vals=prepost_import$Characteristic.Name),
+                         is.na(prepost_import$Equipment.Result.Value),
+                         !valid_values_check(col="Equipment.Result.Unit", vals=prepost_import$Equipment.Result.Unit),
+                         is.na(prepost_import$Reference.Result.Value),
+                         !valid_values_check(col="Reference.Result.Unit", vals=prepost_import$Reference.Result.Unit),
+                         is.na(prepost_import$Reference.ID)
   )
+
+  prepost_result <- unlist(lapply(prepost_checks, FUN=any, na.rm = TRUE))
+  prepost_t_row <- unlist(lapply(prepost_checks, FUN=odeqcdr:::tstr))
+  prepost_t_row[2] <- prepost_eqid_t
 
   prepost_df <- data.frame(worksheet=rep("PrePost",length(prepost_msg)),
                            check=prepost_msg,
-                           check_result=prepost_checks)
+                           check_result=prepost_result,
+                           TRUE_row=prepost_t_row)
 
   #- Audit Data-----------------------------------------------------------------
 
-  audit_ml_check <- any(!mlocid_char_audits %in% mlocid_char_results)
+  audit_d_check <- any(!audits_deploy %in% results_deploy)
 
-  if(audit_ml_check) {
-    audit_ml_missing <- mlocid_char_audits[!mlocid_char_audits %in% mlocid_char_results]
+  if(audit_d_check) {
+    audit_d_missing <- audits_deploy[!audits_deploy %in% results_deploy]
 
-    audit_ml_msg <- paste0("Audits missing for some some Monitoring Location ID/Characteristic Names in Results worksheet. Missing audits for these IDs: ",
-                           paste0(audit_ml_missing, collapse = ", "))
+    audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet. Missing audits for deployments listed in TRUE_row."
+    audit_d_t <- paste0(audit_ml_missing, collapse = ", ")
+
   } else {
-    audit_ml_msg <- paste0("Audits missing for some Monitoring Location ID/Characteristic Names in Results worksheet")
+    audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet")
+    audit_d_t <- NA
   }
 
-
-  audit_msg <- c("No data",
-                 audit_ml_msg,
+  audit_msg <- c("Worksheet is empty",
+                 audit_d_msg,
                  "Missing Project ID",
                  "Missing Activity Start Date",
                  "Missing Activity Start Time",
                  "Missing Activity End Date",
                  "Missing Activity End Time",
-                 "Missing Activity Start End Time Zone",
-                 "Missing Activity Type",
+                 "Invalid value in column Activity.Start.End.Time.Zone",
+                 "Invalid value in column Activity.Type",
                  "Missing Activity ID",
                  "Missing Equipment ID",
-                 "Missing Sample Collection Method",
-                 "Missing Characteristic Name",
+                 "Invalid value in column Sample.Collection.Method",
+                 "Invalid value in column Characteristic.Name",
                  "Missing Result Value",
-                 "Missing Result Unit",
-                 "Missing Result Analytical Method ID",
-                 "Missing Result Status ID",
-                 audit_val_msg
+                 "Invalid value in column Result.Unit",
+                 "Invalid value in column Result.Analytical.Method.ID",
+                 "Invalid value in column Result.Analytical.Method.Context",
+                 "Invalid value in column Result.Value.Type",
+                 "Invalid value in column Result.Status.ID",
+                 "Invalid value in column Result.Measure.Qualifier"
   )
 
-  audit_checks <- c((nrow(audit_import) <= 0),
-                    audit_ml_check,
-                    any(is.na(audit_import$Project.ID)),
-                    any(is.na(audit_import$Activity.Start.Date)),
-                    any(is.na(audit_import$Activity.Start.Time)),
-                    any(is.na(audit_import$Activity.End.Date)),
-                    any(is.na(audit_import$Activity.End.Time)),
-                    any(is.na(audit_import$Activity.Start.End.Time.Zone)),
-                    any(is.na(audit_import$Activity.Type)),
-                    any(is.na(audit_import$Activity.ID)),
-                    any(is.na(audit_import$Equipment.ID)),
-                    any(is.na(audit_import$Sample.Collection.Method)),
-                    any(is.na(audit_import$Characteristic.Name)),
-                    any(is.na(audit_import$Result.Value)),
-                    any(is.na(audit_import$Result.Unit)),
-                    any(is.na(audit_import$Result.Analytical.Method.ID)),
-                    any(is.na(audit_import$Result.Status.ID)),
-                    audit_val_check
+  audit_checks <- list((nrow(audit_import) <= 0),
+                       audit_d_check,
+                       is.na(audit_import$Project.ID),
+                       is.na(audit_import$Activity.Start.Date),
+                       is.na(audit_import$Activity.Start.Time),
+                       is.na(audit_import$Activity.End.Date),
+                       is.na(audit_import$Activity.End.Time),
+                       !valid_values_check(col="Activity.Start.End.Time.Zone", vals=audit_import$Activity.Start.End.Time.Zone),
+                       !valid_values_check(col="Activity.Type", vals=audit_import$Activity.Type),
+                       is.na(audit_import$Activity.ID),
+                       is.na(audit_import$Equipment.ID),
+                       !valid_values_check(col="Sample.Collection.Method", vals=audit_import$Sample.Collection.Method),
+                       !valid_values_check(col="Characteristic.Name", vals=audit_import$Characteristic.Name),
+                       is.na(audit_import$Result.Value),
+                       !valid_values_check(col="Result.Unit", vals=audit_import$Result.Unit),
+                       !valid_values_check(col="Result.Analytical.Method.ID", vals=audit_import$Result.Analytical.Method.ID),
+                       !valid_values_check(col="Result.Analytical.Method.Context", vals=audit_import$Result.Analytical.Method.Context),
+                       !valid_values_check(col="Result.Value.Type", vals=audit_import$Result.Value.Type),
+                       !valid_values_check(col="Result.Status.ID", vals=audit_import$Result.Status.ID),
+                       !valid_values_check(col="Result.Measure.Qualifier", vals=audit_import$Result.Measure.Qualifier)
   )
+
+  audit_result <- unlist(lapply(audit_checks, FUN=any, na.rm = TRUE))
+  audit_t_row <- unlist(lapply(audit_checks, FUN=odeqcdr:::tstr))
+  audit_t_row[2] <- audit_d_t
 
   audit_df <- data.frame(worksheet=rep("Audit_Data",length(audit_msg)),
                          check=audit_msg,
-                         check_result=audit_checks)
+                         check_result=audit_result,
+                         TRUE_row=audit_t_row)
 
   checks_df <- rbind(projects_df, mloc_df, deploy_df, result_df, prepost_df, audit_df)
 
