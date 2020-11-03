@@ -4,10 +4,13 @@
 \alias{contin_results_csv}
 \title{Import continuous result information from a template csv file.}
 \usage{
-contin_results_csv(col_rename = NULL)
+contin_results_csv(path = NULL, col_rename = NULL)
 }
 \arguments{
-\item{col_rename}{named character vector, with new names as values, and old names as names.}
+\item{path}{The path to the directory where the csv files are saved. Default is NULL which implements the \link{choose.dir} function on windows OS
+or \link[rstudioapi:file-dialogs]{rstudioapi::selectDirectory} on Mac/Linux OS when using Rstudio. If Rstudio is not avaibile a path must be provided.}
+
+\item{col_rename}{named character vector, with new names as values, and old names as names.c("new_name=old_name")}
 }
 \value{
 data frame
