@@ -15,11 +15,11 @@ pre_checks <- function(template_list) {
   # Test
   #template_list=df0
 
-
   # The following are invalid characters in Monitoring Location IDs
   # ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; : < > / ? [space]
   invalid_chars <- "\\~+|\\`+|\\!+|\\@+|\\#+|\\$+|\\%+|\\^+|\\&+|\\*+|\\(+|\\)+|\\[+|\\{+|\\]+|\\}+|\\;+|\\:+|\"+|\'+|\\,+|\\|+|\\\\+|[<>]|\\/+|\\?+|\\s+"
 
+  org_import <- template_list[["Organization_Details"]]
   projects_import <- template_list[["Projects"]]
   locations_import <- template_list[["Monitoring_Locations"]]
   deployment_import <- template_list[["Deployment"]]
@@ -37,7 +37,32 @@ pre_checks <- function(template_list) {
   results_deploy <- unique(paste0("[",results_import$Monitoring.Location.ID," - ",results_import$Equipment.ID," - ", results_import$Characteristic.Name,"]"))
   deploy_deploy <- unique(paste0("[",deployment_import$Monitoring.Location.ID," - ",deployment_import$Equipment.ID," - ", deployment_import$Characteristic.Name,"]"))
 
-  #- Projects --------------------------------------------------------------------
+  #- Organization Details ------------------------------------------------------
+
+  org_msg <- c("Missing Organization Name",
+               "Missing Address",
+               "Missing Phone Number",
+               "Missing Email",
+               "Missing response to Type(s) of Data Submitted",
+               "Missing response to Prior DEQ Data Submission")
+
+  org_checks <- c(
+    is.na(org_import$value[1]),
+    is.na(org_import$value[3]),
+    is.na(org_import$value[4]),
+    is.na(org_import$value[6]),
+    is.na(org_import$value[9]),
+    is.na(org_import$value[11])
+  )
+
+  org_t_row <- ifelse(org_checks, c(1,3,4,6,9,11) + 5, NA)
+
+  org_df <- data.frame(worksheet=rep("Organization Details",length(org_msg)),
+                          check=org_msg,
+                          check_result=org_checks,
+                          TRUE_row=org_t_row)
+
+  #- Projects ------------------------------------------------------------------
 
   projects_msg <- c("Worksheet is empty",
                     "Missing value in column Project.IDs",
@@ -286,7 +311,7 @@ pre_checks <- function(template_list) {
     audit_d_missing <- audits_deploy[!audits_deploy %in% results_deploy]
 
     audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet. Missing audits for deployments listed in TRUE_row."
-    audit_d_t <- paste0(audit_ml_missing, collapse = ", ")
+    audit_d_t <- paste0(audit_d_missing, collapse = ", ")
 
   } else {
     audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet")
@@ -346,7 +371,7 @@ pre_checks <- function(template_list) {
                          check_result=audit_result,
                          TRUE_row=audit_t_row)
 
-  checks_df <- rbind(projects_df, mloc_df, deploy_df, result_df, prepost_df, audit_df)
+  checks_df <- rbind(org_df, projects_df, mloc_df, deploy_df, result_df, prepost_df, audit_df)
 
   return(checks_df)
 
