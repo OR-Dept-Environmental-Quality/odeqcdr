@@ -12,7 +12,13 @@
 
 pre_checks <- function(template_list) {
 
+  # Test
   #template_list=df0
+
+
+  # The following are invalid characters in Monitoring Location IDs
+  # ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; : < > / ? [space]
+  invalid_chars <- "\\~+|\\`+|\\!+|\\@+|\\#+|\\$+|\\%+|\\^+|\\&+|\\*+|\\(+|\\)+|\\[+|\\{+|\\]+|\\}+|\\;+|\\:+|\"+|\'+|\\,+|\\|+|\\\\+|[<>]|\\/+|\\?+|\\s+"
 
   projects_import <- template_list[["Projects"]]
   locations_import <- template_list[["Monitoring_Locations"]]
@@ -27,18 +33,18 @@ pre_checks <- function(template_list) {
   eqiupid_char_results <- unique(paste(results_import$Equipment.ID, results_import$Characteristic.Name))
   eqiupid_char_prepost <- unique(paste(prepost_import$Equipment.ID, prepost_import$Characteristic.Name))
 
-  audits_deploy <- unique(paste0("[",audit_import$Monitoring.Location.ID," - ",audits_import$Equipment.ID," - ",audit_import$Characteristic.Name,"]"))
+  audits_deploy <- unique(paste0("[",audit_import$Monitoring.Location.ID," - ",audit_import$Equipment.ID," - ",audit_import$Characteristic.Name,"]"))
   results_deploy <- unique(paste0("[",results_import$Monitoring.Location.ID," - ",results_import$Equipment.ID," - ", results_import$Characteristic.Name,"]"))
   deploy_deploy <- unique(paste0("[",deployment_import$Monitoring.Location.ID," - ",deployment_import$Equipment.ID," - ", deployment_import$Characteristic.Name,"]"))
 
   #- Projects --------------------------------------------------------------------
 
   projects_msg <- c("Worksheet is empty",
-                    "Missing Project IDs",
-                    "Missing Project Name",
-                    "Missing Project Description",
-                    "Missing Approved QAPP Indicator",
-                    "Approval Agency Name is NA but QAPP Approved QAPP Indicator = 'Yes'")
+                    "Missing value in column Project.IDs",
+                    "Missing value in column Project.Name",
+                    "Missing value in column Project.Description",
+                    "Missing value in column Approved.QAPP.Indicator",
+                    "Value in column Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'")
 
   projects_checks <- list((nrow(projects_import) <= 0),
                           is.na(projects_import$Project.ID),
@@ -74,30 +80,34 @@ pre_checks <- function(template_list) {
 
   mloc_msg <- c("Worksheet is empty",
                 mloc_ml_msg,
-                "Missing Monitoring Location Name",
+                "Value in column Monitoring.Location.ID is > 16 characters",
+                'Value in column in Monitoring.Location.ID has an invalid character: ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; : \' \" < > / ? [space]',
+                "Missing value in column Monitoring.Location.Name",
                 "Invalid value in column Monitoring.Location.Type",
-                "Missing Latitude",
-                "Missing Longitude",
+                "Missing value in column Latitude",
+                "Missing value in column Longitude",
                 "Invalid value in column Horizontal.Datum",
                 "Invalid value in column Coordinate.Collection.Method",
                 "Invalid value in column Tribal.Land",
                 "Invalid value in column County.Name",
                 "Invalid value in column State.Code",
                 "Invalid value in column HUC.8.Code",
-                "One or more Latitude values outside of Oregon",
-                "One or more Longitude values outside of Oregon",
-                "Source Map Scale is NA but Coordinate Collection Method ='Interpolation-Map'",
-                "County Name is NA but State Code=='OR'",
-                "Missing Alternatve Context 1 because Alternate ID 1 has information",
-                "Missing Alternatve Context 2 because Alternate ID 2 has information",
-                "Missing Reach code",
-                "Missing Measure",
-                "Missing LLID",
-                "Missing River Mile"
+                "Value in column Latitude is outside of Oregon",
+                "Value in column Longitude is outside of Oregon",
+                "Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'",
+                "Value in column County.Name is NA but value in column State.Code=='OR'",
+                "Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information",
+                "Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information",
+                "Missing value in column Reachcode",
+                "Missing value in column Measure",
+                "Missing value in column LLID",
+                "Missing value in column River.Mile"
   )
 
   mloc_checks <- list((nrow(locations_import) <= 0),
                       mloc_ml_check,
+                      nchar(locations_import$Monitoring.Location.ID) > 16,
+                      grepl(pattern=invalid_chars, x=locations_import$Monitoring.Location.ID),
                       is.na(locations_import$Monitoring.Location.Name),
                       !valid_values_check(col="Monitoring.Location.Type", vals=locations_import$Monitoring.Location.Type),
                       is.na(locations_import$Latitude),
@@ -145,11 +155,11 @@ pre_checks <- function(template_list) {
 
   deploy_msg <- c("Worksheet is empty",
                   deploy_d_msg,
-                  "Missing Equipment ID",
+                  "Missing value in column Equipment.ID",
                   "Invalid value in column Characteristic.Name",
-                  "Missing Deployment Start Date",
-                  "Missing Deployment End Date",
-                  "Missing Sample Depth",
+                  "Missing value in column Deployment.Start.Date",
+                  "Missing value in column Deployment.End.Date",
+                  "Missing value in column Sample.Depth",
                   "Invalid value in column Sample.Depth.Unit",
                   "Invalid value in column Sample.Media",
                   "Invalid value in column Sample.Sub.Media"
@@ -193,12 +203,12 @@ pre_checks <- function(template_list) {
   results_msg <- c(
     "Worksheet is empty",
     result_ml_msg,
-    "Missing Activity Start Date",
-    "Missing Activity Start Time",
+    "Missing value in column Activity.Start.Date",
+    "Missing value in column Activity.Start.Time",
     "Invalid value in column Activity.Start.End.Time.Zone",
-    "Missing Equipment ID #",
+    "Missing value in column Equipment.ID",
     "Invalid value in column Characteristic.Name",
-    "Missing Result Value",
+    "Missing value in column Result.Value",
     "Invalid value in column Result.Unit",
     "Invalid value in column Result.Status.ID"
   )
@@ -242,11 +252,11 @@ pre_checks <- function(template_list) {
   prepost_msg <- c("Worksheet is empty",
                    prepost_eqid_msg,
                    "Invalid value in column Characteristic.Name",
-                   "Missing Equipment Result Value",
+                   "Missing value in column Equipment.Result.Value",
                    "Invalid value in column Equipment.Result.Unit",
-                   "Missing Reference Result Value",
+                   "Missing value in column Reference.Result.Value",
                    "Invalid value in column Reference.Result.Unit",
-                   "Missing Reference ID"
+                   "Missing value in column Reference.ID"
   )
 
   prepost_checks <- list((nrow(prepost_import) <= 0),
@@ -285,18 +295,18 @@ pre_checks <- function(template_list) {
 
   audit_msg <- c("Worksheet is empty",
                  audit_d_msg,
-                 "Missing Project ID",
-                 "Missing Activity Start Date",
-                 "Missing Activity Start Time",
-                 "Missing Activity End Date",
-                 "Missing Activity End Time",
+                 "Missing value in column Project.ID",
+                 "Missing value in column Activity.Start.Date",
+                 "Missing value in column Activity.Start.Time",
+                 "Missing value in column Activity.End.Date",
+                 "Missing value in column Activity.End.Time",
                  "Invalid value in column Activity.Start.End.Time.Zone",
                  "Invalid value in column Activity.Type",
-                 "Missing Activity ID",
-                 "Missing Equipment ID",
+                 "Missing value in column Activity.ID",
+                 "Missing value in column Equipment.ID",
                  "Invalid value in column Sample.Collection.Method",
                  "Invalid value in column Characteristic.Name",
-                 "Missing Result Value",
+                 "Missing value in column Result.Value",
                  "Invalid value in column Result.Unit",
                  "Invalid value in column Result.Analytical.Method.ID",
                  "Invalid value in column Result.Analytical.Method.Context",
