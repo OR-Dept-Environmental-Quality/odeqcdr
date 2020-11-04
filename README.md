@@ -21,13 +21,15 @@ See `example.R` for a specfic example.
 #- Import the xlsx template -
 odeqcdr::contin_import()
 
+#- Set Project ID -
+
 #- Completeness Pre checks -
 odeqcdr::pre_checks()
 
-#- Monitoring Station location checks
+#- Monitoring location checks -
 odeqcdr::launch_map()
 
-#- Datetime Checks
+#- Datetime Checks -
 
 # timezone check
 
@@ -53,10 +55,13 @@ odeqcdr::dql_precision()
 # Flag potential anomalies
 odeqcdr::anomaly_check()
 
-# Launch Shiny app for further review.
+# Launch Shiny app for further review
 odeqcdr::launch_shiny()
 
-#- Make DQL, Result Status, and Result Comment edits -
+#- Make DQL and Result Status edits -
+
+#- Generate Summary Stats -
+odeqcdr::sumstats()
 
 #- Export back to xlsx -
 odeqcdr::contin_export()
