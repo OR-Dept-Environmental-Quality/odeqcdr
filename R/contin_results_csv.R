@@ -25,7 +25,7 @@ contin_results_csv <- function(path=NULL, col_rename=NULL) {
     stop("path must be provided.")
   }
 
-  files <- list.files(path=path, pattern="*.csv", all.files=FALSE, recursive = FALSE, full.names = TRUE)
+  files <- list.files(path=path, pattern="*.csv$", all.files=FALSE, recursive = FALSE, full.names = TRUE)
 
   df.all <- data.frame()
 
