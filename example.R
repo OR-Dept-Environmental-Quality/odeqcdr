@@ -14,6 +14,8 @@ output_dir <-"E:/GitHub/odeqcdr/test_templates"
 
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
+#- Import the Data -------------------------------------------------------------
+
 df0 <- odeqcdr::contin_import(file=xlsx_input)
 
 df0.projects <- df0[["Projects"]]
@@ -30,6 +32,7 @@ df0.deployment <- df0[["Deployment"]]
 
 df0.prepost <- df0[["PrePost"]]
 
+
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
@@ -44,8 +47,23 @@ df1.audits <- dplyr::mutate(df0.audits, row.audits=dplyr::row_number())
 df1.deployment <- dplyr::mutate(df0.deployment, row.deployment=dplyr::row_number())
 df1.prepost <- dplyr::mutate(df0.prepost, row.prepost=dplyr::row_number())
 
-#- Review Station Location -----------------------------------------------------
+# Keep a record of the original units
+# This is to convert the units back to the original after grading.
+# Only needed for Results worksheet
+df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Result.Unit)
 
+#- Set Project ID --------------------------------------------------------------
+
+df1.projects <- df1.projects %>%
+  dplyr::mutate(Project.ID="TMDL Data Submission",
+                Project.Name="TMDL Data Submission",
+                Project.Description="Data submitted to DEQ to support TMDL development or TMDL implementation")
+
+df1.audits <- df1.audits %>%
+  dplyr::mutate(Alternate.Project.ID.2=Alternate.Project.ID.1,
+                Alternate.Project.ID.1=Project.ID)
+
+#- Review Monitoring Location Info----------------------------------------------
 odeqcdr::launch_map(mloc=df0.mloc)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
@@ -60,6 +78,8 @@ df1.mloc <- df0.mloc %>%
                                                   Monitoring.Location.ID %in% final.mlocs  ~ "Final",
                                                   TRUE ~ Monitoring.Location.Status.ID))
 
+#- Update Monitoring Location ID Name-------------------------------------------
+
 # Fix monitoring location IDs w/ invalid characters
 # The following are invalid characters in Monitoring Location IDs
 # ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; : ' " < > / ? [space]
@@ -70,12 +90,6 @@ df1.deployment$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.deployment$Monit
 df1.results$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.results$Monitoring.Location.ID)
 df1.audits$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.audits$Monitoring.Location.ID)
 
-# Keep a record of the original units
-# This is to convert the units back to the original after grading.
-# Only needed for Results worksheet
-
-df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Result.Unit)
-
 #- Check if the correct timezone is used ---------------------------------------
 # Check that monitoring stations located in the Pacific time zone have pacific time
 # zones (e.g. PST/PDT) and stations in the Mountain time zone have mountain time
@@ -84,7 +98,7 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
 # Make sure the latitude and longitude are correct before running this code.
 # The Olson name timezone is used in dt_combine() and dst_check()
 
-df.tz <- df0.mloc %>%
+df.tz <- df1.mloc %>%
   dplyr::select(Monitoring.Location.ID, Latitude, Longitude) %>%
   dplyr::mutate(tz_name=lutz::tz_lookup_coords(lat=Latitude,lon=Longitude, method="accurate", warn=FALSE)) %>%
   dplyr::select(-Latitude, -Longitude)
@@ -234,7 +248,7 @@ df4.results <- df3.results %>%
 
 # First add Stream Order
 df5.results <- df4.results %>%
-  dplyr::left_join(df0.mloc[,c("Monitoring.Location.ID", "Reachcode", "Permanent.Identifier")], by="Monitoring.Location.ID") %>%
+  dplyr::left_join(df1.mloc[,c("Monitoring.Location.ID", "Reachcode", "Permanent.Identifier")], by="Monitoring.Location.ID") %>%
   dplyr::left_join(odeqcdr::ornhd[,c("StreamOrder", "Permanent_Identifier")], by=c("Permanent.Identifier"="Permanent_Identifier"))
 
 # Get a dataframe of just the anomaly stats
@@ -285,7 +299,7 @@ df.results.final <- df4.results %>%
 
 # Generate Summary Stats -------------------------------------------------------
 
-df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df0.projects$Project.ID)
+df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
 
 
 #- Output updated data back to xlsx template -----------------------------------
@@ -308,8 +322,8 @@ df.results.final <- df.results.final %>%
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
-                       projects=df0.projects,
-                       mloc=df0.mloc,
+                       projects=df1.projects,
+                       mloc=df1.mloc,
                        deployment=df1.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
