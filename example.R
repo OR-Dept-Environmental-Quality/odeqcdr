@@ -1,6 +1,7 @@
 library(dplyr)
 library(lutz)
 library(odeqcdr)
+library(writexl)
 
 setwd("E://GitHub/odeqcdr/test_templates")
 #setwd("/Users/rmichie/GitHub/odeqcdr/test_templates")
@@ -31,11 +32,17 @@ df0.prepost <- df0[["PrePost"]]
 
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
-
 checks_df <- odeqcdr::pre_checks(template_list = df0)
 
-# Show any failed checks (check_result=TRUE)
-checks_df[checks_df$check_result,]
+# Save to xlsx
+writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", gsub(".xlsx","",xlsx_output),"_PRE_CHECKS.xlsx"),
+                    format_headers=TRUE)
+
+#- Row numbers for indexing ----------------------------------------------------
+df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
+df1.audits <- dplyr::mutate(df0.audits, row.audits=dplyr::row_number())
+df1.deployment <- dplyr::mutate(df0.deployment, row.deployment=dplyr::row_number())
+df1.prepost <- dplyr::mutate(df0.prepost, row.prepost=dplyr::row_number())
 
 #- Review Station Location -----------------------------------------------------
 
@@ -53,12 +60,15 @@ df1.mloc <- df0.mloc %>%
                                                   Monitoring.Location.ID %in% final.mlocs  ~ "Final",
                                                   TRUE ~ Monitoring.Location.Status.ID))
 
-
-#- Row numbers for indexing ----------------------------------------------------
-df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
-df1.audits <- dplyr::mutate(df0.audits, row.audits=dplyr::row_number())
-df1.deployment <- dplyr::mutate(df0.deployment, row.deployment=dplyr::row_number())
-df1.prepost <- dplyr::mutate(df0.prepost, row.prepost=dplyr::row_number())
+# Fix monitoring location IDs w/ invalid characters
+# The following are invalid characters in Monitoring Location IDs
+# ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; : ' " < > / ? [space]
+# @ is replaced with 'at'
+# The rest are replaced with '_'
+df1.mloc$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.mloc$Monitoring.Location.ID)
+df1.deployment$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.deployment$Monitoring.Location.ID)
+df1.results$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.results$Monitoring.Location.ID)
+df1.audits$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.audits$Monitoring.Location.ID)
 
 # Keep a record of the original units
 # This is to convert the units back to the original after grading.
