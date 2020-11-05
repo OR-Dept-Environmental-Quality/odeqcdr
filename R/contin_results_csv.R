@@ -15,12 +15,12 @@ contin_results_csv <- function(path=NULL, col_rename=NULL) {
 
   if(is.null(path) & exists('utils::choose.dir')){
     # Windows
-    path=choose.dir()
+    path<-choose.dir()
   }
 
   if(is.null(path) & Sys.getenv("RSTUDIO") == "1"){
     # Mac/Linux and running Rstudio
-    path=rstudioapi::selectDirectory()
+    path<-rstudioapi::selectDirectory()
   } else {
     stop("path must be provided.")
   }
