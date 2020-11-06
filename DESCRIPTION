@@ -1,5 +1,5 @@
 Package: odeqcdr
-Title: ODEQ Continous Data Review
+Title: ODEQ Continuous Data Review
 Version: 0.6
 Authors@R: 
     person(given = "Ryan",
