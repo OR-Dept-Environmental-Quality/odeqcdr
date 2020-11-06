@@ -82,7 +82,7 @@ df1.mloc <- df0.mloc %>%
 
 # Fix monitoring location IDs w/ invalid characters
 # The following are invalid characters in Monitoring Location IDs
-# ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; : ' " < > / ? [space]
+# ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; ' " < > / ? [space]
 # @ is replaced with 'at'
 # The rest are replaced with '_'
 df1.mloc$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.mloc$Monitoring.Location.ID)
