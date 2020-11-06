@@ -15,10 +15,6 @@ pre_checks <- function(template_list) {
   # Test
   #template_list=df0
 
-  # The following are invalid characters in Monitoring Location IDs
-  # ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; : < > / ? [space]
-  invalid_chars <- "\\~+|\\`+|\\!+|\\@+|\\#+|\\$+|\\%+|\\^+|\\&+|\\*+|\\(+|\\)+|\\[+|\\{+|\\]+|\\}+|\\;+|\\:+|\"+|\'+|\\,+|\\|+|\\\\+|[<>]|\\/+|\\?+|\\s+"
-
   org_import <- template_list[["Organization_Details"]]
   projects_import <- template_list[["Projects"]]
   locations_import <- template_list[["Monitoring_Locations"]]
@@ -89,6 +85,10 @@ pre_checks <- function(template_list) {
 
   #- Monitoring_Locations-------------------------------------------------------
 
+  # The following are invalid characters in Monitoring Location IDs
+  # ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; < > / ? [space]
+  invalid_chars <- "\\~+|\\`+|\\!+|\\@+|\\#+|\\$+|\\%+|\\^+|\\&+|\\*+|\\(+|\\)+|\\[+|\\{+|\\]+|\\}+|\\;+|\"+|\'+|\\,+|\\|+|\\\\+|[<>]|\\/+|\\?+|\\s+"
+
   mloc_ml_check <- any(!mlocid_results %in% locations_import$Monitoring.Location.ID)
 
   if(mloc_ml_check) {
@@ -105,8 +105,8 @@ pre_checks <- function(template_list) {
 
   mloc_msg <- c("Worksheet is empty",
                 mloc_ml_msg,
-                "Value in column Monitoring.Location.ID is > 16 characters",
-                'Value in column in Monitoring.Location.ID has an invalid character: ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; : \' \" < > / ? [space]',
+                "Value in column Monitoring.Location.ID is > 22 characters",
+                'Value in column in Monitoring.Location.ID has an invalid character: ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; \' \" < > / ? [space]',
                 "Missing value in column Monitoring.Location.Name",
                 "Invalid value in column Monitoring.Location.Type",
                 "Missing value in column Latitude",
@@ -131,7 +131,7 @@ pre_checks <- function(template_list) {
 
   mloc_checks <- list((nrow(locations_import) <= 0),
                       mloc_ml_check,
-                      nchar(locations_import$Monitoring.Location.ID) > 16,
+                      nchar(locations_import$Monitoring.Location.ID) > 22,
                       grepl(pattern=invalid_chars, x=locations_import$Monitoring.Location.ID),
                       is.na(locations_import$Monitoring.Location.Name),
                       !valid_values_check(col="Monitoring.Location.Type", vals=locations_import$Monitoring.Location.Type),
