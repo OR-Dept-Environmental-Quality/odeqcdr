@@ -17,7 +17,6 @@ This function will replace invalid characters.
 }
 \details{
 '@' symbol is replaced with 'at'
-Any of the following: ` ~ ! # $ \% ^ & * \ | ; : ' " < > / ? are replaced with an underscore '_'.
-Parentheses and brackets are replaced with an underscore.
-Spaces are replaced with and underscore.
+Any of the following: ` ~ ! # $ \% ^ & * \ | ; ' " < > / ? are replaced with an underscore '\emph{'.
+Parentheses, brackets, and spaces are replaced with an underscore  '}'.
 }
