@@ -238,12 +238,13 @@ valid_values <- function(col=NULL) {
 
   } else {
 
+    col <- make.names(col, unique=TRUE)
+
     if(!col %in% names(val_list)) {
       print(paste(col, "is not a column name with valid domain values."))
       stop()
     } else {
 
-      col <- make.names(col, unique=TRUE)
       vals <- val_list[[col]]
 
       return(vals)
