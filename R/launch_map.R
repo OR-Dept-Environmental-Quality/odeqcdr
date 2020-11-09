@@ -2,39 +2,42 @@
 #'
 #' @param mloc Data frame of the monitoring location data generated using [odeqcdr::contin_import()].
 #' @export
-#' @return Launches a leaflet map within a Shiny app
+#' @return Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.
 
 launch_map <- function(mloc){
-
-  # htmlwidgets::JS("
-  #         function (error, featureCollection) {
-  #           if (error || featureCollection.features.length === 0) {
-  #             return false;
-  #           } else {
-  #             return featureCollection.features[0].properties.ReachCode;
-  #           }
-  #         }
-  #         ")
 
   df.mloc <-  mloc %>%
     dplyr::mutate(choices=paste(Monitoring.Location.ID, Monitoring.Location.Name, sep = " - "))
 
   app <- shiny::shinyApp(
 
-    ui = shiny::shinyUI(
-      shiny::fluidPage(
-        shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
-        shiny::selectInput(inputId="selectStation", label="Zoom to Station", choices = unique(df.mloc$choices), multiple=FALSE,
-                           width='100%'),
-        leaflet::leafletOutput(outputId="map", width = "100%", height = "500px"),
-        shiny::h6("NHD Info"),
-        shiny::verbatimTextOutput("NHDprintout"),
-        shiny::h6("LLID Info"),
-        shiny::verbatimTextOutput("LLIDprintout"),
-        shiny::h6("Latitude Longitude of Click"),
-        shiny::verbatimTextOutput("xyprintout")
-      )
-    ),
+    ui = shiny::shinyUI(shiny::fillPage(padding = c(0, 5),
+      shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
+      shiny::fluidRow(shiny::column(width=8, shiny::selectInput(inputId="selectStation",
+                                                                 label="Zoom to Station",
+                                                                 choices = unique(df.mloc$choices),
+                                                                 multiple=FALSE, width='100%'))
+                      ),
+
+      shiny::fluidRow(shiny::column(width=1, shiny::h6("NHD Info"), align = "right"),
+                      shiny::column(width=7, shiny::verbatimTextOutput("NHDprintout")),
+                      shiny::column(width=1, shiny::actionButton(inputId="NHDsave", label="Save NHD Info", style = "margin-top: 0px;"), align = "left")),
+
+      shiny::fluidRow(shiny::column(width=1, shiny::h6("LLID Info"), align = "right"),
+                      shiny::column(width=7, shiny::verbatimTextOutput("LLIDprintout")),
+                      shiny::column(width=1, shiny::actionButton(inputId="LLIDsave", label="Save LLID Info", style = "margin-top: 0px;"), align = "left")),
+
+      shiny::fluidRow(shiny::column(width=1, shiny::h6("Click Lat/Long"), align = "right"),
+                      shiny::column(width=2, shiny::verbatimTextOutput("XYprintout")),
+                      shiny::column(width=1, shiny::actionButton(inputId="XYsave", label="Save Lat/Long", style = "margin-top: 0px;"), align = "left"),
+
+                      shiny::column(width=1, shiny::h6("AWQMS Alt ID"), align = "right"),
+                      shiny::column(width=3, shiny::verbatimTextOutput("AWQMSprintout")),
+                      shiny::column(width=1, shiny::actionButton(inputId="AWQMSsave", label="Save Alt ID"), align = "left")
+                      ),
+      leaflet::leafletOutput(outputId="map", width = "100%", height = "490px"),
+      shiny::fluidRow(shiny::column(width=1, shiny::actionButton(inputId="return_df", label="Close App, Return Changes", style = "margin-top: 0px;"))))
+      ),
 
     server = shiny::shinyServer(function(input, output, session) {
 
@@ -47,6 +50,21 @@ launch_map <- function(mloc){
         df.mloc.zoom
 
       })
+
+      # Click Reactive
+      cr <- shiny::reactiveValues(Permanent.Identifier=NULL,
+                                  Reachcode=NULL,
+                                  Measure=NULL,
+                                  LLID=NULL,
+                                  River.Mile=NULL,
+                                  Latitude=NULL,
+                                  Longitude=NULL,
+                                  Alternate.ID.1=NULL,
+                                  Alternate.Context.1=NULL,
+                                  df=NULL)
+      cr$df <- df.mloc
+
+      df_out <- shiny::reactive({cr$df})
 
       output$map <- leaflet::renderLeaflet({
 
@@ -114,7 +132,7 @@ launch_map <- function(mloc){
                                                                                  sticky = FALSE),
                                             popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
                                             labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.MLocID+\": \"+props.StationDes+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.MLocID+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
+                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.MLocID+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Alternate.Context/OrgID:</b> \"+props.OrgID+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
           )
 
         map <- map %>%
@@ -189,22 +207,32 @@ launch_map <- function(mloc){
 
         click <- input$map_geojson_click
         if(is.null(click))
-          return(NULL)
+          return()
 
         if(click$id=="AWQMS_Stations") {
-          return(NULL)
+
+          cr$Alternate.ID.1 <- click$properties$MLocID
+          cr$Alternate.Context.1 <- click$properties$OrgID
+
+          output$AWQMSprintout <- shiny::renderPrint({
+            df <- data.frame(Alternate.ID.1=click$properties$MLocID,
+                             Alternate.Context.1=click$properties$OrgID)
+            df
+            })
         }
 
         if(click$id=="NHD") {
 
           NHDpoint <-odeqcdr::get_measure(pid=click$properties$Permanent_Identifier,
-                                       x=click$lng,
-                                       y=click$lat,
-                                       return_sf=TRUE)
+                                          x=click$lng, y=click$lat,
+                                          return_sf=TRUE)
 
-          reachcode <- click$properties$ReachCode
+          cr$Permanent.Identifier <- click$properties$Permanent_Identifier
+          cr$Reachcode <- click$properties$ReachCode
+          cr$Measure <- NHDpoint$Measure
+
           request_NHD <- httr::GET(url = paste0("https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1/query?where=",
-                                                "ReachCode='",reachcode,
+                                                "ReachCode='",click$properties$ReachCode,
                                                 "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
           response_NHD <- httr::content(request_NHD, as = "text", encoding = "UTF-8")
 
@@ -212,6 +240,7 @@ launch_map <- function(mloc){
             leaflet::leafletProxy("map") %>%
               leaflet::removeGeoJSON(layerId="reachcodeClick") %>%
               leaflet::removeMarker(layerId="measurePoint") %>%
+
               leaflet::addGeoJSON(geojson = response_NHD,
                                   layerId = "reachcodeClick",
                                   group = "NHD Streams",
@@ -231,21 +260,25 @@ launch_map <- function(mloc){
             })
 
           })
-        } else {
+        }
+
+        if(click$id=="LLID") {
 
           # LLID
           rm_point <-odeqcdr::get_llidrm(llid=click$properties$LLID,
-                                      x=click$lng,
-                                      y=click$lat,
-                                      max_length = 150,
-                                      return_sf=TRUE)
+                                         x=click$lng,
+                                         y=click$lat,
+                                         max_length = 150,
+                                         return_sf=TRUE)
 
-          llid <- click$properties$LLID
+          cr$LLID <- click$properties$LLID
+          cr$River.Mile <- rm_point$River_Mile
+
           pathLLID <- "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/query?where="
 
           request_LLID <- httr::GET(url = paste0(pathLLID,
                                                  "LLID='",
-                                                 llid,
+                                                 click$properties$LLID,
                                                  "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
           response_LLID <- httr::content(request_LLID, as = "text", encoding = "UTF-8")
 
@@ -276,25 +309,91 @@ launch_map <- function(mloc){
 
       })
 
-      output$xyprintout <- shiny::renderPrint({
+      output$XYprintout <- shiny::renderPrint({
 
         map_click <- input$map_click
 
         if(is.null(map_click))
-          return(NULL)
+          return()
+
+        cr$Latitude <- map_click$lat
+        cr$Longitude <- map_click$lng
 
         df <- data.frame(Latitude=map_click$lat,
                          Longitude=map_click$lng)
         df
       })
 
-      session$onSessionEnded(function() {
+      shiny::observeEvent(input$NHDsave, {
+
+        cr$df <- cr$df %>%
+          dplyr::mutate(Reachcode = ifelse(choices==input$selectStation,
+                                                   cr$Reachcode,
+                                                   Reachcode),
+                        Measure = dplyr::if_else(choices==input$selectStation,
+                                                 cr$Measure,
+                                                 Measure),
+                        Permanent.Identifier = dplyr::if_else(choices==input$selectStation,
+                                                              cr$Permanent.Identifier,
+                                                              Permanent.Identifier))
+
+        output$NHDprintout <- shiny::renderPrint({"Success! NHD info saved."})
+      })
+
+      shiny::observeEvent(input$LLIDsave, {
+
+        cr$df <- cr$df %>%
+          dplyr::mutate(LLID= ifelse(choices==input$selectStation,
+                                           cr$LLID,
+                                           LLID),
+                        River.Mile = dplyr::if_else(choices==input$selectStation,
+                                                 cr$River.Mile,
+                                                 River.Mile))
+
+        output$LLIDprintout <- shiny::renderPrint({"Success! LLID info saved."})
+      })
+
+      shiny::observeEvent(input$AWQMSsave, {
+
+        cr$df <- cr$df %>%
+          dplyr::mutate(Alternate.ID.1= ifelse(choices==input$selectStation,
+                                     cr$Alternate.ID.1,
+                                     Alternate.ID.1),
+                        Alternate.Context.1 = dplyr::if_else(choices==input$selectStation,
+                                                    cr$Alternate.Context.1,
+                                                    Alternate.Context.1))
+
+        output$AWQMSprintout <- shiny::renderPrint({"Success! Alternate ID saved."})
+      })
+
+      shiny::observeEvent(input$XYsave, {
+
+        cr$df <- cr$df %>%
+          dplyr::mutate(Latitude = ifelse(choices==input$selectStation,
+                                     cr$Latitude,
+                                     Latitude),
+                        Longitude = dplyr::if_else(choices==input$selectStation,
+                                                    cr$Longitude,
+                                                   Longitude))
+
+        output$XYprintout <- shiny::renderPrint({"Success! Lat/Long saved."})
+      })
+
+      shiny::observeEvent(input$return_df, {
+        return_df <- df_out()
+        return_df$choices <- NULL
+        shiny::stopApp(returnValue=return_df)
+      })
+
+      shiny::onStop(function() {
         shiny::stopApp()
       })
 
     })
   )
 
-  shiny::runApp(app, launch.browser = TRUE)
+  df.return <- shiny::runApp(app, launch.browser = TRUE, quiet = TRUE)
+
+  return(df.return)
 
 }
