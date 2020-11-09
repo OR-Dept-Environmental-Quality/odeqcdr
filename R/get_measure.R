@@ -51,16 +51,17 @@ get_measure <- function(pid, x, y, return_sf=FALSE){
   reach <- geojsonsf::geojson_sf(response_NHD) %>%
     sf::st_cast( to="POINT") %>%
     dplyr::mutate(Measure=unlist(lapply(geometry, FUN=function(x) {x[4]}), recursive = TRUE),
-                  Latitude=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
-                  Longitude=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
+                  Snap_Lat=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
+                  Snap_Long=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
     sf::st_zm() %>%
-    dplyr::select(GNIS_ID, GNIS_Name, Permanent_Identifier, Latitude, Longitude, ReachCode, Measure) %>%
+    dplyr::select(GNIS_ID, GNIS_Name, Permanent_Identifier, Snap_Lat, Snap_Long, ReachCode, Measure) %>%
     sf::st_transform(crs=to_crs)
 
   reach$Snap_Distance <- sf::st_distance(reach, site, by_element = TRUE)
 
   reach_snap <- reach %>%
     dplyr::filter(Snap_Distance==min(Snap_Distance)) %>%
+    dplyr::select(GNIS_ID, GNIS_Name, Snap_Lat, Snap_Long, Permanent_Identifier, ReachCode, Measure) %>%
     sf::st_transform(crs=4326) # for leaflet
 
   measure <- as.character(round(reach_snap$Measure,2))
