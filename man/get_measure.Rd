@@ -4,7 +4,7 @@
 \alias{get_measure}
 \title{Get measure value along Oregon DEQ's NHDH_OR_931v220.}
 \usage{
-get_measure(pid, x, y, return_sf = FALSE)
+get_measure(pid, x, y, max_length = 25, return_sf = FALSE)
 }
 \arguments{
 \item{pid}{The NHD Permanent_Identifier value as a string.}
@@ -13,7 +13,9 @@ get_measure(pid, x, y, return_sf = FALSE)
 
 \item{y}{The latitude in decimal degrees.}
 
-\item{return_sf}{Boolean. A TRUE value will return the sf object with data frame columns for Permanent_Identifier, ReachCode, measure, and snap_distance.
+\item{max_length}{The maximum segment length in meters to split the NHD reach into. Default is 25 meters. Passed to \link{split_lines}. The smaller the distance the longer the operation takes.}
+
+\item{return_sf}{Boolean. A TRUE value will return the sf object with data frame columns for GNIS_ID, GNIS_Name, Permanent_Identifier, Snap_Lat, Snap_Long, ReachCode, and Measure.
 FALSE will return the measure value as a character. Default is FALSE.}
 }
 \value{
