@@ -10,7 +10,7 @@ launch_map(mloc)
 \item{mloc}{Data frame of the monitoring location data generated using \code{\link[=contin_import]{contin_import()}}.}
 }
 \value{
-Launches a leaflet map within a Shiny app
+Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.
 }
 \description{
 Launch a web map in a browser to review monitoring stations

@@ -19,12 +19,17 @@ The object must be named 'shiny_list' with the named listed elements as follows:
 'Deployment'
 'Audit_Stats'
 'Results_Anom'
+}
+\examples{
 
-Example code:
-
+# list to export to Shiny
 shiny_list <-list(Deployment=df1.deployment,
-Audit_Stats=df3.audits.dql,
-Results_Anom=df5.results.anom)
+                 Audit_Stats=df3.audits.dql,
+                 Results_Anom=df5.results.anom)
 
-save(shiny_list, file=paste0(CDR_template_for_shiny_review.Rdata"))
+save(shiny_list, file=paste0(gsub(".xlsx","",xlsx_output),"_CDR.Rdata"))
+
+# Launch Shiny app for further review.
+odeqcdr::launch_shiny()
+
 }
