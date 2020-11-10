@@ -18,11 +18,6 @@
 
 get_measure <- function(pid, x, y, return_sf=FALSE){
 
-  library(dplyr)
-  library(httr)
-  library(geojsonsf)
-  library(sf)
-
   # Test data
   #pid="165555667"
   #reachcode="18010206003567"
