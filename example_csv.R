@@ -70,25 +70,30 @@ df1.audits <- df1.audits %>%
                 Alternate.Project.ID.1=Project.ID)
 
 #- Review Monitoring Location Info----------------------------------------------
-odeqcdr::launch_map(mloc=df0.mloc)
+df1.mloc <- odeqcdr::launch_map(mloc=df0.mloc)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
-# Record Final Status
-reject.mlocs <- c(NA)
-final.mlocs <- c("BXDW", "BXON", "BXOS", "GRZL", "JNSX", "JNYI", "JNYU", "LWRX", "SDAL")
+# Save to xlsx
+odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
+                       org=df0.org,
+                       projects=df1.projects,
+                       mloc=df1.mloc,
+                       deployment=df0.deployment,
+                       results=df0.results,
+                       prepost=df0.prepost,
+                       audits=df0.audits,
+                       sumstats=df.sumstats)
 
-df1.mloc <- df0.mloc %>%
-  dplyr::mutate(Monitoring.Location.Status.ID=dplyr::case_when(Monitoring.Location.ID %in% reject.mlocs  ~ "Rejected",
-                                                  Monitoring.Location.ID %in% final.mlocs  ~ "Final",
-                                                  TRUE ~ Monitoring.Location.Status.ID))
+# Make manual changes to the xlsx spreadsheet and re import if needed:
+# df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
 #- Update Monitoring Location ID Name-------------------------------------------
 
 # Fix monitoring location IDs w/ invalid characters
 # The following are invalid characters in Monitoring Location IDs
-# ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; : ' " < > / ? [space]
+# ` ~ ! # $ % ^ & * ( ) [ { ] } \ | ; ' " < > / ? [space]
 # @ is replaced with 'at'
 # The rest are replaced with '_'
 df1.mloc$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.mloc$Monitoring.Location.ID)

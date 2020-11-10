@@ -9,13 +9,17 @@
 #'   'Audit_Stats'
 #'   'Results_Anom'
 #'
-#' Example code:
+#' @examples
 #'
+#' # list to export to Shiny
 #' shiny_list <-list(Deployment=df1.deployment,
-#'                   Audit_Stats=df3.audits.dql,
-#'                   Results_Anom=df5.results.anom)
+#'                  Audit_Stats=df3.audits.dql,
+#'                  Results_Anom=df5.results.anom)
 #'
-#' save(shiny_list, file=paste0(CDR_template_for_shiny_review.Rdata"))
+#' save(shiny_list, file=paste0(gsub(".xlsx","",xlsx_output),"_CDR.Rdata"))
+#'
+#' # Launch Shiny app for further review.
+#' odeqcdr::launch_shiny()
 #'
 #' @export
 #' @return Launches a Shiny app
@@ -92,7 +96,7 @@ launch_shiny <- function(){
 
       })
 
-      output$results.print <- shiny::renderDataTable({
+      output$results.print <- shiny::renderPrint({
         result_data <- result_data_reactive() %>%
           dplyr::select(datetime, Result.Value, Anomaly, dt_shift,
                         daily_min_q10,
@@ -117,8 +121,8 @@ launch_shiny <- function(){
       output$displayAudit <- shiny::renderUI({
         df <- audit_data_reactive()
         output$intermediate <- shiny::renderPrint(df,
-                                               options = list(paging = FALSE,
-                                                              searching = FALSE))
+                                                  options = list(paging = FALSE,
+                                                                 searching = FALSE))
         shiny::dataTableOutput("intermediate")
       })
 

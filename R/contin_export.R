@@ -32,7 +32,14 @@ contin_export <- function(file, org, projects, mloc, deployment, results, prepos
   projects <- projects[, odeqcdr::cols_projects()]
   mloc <- mloc[, odeqcdr::cols_mloc()]
   deployment <- deployment[, odeqcdr::cols_deploy()]
-  results <- results[, odeqcdr::cols_results()]
+
+  if ("rDQL" %in% names(results)) {
+    results <- results[, odeqcdr::cols_results()]
+  } else {
+    # exclude "accDQL" "precDQL" "rDQL"
+    results <- results[, odeqcdr::cols_results()[1:9]]
+  }
+
   prepost <- prepost[, odeqcdr::cols_prepost()]
   audits <- audits[,odeqcdr::cols_audit()]
 

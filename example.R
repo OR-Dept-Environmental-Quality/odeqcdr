@@ -54,14 +54,15 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
 
 #- Set Project ID --------------------------------------------------------------
 
-df1.projects <- df1.projects %>%
+df1.projects <- df0.projects %>%
   dplyr::mutate(Project.ID="TMDL Data Submission",
                 Project.Name="TMDL Data Submission",
                 Project.Description="Data submitted to DEQ to support TMDL development or TMDL implementation")
 
 df1.audits <- df1.audits %>%
   dplyr::mutate(Alternate.Project.ID.2=Alternate.Project.ID.1,
-                Alternate.Project.ID.1=Project.ID)
+                Alternate.Project.ID.1=Project.ID,
+                Project.ID="TMDL Data Submission")
 
 #- Review Monitoring Location Info----------------------------------------------
 
@@ -75,7 +76,7 @@ odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        deployment=df0.deployment,
                        results=df0.results,
                        prepost=df0.prepost,
-                       audits=df0.audits,
+                       audits=df1.audits,
                        sumstats=df.sumstats)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
