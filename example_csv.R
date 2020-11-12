@@ -43,7 +43,7 @@ df0[["Results"]] <- df0.results
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
 
-# Save to xlsx
+# Save pre check results to xlsx
 writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", gsub(".xlsx","",xlsx_output),"_PRE_CHECKS.xlsx"),
                     format_headers=TRUE)
 
@@ -83,8 +83,7 @@ odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        deployment=df0.deployment,
                        results=df0.results,
                        prepost=df0.prepost,
-                       audits=df0.audits,
-                       sumstats=df.sumstats)
+                       audits=df0.audits)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 # df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
