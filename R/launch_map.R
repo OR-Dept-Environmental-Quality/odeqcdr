@@ -1,4 +1,4 @@
-#' Launch a web map in a browser to review monitoring stations
+#' Launch a web map in a browser to review and edit monitoring location information
 #'
 #' @param mloc Data frame of the monitoring location data generated using [odeqcdr::contin_import()].
 #' @export
@@ -12,30 +12,31 @@ launch_map <- function(mloc){
   app <- shiny::shinyApp(
 
     ui = shiny::shinyUI(shiny::fluidPage(shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
-                                         shiny::fluidRow(shiny::column(width=6, shiny::selectInput(inputId="selectStation",
-                                                                                                   label="Zoom to Station",
+                                         shiny::fluidRow(shiny::column(width=5, shiny::selectInput(inputId="selectStation",
+                                                                                                   label="Zoom to Monitoring Location",
                                                                                                    choices = unique(df.mloc$choices),
                                                                                                    multiple=FALSE, width='100%')),
-                                                         shiny::column(width=2, shiny::verbatimTextOutput("STATUSprintout"), style = "margin-top: 25px;"),
+                                                         shiny::column(width=2, shiny::selectizeInput(inputId="mlocTypeSelect", label="Monitoring Location Type",
+                                                                                                      choices = c("",odeqcdr::valid_values(col="Monitoring Location Type")),
+                                                                                                      multiple = FALSE, width='100%')),
+                                                         shiny::column(width=2, shiny::verbatimTextOutput("STATUSprintout", placeholder=TRUE), style = "margin-top: 25px;"),
                                                          shiny::column(width=1, shiny::actionButton(inputId="STATUSsave", label="Update Status", style = "margin-top: 25px;"), align = "left")),
 
                                          shiny::fluidRow(shiny::column(width=1, shiny::h6("NHD Info"), align = "right"),
-                                                         shiny::column(width=7, shiny::verbatimTextOutput("NHDprintout")),
-                                                         shiny::column(width=1, shiny::actionButton(inputId="NHDsave", label="Save NHD Info", style = "margin-top: 0px;"), align = "left")),
+                                                         shiny::column(width=4, shiny::verbatimTextOutput("NHDprintout", placeholder=TRUE)),
+                                                         shiny::column(width=1, shiny::actionButton(inputId="NHDsave", label="Save NHD Info", style = "margin-top: 0px;"), align = "left"),
+                                                         shiny::column(width=1, shiny::h6("Click Lat/Long"), align = "right"),
+                                                         shiny::column(width=3, shiny::verbatimTextOutput("XYprintout", placeholder=TRUE)),
+                                                         shiny::column(width=1, shiny::actionButton(inputId="XYsave", label="Save Lat/Long", style = "margin-top: 0px;"), align = "left")),
 
                                          shiny::fluidRow(shiny::column(width=1, shiny::h6("LLID Info"), align = "right"),
-                                                         shiny::column(width=7, shiny::verbatimTextOutput("LLIDprintout")),
-                                                         shiny::column(width=1, shiny::actionButton(inputId="LLIDsave", label="Save LLID Info", style = "margin-top: 0px;"), align = "left")),
-
-                                         shiny::fluidRow(shiny::column(width=1, shiny::h6("Click Lat/Long"), align = "right"),
-                                                         shiny::column(width=2, shiny::verbatimTextOutput("XYprintout")),
-                                                         shiny::column(width=1, shiny::actionButton(inputId="XYsave", label="Save Lat/Long", style = "margin-top: 0px;"), align = "left"),
-
+                                                         shiny::column(width=4, shiny::verbatimTextOutput("LLIDprintout", placeholder=TRUE)),
+                                                         shiny::column(width=1, shiny::actionButton(inputId="LLIDsave", label="Save LLID Info", style = "margin-top: 0px;"), align = "left"),
                                                          shiny::column(width=1, shiny::h6("AWQMS Alt ID"), align = "right"),
-                                                         shiny::column(width=3, shiny::verbatimTextOutput("AWQMSprintout")),
-                                                         shiny::column(width=1, shiny::actionButton(inputId="AWQMSsave", label="Save Alt ID"), align = "left")
-                                         ),
-                                         leaflet::leafletOutput(outputId="map", width = "100%", height = "495px"),
+                                                         shiny::column(width=3, shiny::verbatimTextOutput("AWQMSprintout", placeholder=TRUE)),
+                                                         shiny::column(width=1, shiny::actionButton(inputId="AWQMSsave", label="Save Alt ID"), align = "left")),
+
+                                         shiny::fluidRow(shiny::column(width=12, leaflet::leafletOutput(outputId="map", width = "100%", height = "470px"))),
                                          shiny::fluidRow(shiny::column(width=1, shiny::actionButton(inputId="return_df", label="Close App, Return Changes", style = "margin-top: 5px;"))))
     ),
 
@@ -51,6 +52,7 @@ launch_map <- function(mloc){
 
       # Click Reactive Values
       cr <- shiny::reactiveValues(Monitoring.Location.Status.ID=NULL,
+                                  Monitoring.Location.Type=NULL,
                                   Permanent.Identifier=NULL,
                                   Reachcode=NULL,
                                   Measure=NULL,
@@ -84,10 +86,10 @@ launch_map <- function(mloc){
           leaflet::addTiles() %>%
           leafem::addMouseCoordinates() %>%
           leaflet::addMapPane("Tiles", zIndex = 420) %>%
-          leaflet::addMapPane("Select", zIndex = 430) %>%
-          leaflet::addMapPane("Lines", zIndex = 440) %>%
-          leaflet::addMapPane("Points_AWQMS", zIndex= 450) %>%
-          leaflet::addMapPane("Points_Review", zIndex= 460) %>%
+          leaflet::addMapPane("Select", zIndex = 460) %>%
+          leaflet::addMapPane("Lines", zIndex = 470) %>%
+          leaflet::addMapPane("Points_AWQMS", zIndex= 440) %>%
+          leaflet::addMapPane("Points_Review", zIndex= 450) %>%
           leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "World Imagery") %>%
           leaflet::addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer",
                                group = "Hydrography",
@@ -196,9 +198,6 @@ launch_map <- function(mloc){
                                      options = leaflet::markerOptions(zIndexOffset = 0,
                                                                       riseOnHover = TRUE,
                                                                       pane = "Points_Review")) %>%
-          #leaflet::groupOptions(group="NHD Streams", zoomLevels = 12:20) %>%
-          #leaflet::groupOptions(group="LLID Streams", zoomLevels = 12:20) %>%
-          #leaflet::groupOptions(group="AWQMS Stations", zoomLevels = 12:20) %>%
           leaflet::addLayersControl(overlayGroups = c("Review Stations",
                                                       "AWQMS Stations",
                                                       "NHD Streams",
@@ -236,12 +235,12 @@ launch_map <- function(mloc){
         # Non DEQ Stations only,
         if(click$id == "AWQMS_Stations0") {
 
-          cr$Alternate.ID.1 <- click$properties$station_key
-          cr$Alternate.Context.1 <- click$properties$ORGID
+          cr$Alternate.ID.1 <- NA
+          cr$Alternate.Context.1 <- NA
 
           output$AWQMSprintout <- shiny::renderPrint({
-            df <- data.frame(Alternate.ID.1=click$properties$station_key,
-                             Alternate.Context.1=click$properties$ORGID)
+            df <- data.frame(Alternate.ID.1=NA,
+                             Alternate.Context.1=NA)
             df
           })
         }
@@ -355,6 +354,16 @@ launch_map <- function(mloc){
           df.selectStation$Monitoring.Location.Status.ID
         })
 
+        mlt <- dplyr::pull(df.selectStation, Monitoring.Location.Type)
+
+        mlt <- ifelse(is.na(mlt),character(0), mlt)
+
+        shiny::updateSelectizeInput(
+          session = session,
+          inputId = "mlocTypeSelect",
+          selected = mlt
+        )
+
         output$NHDprintout <- shiny::renderPrint({
           df.selectStation %>%
             dplyr::select(Permanent.Identifier, Reachcode, Measure)
@@ -403,6 +412,15 @@ launch_map <- function(mloc){
             dplyr::filter(choices==input$selectStation) %>%
             dplyr::pull(Monitoring.Location.Status.ID)
         })
+      })
+
+      # When mlocType list changed, update the Monitoring.Location.Type in cr$df
+      shiny::observeEvent(input$mlocTypeSelect, {
+
+        cr$df <- cr$df %>%
+          dplyr::mutate(Monitoring.Location.Type = dplyr::if_else(choices==input$selectStation,
+                                                                  input$mlocTypeSelect,
+                                                                  Monitoring.Location.Type))
       })
 
       # When NHD button is clicked, update the NHD info in cr$df
