@@ -2,7 +2,7 @@
 % Please edit documentation in R/launch_map.R
 \name{launch_map}
 \alias{launch_map}
-\title{Launch a web map in a browser to review monitoring stations}
+\title{Launch a web map in a browser to review and edit monitoring location information}
 \usage{
 launch_map(mloc)
 }
@@ -13,5 +13,5 @@ launch_map(mloc)
 Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.
 }
 \description{
-Launch a web map in a browser to review monitoring stations
+Launch a web map in a browser to review and edit monitoring location information
 }

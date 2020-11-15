@@ -16,8 +16,7 @@ get_llidrm(llid, x, y, max_length = 150, return_sf = FALSE)
 \item{max_length}{The maximum segment length in feet to split the LLID into. Default is 150 feet. Passed to \link{split_lines}. The smaller the distance the longer the operation takes.}
 
 \item{return_sf}{Boolean. Default is FALSE. A TRUE value will return a sf point object of the
-snapped location with data frame columns for Stream 'NAME', 'LLID', 'River_Mile',
-'Latitude', 'Longitude', 'Source', and 'RM_Total' for the total LLID river miles.}
+snapped location with data frame columns for Stream 'NAME', 'LLID', 'River_Mile', and 'RM_Total' for the total LLID river miles.}
 }
 \value{
 river mile info
