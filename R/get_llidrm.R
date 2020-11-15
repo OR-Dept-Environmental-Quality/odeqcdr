@@ -15,8 +15,7 @@
 #' @param y The latitude in decimal degrees
 #' @param max_length The maximum segment length in feet to split the LLID into. Default is 150 feet. Passed to [odeqcdr::split_lines]. The smaller the distance the longer the operation takes.
 #' @param return_sf Boolean. Default is FALSE. A TRUE value will return a sf point object of the
-#' snapped location with data frame columns for Stream 'NAME', 'LLID', 'River_Mile',
-#' 'Latitude', 'Longitude', 'Source', and 'RM_Total' for the total LLID river miles.
+#' snapped location with data frame columns for Stream 'NAME', 'LLID', 'River_Mile', and 'RM_Total' for the total LLID river miles.
 #' @export
 #' @return river mile info
 
@@ -72,14 +71,14 @@ get_llidrm <- function(llid, x, y, max_length=150, return_sf=FALSE){
 
   # filter to the closest point and clean up
   rm_snap <- reach_points %>%
-    dplyr::mutate(River_Mile=cumsum(length_seg)) %>%
+    dplyr::mutate(River_Mile=round(cumsum(length_seg),2)) %>%
     dplyr::filter(Snap_Distance==min(Snap_Distance)) %>%
     dplyr::left_join(reach_df) %>%
     sf::st_transform(crs=4326) %>% # for leaflet
-    dplyr::mutate(Latitude=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
-                  Longitude=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
+    #dplyr::mutate(Latitude=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
+    #              Longitude=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
     sf::st_zm() %>%
-    dplyr::select(NAME, Source, RM_Total, Latitude, Longitude, LLID, River_Mile)
+    dplyr::select(NAME, RM_Total, LLID, River_Mile)
 
   if(return_sf) {
    return(rm_snap)

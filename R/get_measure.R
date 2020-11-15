@@ -12,7 +12,7 @@
 #' @param x The longitude in decimal degrees.
 #' @param y The latitude in decimal degrees.
 #' @param max_length The maximum segment length in meters to split the NHD reach into. Default is 25 meters. Passed to [odeqcdr::split_lines]. The smaller the distance the longer the operation takes.
-#' @param return_sf Boolean. A TRUE value will return the sf object with data frame columns for GNIS_ID, GNIS_Name, Permanent_Identifier, Snap_Lat, Snap_Long, ReachCode, and Measure.
+#' @param return_sf Boolean. A TRUE value will return the sf object with data frame columns for GNIS_Name, Permanent_Identifier, ReachCode, and Measure.
 #' FALSE will return the measure value as a character. Default is FALSE.
 #' @export
 #' @return sf object with data frame columns for Permanent_Identifier, ReachCode, measure, and snap_distance
@@ -69,7 +69,7 @@ get_measure <- function(pid, x, y, max_length=25, return_sf=FALSE){
   reach_points <- sf::st_cast(reach1, to="POINT")
   reach_points$row=as.numeric(row.names(reach_points))
 
-  # Get only the first point on each linestring segment, and the last point (most upstrem). Use the row number to filter.
+  # Get only the first point on each linestring segment, and the last point (most upstream). Use the row number to filter.
   reach_points <- dplyr::filter(reach_points, row %in% c(1:nrow(reach_points),  max(reach_points$row)))
 
   # Set first point to length zero
@@ -79,24 +79,24 @@ get_measure <- function(pid, x, y, max_length=25, return_sf=FALSE){
   reach_points$Snap_Distance <- sf::st_distance(reach_points, site, by_element = TRUE)
 
   if(units::set_units(min(reach_points$Snap_Distance), m) > units::set_units(400, m))
-    warning("Snap distance is > 400 meters. Is the x and y near the target llid?")
+    warning("Snap distance is > 400 meters. Is the x and y near the target Reach?")
 
   # Calculate measure, filter to the closest point and clean up
   meas_snap <- reach_points %>%
     dplyr::mutate(Total_Meters=as.numeric(cumsum(length_seg)),
-                  Measure=meas_min + ((max(Total_Meters) - Total_Meters) * (meas_max-meas_min) / max(Total_Meters))) %>%
+                  Measure=round(meas_min + ((max(Total_Meters) - Total_Meters) * (meas_max-meas_min) / max(Total_Meters)), 2)) %>%
     dplyr::filter(Snap_Distance==min(Snap_Distance)) %>%
     dplyr::left_join(reach_df) %>%
     sf::st_transform(crs=4326) %>% # for leaflet
-    dplyr::mutate(Snap_Lat=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
-                  Snap_Long=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
+    #dplyr::mutate(Snap_Lat=unlist(lapply(geometry, FUN=function(x) {x[2]}), recursive = TRUE),
+    #              Snap_Long=unlist(lapply(geometry, FUN=function(x) {x[1]}), recursive = TRUE)) %>%
     sf::st_zm() %>%
-    dplyr::select(GNIS_ID, GNIS_Name, Permanent_Identifier, Snap_Lat, Snap_Long, ReachCode, Measure)
+    dplyr::select(GNIS_Name, Permanent_Identifier, ReachCode, Measure)
 
   if(return_sf) {
     return(meas_snap)
   } else {
-    measure <- as.character(round(meas_snap$Measure,2))
+    measure <- as.character(meas_snap$Measure)
     return(measure)
   }
 
