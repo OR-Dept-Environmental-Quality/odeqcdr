@@ -9,7 +9,7 @@
 #' @export
 #'
 split_lines <- function(input_lines, max_length, id) {
-  if(max_length < 50) warning("short max length detected, do you have your units right?")
+  if(max_length < 10) warning("short max length detected, do you have your units right?")
 
   geom_column <- attr(input_lines, "sf_column")
 
