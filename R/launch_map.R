@@ -85,11 +85,11 @@ launch_map <- function(mloc){
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 16) %>%
           leaflet::addTiles() %>%
           leafem::addMouseCoordinates() %>%
-          leaflet::addMapPane("Tiles", zIndex = 420) %>%
-          leaflet::addMapPane("Select", zIndex = 460) %>%
-          leaflet::addMapPane("Lines", zIndex = 470) %>%
-          leaflet::addMapPane("Points_AWQMS", zIndex= 440) %>%
-          leaflet::addMapPane("Points_Review", zIndex= 450) %>%
+          leaflet::addMapPane("Tiles", zIndex = 400) %>%
+          leaflet::addMapPane("Points_AWQMS", zIndex= 405) %>%
+          leaflet::addMapPane("Select", zIndex = 410) %>%
+          leaflet::addMapPane("Lines", zIndex = 420) %>%
+          leaflet::addMapPane("Points_Review", zIndex= 490) %>%
           leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "World Imagery") %>%
           leaflet::addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer",
                                group = "Hydrography",
