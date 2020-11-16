@@ -304,7 +304,7 @@ launch_map <- function(mloc){
           rm_point <-odeqcdr::get_llidrm(llid=click$properties$LLID,
                                          x=click$lng,
                                          y=click$lat,
-                                         max_length = 150,
+                                         max_length = 82,
                                          return_sf=TRUE)
 
           cr$LLID <- click$properties$LLID
