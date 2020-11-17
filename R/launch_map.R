@@ -111,6 +111,11 @@ launch_map <- function(mloc){
                                                                                          fillOpacity = 0.8,
                                                                                          bringToFront = TRUE,
                                                                                          sendToBack = TRUE),
+                                            labelOptions = leaflet::labelOptions(offset = c(0,0),
+                                                                                 opacity = 0.9,
+                                                                                 textsize = "14px",
+                                                                                 sticky = TRUE),
+                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.GNIS_Name+\": \"+props.ReachCode+\" \"}")
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0",
                                             group = "LLID Streams",
@@ -126,6 +131,11 @@ launch_map <- function(mloc){
                                                                                          fillOpacity = 0.8,
                                                                                          bringToFront = TRUE,
                                                                                          sendToBack = TRUE),
+                                            labelOptions = leaflet::labelOptions(offset = c(0,0),
+                                                                                 opacity = 0.9,
+                                                                                 textsize = "14px",
+                                                                                 sticky = TRUE),
+                                            labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.NAME+\": \"+props.LLID+\" \"}")
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/1",
                                             group = "AWQMS Stations",
