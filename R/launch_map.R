@@ -1,21 +1,30 @@
 #' Launch a web map in a browser to review and edit monitoring location information
 #'
 #' @param mloc Data frame of the monitoring location data generated using [odeqcdr::contin_import()].
+#' @param px_ht Height of the map in pixels. Default is 470 which fits on most standard laptop screens. The minimum height is 300 pixels.
 #' @export
 #' @return Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.
 
-launch_map <- function(mloc){
+launch_map <- function(mloc, px_ht=470){
+
+  if(!is.numeric(px_ht)) {stop("px_ht is not a numeric value.")}
+
+  if((px_ht < 300 )) {stop("px_ht must be greater than 300.")}
+
+  px_ht <- paste0(px_ht,"px")
 
   df.mloc <-  mloc %>%
-    dplyr::mutate(choices=paste(Monitoring.Location.ID, Monitoring.Location.Name, sep = " - "))
+    dplyr::mutate(choices=paste(Monitoring.Location.ID, Monitoring.Location.Name, sep = " - "),
+                  row=dplyr::row_number())
 
   app <- shiny::shinyApp(
 
     ui = shiny::shinyUI(shiny::fluidPage(shiny::tags$head(shiny::tags$style('.selectize-dropdown {z-index: 10000}')),
-                                         shiny::fluidRow(shiny::column(width=5, shiny::selectInput(inputId="selectStation",
+                                         shiny::fluidRow(shiny::column(width=4, shiny::selectInput(inputId="selectStation",
                                                                                                    label="Zoom to Monitoring Location",
                                                                                                    choices = unique(df.mloc$choices),
                                                                                                    multiple=FALSE, width="100%", selectize=TRUE)),
+                                                         shiny::column(width=1, shiny::actionButton(inputId="NEXT", label="Next MLoc", style = "margin-top: 25px;"), align = "left"),
                                                          shiny::column(width=2, shiny::selectizeInput(inputId="mlocTypeSelect", label="Monitoring Location Type",
                                                                                                       choices = c("",odeqcdr::valid_values(col="Monitoring Location Type")),
                                                                                                       multiple = FALSE, width='100%',
@@ -37,7 +46,7 @@ launch_map <- function(mloc){
                                                          shiny::column(width=3, shiny::verbatimTextOutput("AWQMSprintout", placeholder=TRUE)),
                                                          shiny::column(width=1, shiny::actionButton(inputId="AWQMSsave", label="Save Alt ID"), align = "left")),
 
-                                         shiny::fluidRow(shiny::column(width=12, leaflet::leafletOutput(outputId="map", width = "100%", height = "470px"))),
+                                         shiny::fluidRow(shiny::column(width=12, leaflet::leafletOutput(outputId="map", width = "100%", height = px_ht))),
                                          shiny::fluidRow(shiny::column(width=1, shiny::actionButton(inputId="return_df", label="Close App, Return Changes", style = "margin-top: 5px;"))))
     ),
 
@@ -393,6 +402,24 @@ launch_map <- function(mloc){
           df.selectStation %>%
             dplyr::select(Alternate.ID.1, Alternate.Context.1)
         })
+      })
+
+      # When the next button is clicked, advance to next mloc
+      shiny::observeEvent(input$NEXT, {
+
+        next.row <- grep(input$selectStation, cr$df$choices) + 1
+
+        next.choice <- cr$df %>%
+          dplyr::filter(row==next.row) %>%
+          dplyr::pull(choices)
+
+        shiny::updateSelectizeInput(
+          session = session,
+          inputId = "selectStation",
+          selected = next.choice
+        )
+
+
       })
 
       # When the map is clicked, update the Lat/Long
