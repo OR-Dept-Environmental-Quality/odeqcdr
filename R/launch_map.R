@@ -15,10 +15,11 @@ launch_map <- function(mloc){
                                          shiny::fluidRow(shiny::column(width=5, shiny::selectInput(inputId="selectStation",
                                                                                                    label="Zoom to Monitoring Location",
                                                                                                    choices = unique(df.mloc$choices),
-                                                                                                   multiple=FALSE, width='100%')),
+                                                                                                   multiple=FALSE, width="100%", selectize=TRUE)),
                                                          shiny::column(width=2, shiny::selectizeInput(inputId="mlocTypeSelect", label="Monitoring Location Type",
                                                                                                       choices = c("",odeqcdr::valid_values(col="Monitoring Location Type")),
-                                                                                                      multiple = FALSE, width='100%')),
+                                                                                                      multiple = FALSE, width='100%',
+                                                                                                      options = list(create = TRUE))),
                                                          shiny::column(width=2, shiny::verbatimTextOutput("STATUSprintout", placeholder=TRUE), style = "margin-top: 25px;"),
                                                          shiny::column(width=1, shiny::actionButton(inputId="STATUSsave", label="Update Status", style = "margin-top: 25px;"), align = "left")),
 
@@ -41,14 +42,6 @@ launch_map <- function(mloc){
     ),
 
     server = shiny::shinyServer(function(input, output, session) {
-
-      zoom_reactive <- shiny::reactive({
-
-        df.mloc.zoom <- df.mloc %>%
-          dplyr::filter(choices==input$selectStation)
-        df.mloc.zoom
-
-      })
 
       # Click Reactive Values
       cr <- shiny::reactiveValues(Monitoring.Location.Status.ID=NULL,
@@ -77,25 +70,38 @@ launch_map <- function(mloc){
       output$map <- leaflet::renderLeaflet({
 
         # Get current station info
-
-        #zoom_mloc <- zoom_reactive()
         zoom_mloc <- df_reactive()
 
         map <- leaflet::leaflet() %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 16) %>%
-          leaflet::addTiles() %>%
           leafem::addMouseCoordinates() %>%
-          leaflet::addMapPane("Tiles", zIndex = 400) %>%
-          leaflet::addMapPane("Points_AWQMS", zIndex= 405) %>%
-          leaflet::addMapPane("Select", zIndex = 410) %>%
-          leaflet::addMapPane("Lines", zIndex = 420) %>%
+          leaflet::addMapPane("Base1", zIndex = 400) %>%
+          leaflet::addMapPane("Base2", zIndex = 401) %>%
+          leaflet::addMapPane("Aerial2", zIndex = 402) %>%
+          leaflet::addMapPane("Hydro", zIndex = 403) %>%
+          leaflet::addMapPane("Points_AWQMS", zIndex= 415) %>%
+          leaflet::addMapPane("Select", zIndex = 420) %>%
+          leaflet::addMapPane("Lines", zIndex = 430) %>%
           leaflet::addMapPane("Points_Review", zIndex= 490) %>%
-          leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "World Imagery") %>%
-          leaflet::addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer",
+          leaflet.esri::addEsriTiledMapLayer(url =  "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer",
+                                             options = leaflet::leafletOptions(pane="Base1")) %>%
+          leaflet::addTiles(urlTemplate = "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            options= leaflet::tileOptions(opacity=0.7,
+                                                          pane="Base2")) %>%
+          #leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery,
+          #                          group = "World Imagery",
+          #                          options = leaflet::leafletOptions(pane="Aerial1")) %>%
+          leaflet.esri::addEsriImageMapLayer(url="https://imagery.oregonexplorer.info/arcgis/rest/services/OSIP_2018/OSIP_2018_WM/ImageServer",
+                                             group = "Oregon Imagery",
+                                             options = leaflet::leafletOptions(pane="Aerial2")) %>%
+          leaflet.esri::addEsriImageMapLayer(url="https://imagery.oregonexplorer.info/arcgis/rest/services/OSIP_2017/OSIP_2017_WM/ImageServer",
+                                             group = "Oregon Imagery",
+                                             options = leaflet::leafletOptions(pane="Aerial2")) %>%
+          leaflet::addWMSTiles(baseUrl="https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer",
                                group = "Hydrography",
                                options = leaflet::WMSTileOptions(format = "image/png",
                                                                  transparent = TRUE,
-                                                                 pane= "Tiles"),
+                                                                 pane= "Hydro"),
                                attribution = '<a href="https://basemap.nationalmap.gov/arcgis/rest/services/USGSHydroCached/MapServer">USGS The National Map: National Hydrography Dataset.</a>',
                                layers = "0") %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1",
@@ -213,7 +219,7 @@ launch_map <- function(mloc){
                                                       "NHD Streams",
                                                       "LLID Streams",
                                                       "Hydrography",
-                                                      "World Imagery"),
+                                                      "Oregon Imagery"),
                                     options = leaflet::layersControlOptions(collapsed = FALSE)) %>%
           leaflet::addEasyButton(leaflet::easyButton(
             icon = "fa-globe",
@@ -228,7 +234,7 @@ launch_map <- function(mloc){
             primaryAreaUnit = "sqmeters",
             activeColor = "#3D535D",
             completedColor = "#7D4479") %>%
-          leaflet::hideGroup(c("LLID Streams","Hydrography","World Imagery"))
+          leaflet::hideGroup(c("LLID Streams","Hydrography","Oregon Imagery"))
 
         map
 
