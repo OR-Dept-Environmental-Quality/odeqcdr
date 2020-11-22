@@ -407,7 +407,7 @@ launch_map <- function(mloc, px_ht=470){
       # When the next button is clicked, advance to next mloc
       shiny::observeEvent(input$NEXT, {
 
-        next.row <- grep(input$selectStation, cr$df$choices) + 1
+        next.row <- grep(input$selectStation, cr$df$choices, fixed=TRUE) + 1
 
         next.choice <- cr$df %>%
           dplyr::filter(row==next.row) %>%
