@@ -84,19 +84,17 @@ launch_map <- function(mloc, px_ht=470){
         map <- leaflet::leaflet() %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 16) %>%
           leafem::addMouseCoordinates() %>%
-          leaflet::addMapPane("Base1", zIndex = 400) %>%
-          leaflet::addMapPane("Base2", zIndex = 401) %>%
-          leaflet::addMapPane("Aerial2", zIndex = 402) %>%
-          leaflet::addMapPane("Hydro", zIndex = 403) %>%
-          leaflet::addMapPane("Points_AWQMS", zIndex= 415) %>%
-          leaflet::addMapPane("Select", zIndex = 420) %>%
-          leaflet::addMapPane("Lines", zIndex = 430) %>%
-          leaflet::addMapPane("Points_Review", zIndex= 490) %>%
+          leaflet::addMapPane("Base", zIndex = 150) %>%
+          leaflet::addMapPane("Aerial2", zIndex = 300) %>%
+          leaflet::addMapPane("Hydro", zIndex = 302) %>%
+          leaflet::addMapPane("Points_AWQMS", zIndex= 405) %>%
+          leaflet::addMapPane("Select", zIndex = 410) %>%
+          leaflet::addMapPane("Lines", zIndex = 420) %>%
+          leaflet::addMapPane("Points_Review", zIndex= 600) %>%
           leaflet.esri::addEsriTiledMapLayer(url =  "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer",
-                                             options = leaflet::leafletOptions(pane="Base1")) %>%
+                                             options = leaflet::leafletOptions(pane="Base")) %>%
           leaflet::addTiles(urlTemplate = "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                            options= leaflet::tileOptions(opacity=0.7,
-                                                          pane="Base2")) %>%
+                            options= leaflet::tileOptions(opacity=0.7)) %>%
           #leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery,
           #                          group = "World Imagery",
           #                          options = leaflet::leafletOptions(pane="Aerial1")) %>%
