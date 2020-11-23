@@ -25,6 +25,9 @@
 #' @return Launches a Shiny app
 
 launch_shiny <- function(){
+
+  options(shiny.maxRequestSize=40*1024^2)
+
   app <- shiny::shinyApp(
 
     ui = shiny::shinyUI(
