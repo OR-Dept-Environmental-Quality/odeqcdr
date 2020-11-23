@@ -65,14 +65,14 @@ pre_checks <- function(template_list) {
                     "Missing value in column Project.Name",
                     "Missing value in column Project.Description",
                     "Missing value in column Approved.QAPP.Indicator",
-                    "Value in column Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'")
+                    "Value in column QAPP.Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'")
 
   projects_checks <- list((nrow(projects_import) <= 0),
                           is.na(projects_import$Project.ID),
                           is.na(projects_import$Project.Name),
                           is.na(projects_import$Project.Description),
                           is.na(projects_import$Approved.QAPP.Indicator),
-                          !projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name)
+                          projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name)
   )
 
   projects_result <- unlist(lapply(projects_checks, FUN=any, na.rm = TRUE))
