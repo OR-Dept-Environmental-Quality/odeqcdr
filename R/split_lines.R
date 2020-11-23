@@ -5,11 +5,15 @@
 #' @param max_length maximum segment length to return
 #' @param id name of ID column in data.frame
 #' @return only the split lines.
-#' @importFrom dplyr group_by ungroup filter select mutate
 #' @export
 #'
 split_lines <- function(input_lines, max_length, id) {
   if(max_length < 10) warning("short max length detected, do you have your units right?")
+
+  # Adds vertices to the line so there are enough to collect when using lwgeom::st_linesubstring
+  input_lines <- smoothr::densify(input_lines, max_distance = floor(max_length/5))
+
+  input_lines <- smoothr::densify(reach2, max_distance = floor(max_length/5))
 
   geom_column <- attr(input_lines, "sf_column")
 
@@ -20,24 +24,27 @@ split_lines <- function(input_lines, max_length, id) {
   attr(input_lines[["geom_len"]], "units") <- NULL
   input_lines[["geom_len"]] <- as.numeric(input_lines[["geom_len"]])
 
-  too_long <- filter(select(input_lines, id, geom_column, geom_len), geom_len >= max_length)
+  too_long <- input_lines %>%
+    dplyr::select(id, geom_column, geom_len) %>%
+    dplyr::filter(geom_len >= max_length)
 
   rm(input_lines) # just to control memory usage in case this is big.
 
-  too_long <- mutate(too_long,
-                     pieces = ceiling(geom_len / max_length),
-                     fID = 1:nrow(too_long)) %>%
-    select(-geom_len)
+  too_long <- too_long %>%
+    dplyr::mutate(pieces = ceiling(geom_len / max_length),
+                  fID = 1:nrow(too_long)) %>%
+    dplyr::select(-geom_len)
 
   split_points <- sf::st_set_geometry(too_long, NULL)[rep(seq_len(nrow(too_long)), too_long[["pieces"]]),] %>%
-    select(-pieces)
+    dplyr::select(-pieces)
 
-  split_points <- mutate(split_points, split_fID = row.names(split_points)) %>%
-    group_by(fID) %>%
-    mutate(piece = 1:n()) %>%
-    mutate(start = (piece - 1) / n(),
-           end = piece / n()) %>%
-    ungroup()
+  split_points <- split_points %>%
+    dplyr::mutate(split_fID = row.names(split_points)) %>%
+    dplyr::group_by(fID) %>%
+    dplyr::mutate(piece = 1:dplyr::n()) %>%
+    dplyr::mutate(start = (piece - 1) / dplyr::n(),
+                  end = piece / dplyr::n()) %>%
+    dplyr::ungroup()
 
   new_line <- function(i, f, t) {
     lwgeom::st_linesubstring(x = too_long[[geom_column]][i], from = f, to = t)[[1]]
@@ -48,7 +55,7 @@ split_lines <- function(input_lines, max_length, id) {
 
   rm(too_long)
 
-  split_lines <- sf::st_sf(split_points[c(id, "split_fID")], geometry = st_sfc(split_lines, crs = input_crs))
+  split_lines <- sf::st_sf(split_points[c(id, "split_fID")], geometry = sf::st_sfc(split_lines, crs = input_crs))
 
   return(split_lines)
 }
