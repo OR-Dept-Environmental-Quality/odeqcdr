@@ -26,8 +26,8 @@ pre_checks <- function(template_list) {
   mlocid_locations <- unique(locations_import$Monitoring.Location.ID)
   mlocid_results <- unique(results_import$Monitoring.Location.ID)
 
-  eqiupid_char_results <- unique(paste(results_import$Equipment.ID, results_import$Characteristic.Name))
-  eqiupid_char_prepost <- unique(paste(prepost_import$Equipment.ID, prepost_import$Characteristic.Name))
+  eqiupid_char_results <- unique(paste0("[",results_import$Equipment.ID," - ",results_import$Characteristic.Name,"]"))
+  eqiupid_char_prepost <- unique(paste0("[",prepost_import$Equipment.ID," - ",prepost_import$Characteristic.Name,"]"))
 
   audits_deploy <- unique(paste0("[",audit_import$Monitoring.Location.ID," - ",audit_import$Equipment.ID," - ",audit_import$Characteristic.Name,"]"))
   results_deploy <- unique(paste0("[",results_import$Monitoring.Location.ID," - ",results_import$Equipment.ID," - ", results_import$Characteristic.Name,"]"))
@@ -261,12 +261,12 @@ pre_checks <- function(template_list) {
 
   #- PrePost--------------------------------------------------------------------
 
-  prepost_eqid_check <- any(!eqiupid_char_prepost %in% eqiupid_char_results)
+  prepost_eqid_check <- any(!eqiupid_char_results %in% eqiupid_char_prepost)
 
   if(prepost_eqid_check) {
-    prepost_eqid_missing <- eqiupid_char_prepost[!eqiupid_char_prepost %in% eqiupid_char_results]
+    prepost_eqid_missing <- eqiupid_char_results[!eqiupid_char_results %in% eqiupid_char_prepost]
 
-    prepost_eqid_msg <- "Missing PrePost Results for Equipment IDs that are in Results worksheet. Missing IDs listed in TRUE_row"
+    prepost_eqid_msg <- "Missing PrePost Results for some [Equipment.ID - Characteristic.Name] that are in Results worksheet. Missing PrePosts results are listed in TRUE_row"
     prepost_eqid_t <- paste0(prepost_eqid_missing, collapse = ", ")
   } else {
     prepost_eqid_msg <- paste0("Missing PrePost Results for Equipment IDs that are in Results worksheet.")
@@ -305,16 +305,16 @@ pre_checks <- function(template_list) {
 
   #- Audit Data-----------------------------------------------------------------
 
-  audit_d_check <- any(!audits_deploy %in% results_deploy)
+  audit_d_check <- any(!audits_deploy %in% deploy_deploy)
 
   if(audit_d_check) {
-    audit_d_missing <- audits_deploy[!audits_deploy %in% results_deploy]
+    audit_d_missing <- deploy_deploy[!audits_deploy %in% deploy_deploy]
 
-    audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet. Missing audits for deployments listed in TRUE_row."
+    audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]. Deployments with missing audits listed in TRUE_row."
     audit_d_t <- paste0(audit_d_missing, collapse = ", ")
 
   } else {
-    audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet")
+    audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name].")
     audit_d_t <- NA
   }
 
