@@ -13,8 +13,6 @@ split_lines <- function(input_lines, max_length, id) {
   # Adds vertices to the line so there are enough to collect when using lwgeom::st_linesubstring
   input_lines <- smoothr::densify(input_lines, max_distance = floor(max_length/5))
 
-  input_lines <- smoothr::densify(reach2, max_distance = floor(max_length/5))
-
   geom_column <- attr(input_lines, "sf_column")
 
   input_crs <- sf::st_crs(input_lines)
