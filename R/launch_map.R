@@ -301,89 +301,102 @@ launch_map <- function(mloc, px_ht=470){
 
         if(click$id=="NHD") {
 
-          NHDpoint <-odeqcdr::get_measure(pid=click$properties$Permanent_Identifier,
-                                          x=click$lng, y=click$lat,
-                                          return_sf=TRUE)
+          tryCatch(
 
-          cr$Permanent.Identifier <- click$properties$Permanent_Identifier
-          cr$Reachcode <- click$properties$ReachCode
-          cr$Measure <- NHDpoint$Measure
+            expr = {
 
-          request_NHD <- httr::GET(url = paste0("https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1/query?where=",
-                                                "ReachCode='",click$properties$ReachCode,
-                                                "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
-          response_NHD <- httr::content(request_NHD, as = "text", encoding = "UTF-8")
+              NHDpoint <-odeqcdr::get_measure(pid=click$properties$Permanent_Identifier,
+                                              x=click$lng, y=click$lat,
+                                              return_sf=TRUE)
 
-          shiny::isolate({
-            leaflet::leafletProxy("map") %>%
-              leaflet::removeGeoJSON(layerId="reachcodeClick") %>%
-              leaflet::removeMarker(layerId="measurePoint") %>%
-              leaflet::addGeoJSON(geojson = response_NHD,
-                                  layerId = "reachcodeClick",
-                                  group = "NHD Streams",
-                                  fill=FALSE,
-                                  color="orange",
-                                  weight = 6,
-                                  opacity = 0.7,
-                                  options=leaflet::leafletOptions(pane="Select")) %>%
-              leaflet::addCircleMarkers(data=NHDpoint,
-                                        layerId = "measurePoint",
-                                        group = "NHD Streams",
-                                        color="red")
+              cr$Permanent.Identifier <- click$properties$Permanent_Identifier
+              cr$Reachcode <- click$properties$ReachCode
+              cr$Measure <- NHDpoint$Measure
 
-            output$NHDprintout <- shiny::renderPrint({
-              df <- sf::st_drop_geometry(NHDpoint)
-              df
+              request_NHD <- httr::GET(url = paste0("https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1/query?where=",
+                                                    "ReachCode='",click$properties$ReachCode,
+                                                    "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
+              response_NHD <- httr::content(request_NHD, as = "text", encoding = "UTF-8")
+
+              shiny::isolate({
+                leaflet::leafletProxy("map") %>%
+                  leaflet::removeGeoJSON(layerId="reachcodeClick") %>%
+                  leaflet::removeMarker(layerId="measurePoint") %>%
+                  leaflet::addGeoJSON(geojson = response_NHD,
+                                      layerId = "reachcodeClick",
+                                      group = "NHD Streams",
+                                      fill=FALSE,
+                                      color="orange",
+                                      weight = 6,
+                                      opacity = 0.7,
+                                      options=leaflet::leafletOptions(pane="Select")) %>%
+                  leaflet::addCircleMarkers(data=NHDpoint,
+                                            layerId = "measurePoint",
+                                            group = "NHD Streams",
+                                            color="red")
+
+                output$NHDprintout <- shiny::renderPrint({
+                  df <- sf::st_drop_geometry(NHDpoint)
+                  df
+                })
+
+              })
+            }, error = {
+              output$NHDprintout <- shiny::renderPrint({"Error with segment geometry."})
             })
-
-          })
         }
 
         if(click$id=="LLID") {
 
-          # LLID
-          rm_point <-odeqcdr::get_llidrm(llid=click$properties$LLID,
-                                         x=click$lng,
-                                         y=click$lat,
-                                         max_length = 82,
-                                         return_sf=TRUE)
+          tryCatch(
 
-          cr$LLID <- click$properties$LLID
-          cr$River.Mile <- as.numeric(rm_point$River_Mile)
+            expr = {
 
-          pathLLID <- "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/query?where="
+              # LLID
+              rm_point <-odeqcdr::get_llidrm(llid=click$properties$LLID,
+                                             x=click$lng,
+                                             y=click$lat,
+                                             max_length = 82,
+                                             return_sf=TRUE)
 
-          request_LLID <- httr::GET(url = paste0(pathLLID,
-                                                 "LLID='",
-                                                 click$properties$LLID,
-                                                 "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
-          response_LLID <- httr::content(request_LLID, as = "text", encoding = "UTF-8")
+              cr$LLID <- click$properties$LLID
+              cr$River.Mile <- as.numeric(rm_point$River_Mile)
 
-          shiny::isolate({
-            leaflet::leafletProxy("map") %>%
-              leaflet::removeGeoJSON(layerId="llidClick") %>%
-              leaflet::removeMarker(layerId="llidrmPoint") %>%
-              leaflet::addGeoJSON(geojson = response_LLID,
-                                  layerId = "llidClick",
-                                  group = "LLID Streams",
-                                  fill=FALSE,
-                                  color="green",
-                                  weight = 6,
-                                  opacity = 0.7,
-                                  options=leaflet::leafletOptions(pane="Select")) %>%
-              leaflet::addCircleMarkers(data=rm_point,
-                                        layerId = "llidrmPoint",
-                                        group = "LLID Streams",
-                                        color="blue")
+              pathLLID <- "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/query?where="
 
-            output$LLIDprintout <- shiny::renderPrint({
-              df <- sf::st_drop_geometry(rm_point)
-              df
+              request_LLID <- httr::GET(url = paste0(pathLLID,
+                                                     "LLID='",
+                                                     click$properties$LLID,
+                                                     "'&outFields=*&returnGeometry=true&returnIdsOnly=false&f=GeoJSON"))
+              response_LLID <- httr::content(request_LLID, as = "text", encoding = "UTF-8")
+
+              shiny::isolate({
+                leaflet::leafletProxy("map") %>%
+                  leaflet::removeGeoJSON(layerId="llidClick") %>%
+                  leaflet::removeMarker(layerId="llidrmPoint") %>%
+                  leaflet::addGeoJSON(geojson = response_LLID,
+                                      layerId = "llidClick",
+                                      group = "LLID Streams",
+                                      fill=FALSE,
+                                      color="green",
+                                      weight = 6,
+                                      opacity = 0.7,
+                                      options=leaflet::leafletOptions(pane="Select")) %>%
+                  leaflet::addCircleMarkers(data=rm_point,
+                                            layerId = "llidrmPoint",
+                                            group = "LLID Streams",
+                                            color="blue")
+
+                output$LLIDprintout <- shiny::renderPrint({
+                  df <- sf::st_drop_geometry(rm_point)
+                  df
+                })
+
+              })
+            }, error = {
+              output$LLIDprintout <- shiny::renderPrint({"Error with segment geometry."})
             })
-
-          })
         }
-
       })
 
       # Populate printouts with whatever is saved into cr$df
