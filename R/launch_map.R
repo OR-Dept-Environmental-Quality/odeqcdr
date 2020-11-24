@@ -164,7 +164,16 @@ launch_map <- function(mloc, px_ht=470){
                                                                                  sticky = FALSE),
                                             popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
                                             labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.MLocID+\": \"+props.StationDes+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.MLocID+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Alternate.Context/OrgID:</b> \"+props.OrgID+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
+                                            popupProperty = htmlwidgets::JS(paste0('function(feature){var props = feature.properties; return \"',
+                                                                                   '<b>Monitoring.Location.ID:</b> \"+props.MLocID+\"',
+                                                                                   '<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"',
+                                                                                   '<br><b>Alternate.Context/OrgID:</b> \"+props.OrgID+\"',
+                                                                                   '<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\"',
+                                                                                   '<br><b>GNIS Name:</b> \"+props.GNIS_Name+\"',
+                                                                                   '<br><b>Reachcode:</b> \"+props.Reachcode+\"',
+                                                                                   '<br><b>Measure:</b> \"+props.Measure+\"',
+                                                                                   '<br><b>Permanent.Identifier:</b> \"+props.Permanent_Identifier+\"',
+                                                                                   ' \"}'))
           ) %>%
           leaflet.esri::addEsriFeatureLayer(url = "https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/AWQMS_Stations/MapServer/0",
                                             group = "AWQMS Stations",
@@ -180,7 +189,16 @@ launch_map <- function(mloc, px_ht=470){
                                                                                  sticky = FALSE),
                                             popupOptions = leaflet::popupOptions(maxWidth = 600, maxHeight = 500),
                                             labelProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return props.station_key+\": \"+props.StationDes+\" \"}"),
-                                            popupProperty = htmlwidgets::JS("function(feature){var props = feature.properties; return \"<b>Monitoring.Location.ID:</b> \"+props.station_key+\"<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"<br><b>Alternate.Context/OrgID:</b> \"+props.ORGID+\"<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\" \"}")
+                                            popupProperty = htmlwidgets::JS(paste0('function(feature){var props = feature.properties; return \"',
+                                                                                   '<b>Monitoring.Location.ID:</b> \"+props.station_key+\"',
+                                                                                   '<br><b>Monitoring.Location.Name:</b> \"+props.StationDes+\"',
+                                                                                   '<br><b>Alternate.Context/OrgID:</b> \"+props.ORGID+\"',
+                                                                                   '<br><b>Monitoring.Location.Type:</b> \"+props.MonLocType+\"',
+                                                                                   '<br><b>GNIS Name:</b> \"+props.GNIS_Name+\"',
+                                                                                   '<br><b>Reachcode:</b> \"+props.Reachcode+\"',
+                                                                                   '<br><b>Measure:</b> \"+props.Measure+\"',
+                                                                                   '<br><b>Permanent.Identifier:</b> \"+props.Permanent_Identifier+\"',
+                                                                                   ' \"}'))
           )
 
         map <- map %>%
