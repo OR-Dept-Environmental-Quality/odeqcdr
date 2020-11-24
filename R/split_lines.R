@@ -11,7 +11,7 @@ split_lines <- function(input_lines, max_length, id) {
   if(max_length < 10) warning("short max length detected, do you have your units right?")
 
   # Adds vertices to the line so there are enough to collect when using lwgeom::st_linesubstring
-  input_lines <- smoothr::densify(input_lines, max_distance = floor(max_length/5))
+  input_lines <- smoothr::densify(input_lines, max_distance = 1)
 
   geom_column <- attr(input_lines, "sf_column")
 
