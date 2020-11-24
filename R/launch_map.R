@@ -589,6 +589,7 @@ launch_map <- function(mloc, px_ht=470){
       shiny::observeEvent(input$return_df, {
         return_df <- cr$df
         return_df$choices <- NULL
+        return_df$row <- NULL
         shiny::stopApp(returnValue=return_df)
       })
 
