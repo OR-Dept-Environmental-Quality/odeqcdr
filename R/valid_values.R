@@ -64,6 +64,23 @@ valid_values <- function(col=NULL) {
                         "Rejected",
                         "Validated")
 
+  #- Organizational Details ----------------------------------------------------
+
+  org_key <- c("ORGANIZATION NAME",
+               "DESCRIPTION OF ORGANIZATION",
+               "ADDRESS (INCLUDE MAILING IF DIFFERENT FROM PHYSICAL)",
+               "PHONE",
+               "FAX",
+               "EMAIL",
+               "WEB ADDRESS",
+               "CONTACT PERSON (INCLUDE ADDRESS/PHONE/EMAIL IF DIFFERENT FROM ORGANIZATION)",
+               "TYPE(S) OF DATA (e.g. water quality, macroinvertebrate, pebble, etc.)",
+               "319 Grant? If so, Years funded",
+               "Have you submitted data to DEQ before (Yes/No)? If you are unsure say No.",
+               "EPA/USGS ORGANIZATION ID, USERNAME &  PASSWORD",
+               "DATE ORG ID/U/P ISSUED:",
+               "OTHER PEOPLE WORKING WITH THIS PROJECT THAT HAVE THE USERNAME & PASSWORD:")
+
   #- Projects ------------------------------------------------------------------
 
   Approved.QAPP.Indicator <- c("Yes", "No", NA)
@@ -204,12 +221,13 @@ valid_values <- function(col=NULL) {
                                 "R",
                                 "SUS", NA)
 
-  # Add everying to a list
+  # Add everything to a list
   val_list <-list(Characteristic.Name=Characteristic.Name,
                   Activity.Start.End.Time.Zone=Activity.Start.End.Time.Zone,
                   Result.Unit=Result.Unit,
                   Result.Status.ID=Result.Status.ID,
                   Monitoring.Location.Type= Monitoring.Location.Type,
+                  org_key=org_key,
                   Approved.QAPP.Indicator=Approved.QAPP.Indicator,
                   Project.Attachment.Type=Project.Attachment.Type,
                   Horizontal.Datum=Horizontal.Datum,
