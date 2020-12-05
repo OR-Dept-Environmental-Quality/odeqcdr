@@ -66,7 +66,7 @@ launch_map <- function(mloc, px_ht=470){
                                   Alternate.Context.1=NULL,
                                   df=NULL)
 
-      # Populate with intial mloc data frame
+      # Populate with initial mloc data frame
       cr$df <- df.mloc
 
       # Retrieve cr$df from currently selected station
@@ -82,7 +82,7 @@ launch_map <- function(mloc, px_ht=470){
         zoom_mloc <- df_reactive()
 
         map <- leaflet::leaflet() %>%
-          leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 16) %>%
+          leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 18) %>%
           leafem::addMouseCoordinates() %>%
           leaflet::addMapPane("Base", zIndex = 150) %>%
           leaflet::addMapPane("Aerial2", zIndex = 300) %>%
@@ -417,6 +417,11 @@ launch_map <- function(mloc, px_ht=470){
           inputId = "mlocTypeSelect",
           selected = mlt
         )
+
+        output$XYprintout <- shiny::renderPrint({
+          df.selectStation %>%
+            dplyr::select(Latitude, Longitude)
+        })
 
         output$NHDprintout <- shiny::renderPrint({
           df.selectStation %>%
