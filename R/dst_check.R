@@ -127,7 +127,10 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
       df4 <- df2 %>%
         dplyr::left_join(df3) %>%
         dplyr::mutate(hours_added=tidyr::replace_na(hours_added, 0),
-                      datetime_utc_fix=datetime_utc+lubridate::dhours(hours_added))
+                      datetime_tz_fix=datetime_utc+lubridate::dhours(hours_added)) %>%
+        dplyr::group_by(tz_name) %>%
+        dplyr::mutate(datetime_tz_fix=lubridate::force_tz(time=datetime_tz_fix, tzone=unique(tz_name), roll = FALSE)) %>%
+        dplyr::ungroup()
 
       if(any(is.na(df2$datetime_tz))) {
         print("DST break. Time change correction made for the following stations and periods:")
@@ -144,7 +147,7 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
         print(df5)
       }
 
-      return(df4$datetime_utc_fix)
+      return(df4$datetime_tz_fix)
 
   }
 
