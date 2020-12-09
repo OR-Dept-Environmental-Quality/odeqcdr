@@ -37,7 +37,7 @@ valid_values <- function(col=NULL) {
                                     "MST",
                                     "MDT",
                                     "America/Los_Angeles",
-                                    "America/Boise", NA)
+                                    "America/Boise")
 
   Result.Unit <- c("cfm", "cfs", "MGD", "deg C", "deg F", "umho/cm", "ft", "in", "m",
                    "ug/l", "mg/l", "ppth", "%", "FTU", "NTU", "SU", "pH Units", "%saturatn",
