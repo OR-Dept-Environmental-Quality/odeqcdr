@@ -3,7 +3,7 @@ library(lutz)
 library(odeqcdr)
 library(writexl)
 
-setwd("E://GitHub/odeqcdr/test_templates")
+setwd("C:/workspace/Data_Solicitation/examples")
 #setwd("/Users/rmichie/GitHub/odeqcdr/test_templates")
 
 xlsx_input <- "ContinuousDataTemplate_example.xlsx"
@@ -110,15 +110,27 @@ df1.deployment <- merge(df1.deployment, df.tz, by="Monitoring.Location.ID")
 df1.results <- merge(df1.results, df.tz, by="Monitoring.Location.ID")
 df1.audits <- merge(df1.audits, df.tz, by="Monitoring.Location.ID")
 
+# Add a timezone if one is missing, The code will correct in dst_check if it's wrong.
+# Flag timezones that are wrong.
 df1.results <- df1.results %>%
-  dplyr::mutate(tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
+  dplyr::mutate(Activity.Start.End.Time.Zone=dplyr::case_when(tz_name=="America/Los_Angeles" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~ "PDT",
+                                                              tz_name=="America/Boise" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~  "MDT",
+                                                              TRUE ~ Activity.Start.End.Time.Zone),
+                tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
                                             Activity.Start.End.Time.Zone %in% c("PDT", "PST") ~ FALSE,
                                           tz_name=="America/Boise" &
                                             Activity.Start.End.Time.Zone %in% c("MDT", "MST") ~ FALSE,
                                           TRUE ~ TRUE))
 
 df1.audits <- df1.audits %>%
-  dplyr::mutate(tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
+  dplyr::mutate(Activity.Start.End.Time.Zone=dplyr::case_when(tz_name=="America/Los_Angeles" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~ "PDT",
+                                                              tz_name=="America/Boise" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~  "MDT",
+                                                              TRUE ~ Activity.Start.End.Time.Zone),
+                tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
                                             Activity.Start.End.Time.Zone %in% c("PDT", "PST") ~ FALSE,
                                           tz_name=="America/Boise" &
                                             Activity.Start.End.Time.Zone %in% c("MDT", "MST") ~ FALSE,
