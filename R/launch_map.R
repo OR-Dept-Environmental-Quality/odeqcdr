@@ -81,7 +81,7 @@ launch_map <- function(mloc, px_ht=470){
         # Get current station info
         zoom_mloc <- df_reactive()
 
-        map <- leaflet::leaflet() %>%
+        map <- leaflet::leaflet(options = leaflet::leafletOptions(minZoom = 1, maxZoom = 22)) %>%
           leaflet::setView(lng=zoom_mloc$Longitude[1], lat=zoom_mloc$Latitude[1], zoom = 18) %>%
           leafem::addMouseCoordinates() %>%
           leaflet::addMapPane("Base", zIndex = 150) %>%
