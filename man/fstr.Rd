@@ -2,7 +2,7 @@
 % Please edit documentation in R/fstr.R
 \name{fstr}
 \alias{fstr}
-\title{Returns a string of index values cooresponding to each vector element that is FALSE}
+\title{Returns a string of index values corresponding to each vector element that is FALSE}
 \usage{
 fstr(x)
 }
@@ -14,8 +14,8 @@ string
 }
 \description{
 This works the same as \link{which} except each index value is collapsed into a single
-string separated by a comma and space. +1 is added to the index to equal
-the row number in excel assuming the header row is the first row.
+string separated by a comma and space. +1 is added to the index to equal the
+row number in excel assuming the header row is the first row.
 If all values are TRUE, NA is returned. NA values in x are treated the same as a TRUE.
 }
 \seealso{
