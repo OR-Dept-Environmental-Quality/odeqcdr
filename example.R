@@ -96,6 +96,7 @@ df1.audits$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.audits$Monitoring.Lo
 
 df.tz <- df1.mloc %>%
   dplyr::select(Monitoring.Location.ID, Latitude, Longitude) %>%
+  dplyr::distinct() %>%
   dplyr::mutate(tz_name=lutz::tz_lookup_coords(lat=Latitude,lon=Longitude, method="accurate", warn=FALSE)) %>%
   dplyr::select(-Latitude, -Longitude)
 
