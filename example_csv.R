@@ -73,20 +73,11 @@ df1.audits <- df1.audits %>%
 df1.mloc <- odeqcdr::launch_map(mloc=df0.mloc)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
-df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
+# df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
-# Save to xlsx
-odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
-                       org=df0.org,
-                       projects=df1.projects,
-                       mloc=df1.mloc,
-                       deployment=df0.deployment,
-                       results=df0.results,
-                       prepost=df0.prepost,
-                       audits=df0.audits)
+# Save R global environment just in case.
+save.image(paste0(output_dir, "/Renv.RData"))
 
-# Make manual changes to the xlsx spreadsheet and re import if needed:
-# df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
 #- Update Monitoring Location ID Name-------------------------------------------
 
