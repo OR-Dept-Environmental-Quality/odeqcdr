@@ -19,3 +19,120 @@ data submission template xlsx file v2.03. The function checks for missing data,
 missing values in required columns, invalid domain values, and flags potential errors.
 If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 }
+\details{
+Complete list of checks
+
+Organizational Details worksheet checks:
+\enumerate{
+\item Missing Organization Name
+\item Missing Address
+\item Missing Phone Number
+\item Missing Email
+\item Missing response to Type(s) of Data Submitted
+\item Missing response to Prior DEQ Data Submission
+}
+
+Project worksheet checks:
+\enumerate{
+\item Project worksheet is empty
+\item Missing value in column Project.IDs
+\item Missing value in column Project.Name
+\item Missing value in column Project.Description
+\item Missing value in column Approved.QAPP.Indicator
+\item Value in column QAPP.Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'
+}
+
+Monitoring Locations worksheet checks:
+\enumerate{
+\item Monitoring Locations worksheet is empty
+\item Monitoring Location ID in results and not in Monitoring_Locations
+\item Value in column Monitoring.Location.ID has been entered more than once.
+\item Value in column Monitoring.Location.ID is > 22 characters
+\item Value in column in Monitoring.Location.ID has an invalid character:
+` ~ ! @ # $ \% ^ & * ( ) [ \{ ] \} \ | ; ' " < > / ? [space].
+\item Missing value in column Monitoring.Location.Name
+\item Invalid value in column Monitoring.Location.Type
+\item Missing value in column Latitude
+\item Missing value in column Longitude
+\item Invalid value in column Horizontal.Datum
+\item Invalid value in column Coordinate.Collection.Method
+\item Invalid value in column Tribal.Land
+\item Invalid value in column County.Name
+\item Invalid value in column State.Code
+\item Invalid value in column HUC.8.Code
+\item Value in column Latitude is outside of Oregon
+\item Value in column Longitude is outside of Oregon
+\item Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
+\item Value in column County.Name is NA but value in column State.Code=='OR'
+\item Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information
+\item Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information
+\item Missing value in column Reachcode
+\item Missing value in column Measure
+\item Missing value in column LLID
+\item Missing value in column River.Mile
+}
+
+Deployment worksheet checks:
+\enumerate{
+\item Deployment worksheet is empty
+\item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' in Results and not in Deployment. Missing deployments listed in TRUE_row.
+\item Missing value in column Equipment.ID
+\item Invalid value in column Characteristic.Name
+\item Missing value in column Deployment.Start.Date
+\item Missing value in column Deployment.End.Date
+\item Missing value in column Sample.Depth
+\item Invalid value in column Sample.Depth.Unit
+\item Invalid value in column Sample.Media
+\item Invalid value in column Sample.Sub.Media
+}
+
+Results worksheet checks:
+\enumerate{
+\item Results worksheet is empty
+\item Monitoring Location ID in Monitoring_Locations and not in Results
+\item Missing value in column Activity.Start.Date
+\item Missing value in column Activity.Start.Time
+\item Invalid value in column Activity.Start.End.Time.Zone
+\item Missing value in column Equipment.ID
+\item Invalid value in column Characteristic.Name
+\item Missing value in column Result.Value
+\item Invalid value in column Result.Unit
+\item Invalid value in column Result.Status.ID
+}
+
+PrePost worksheet checks:
+\enumerate{
+\item PrePost worksheet is empty
+\item Missing PrePost Results for '[Equipment.ID - Characteristic.Name]' that are in Results worksheet.
+\item Invalid value in column Characteristic.Name
+\item Missing value in column Equipment.Result.Value
+\item Invalid value in column Equipment.Result.Unit
+\item Missing value in column Reference.Result.Value
+\item Invalid value in column Reference.Result.Unit
+\item Missing value in column Reference.ID
+}
+
+Audit Data worksheet checks:
+\enumerate{
+\item Audit Data worksheet is empty
+\item Audits missing for some deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]'.
+\item Missing value in column Project.ID
+\item Missing value in column Activity.Start.Date
+\item Missing value in column Activity.Start.Time
+\item Missing value in column Activity.End.Date
+\item Missing value in column Activity.End.Time
+\item Invalid value in column Activity.Start.End.Time.Zone
+\item Invalid value in column Activity.Type
+\item Missing value in column Activity.ID
+\item Missing value in column Equipment.ID
+\item Invalid value in column Sample.Collection.Method
+\item Invalid value in column Characteristic.Name
+\item Missing value in column Result.Value
+\item Invalid value in column Result.Unit
+\item Invalid value in column Result.Analytical.Method.ID
+\item Invalid value in column Result.Analytical.Method.Context
+\item Invalid value in column Result.Value.Type
+\item Invalid value in column Result.Status.ID
+\item Invalid value in column Result.Measure.Qualifier
+}
+}

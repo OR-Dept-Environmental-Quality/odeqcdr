@@ -5,6 +5,108 @@
 #' missing values in required columns, invalid domain values, and flags potential errors.
 #' If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 #'
+#' Complete list of checks
+#'
+#' Organizational Details worksheet checks:
+#' 1.	Missing Organization Name
+#' 2.	Missing Address
+#' 3.	Missing Phone Number
+#' 4.	Missing Email
+#' 5.	Missing response to Type(s) of Data Submitted
+#' 6.	Missing response to Prior DEQ Data Submission
+#'
+#'    Project worksheet checks:
+#' 1.	Project worksheet is empty
+#' 2.	Missing value in column Project.IDs
+#' 3.	Missing value in column Project.Name
+#' 4.	Missing value in column Project.Description
+#' 5.	Missing value in column Approved.QAPP.Indicator
+#' 6.	Value in column QAPP.Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'
+#'
+#' Monitoring Locations worksheet checks:
+#' 1.	Monitoring Locations worksheet is empty
+#' 2.	Monitoring Location ID in results and not in Monitoring_Locations
+#' 3.	Value in column Monitoring.Location.ID has been entered more than once.
+#' 4.	Value in column Monitoring.Location.ID is > 22 characters
+#' 5.	Value in column in Monitoring.Location.ID has an invalid character:
+#' ` ~ ! @ # $ % ^ & * ( ) \[ \{ \] \} \ | ; ' " < > / ? \[space\].
+#' 6.	Missing value in column Monitoring.Location.Name
+#' 7.	Invalid value in column Monitoring.Location.Type
+#' 8.	Missing value in column Latitude
+#' 9.	Missing value in column Longitude
+#' 10.	Invalid value in column Horizontal.Datum
+#' 11.	Invalid value in column Coordinate.Collection.Method
+#' 12.	Invalid value in column Tribal.Land
+#' 13.	Invalid value in column County.Name
+#' 14.	Invalid value in column State.Code
+#' 15.	Invalid value in column HUC.8.Code
+#' 16.	Value in column Latitude is outside of Oregon
+#' 17.	Value in column Longitude is outside of Oregon
+#' 18.	Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
+#' 19.	Value in column County.Name is NA but value in column State.Code=='OR'
+#' 20.	Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information
+#' 21.	Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information
+#' 22.	Missing value in column Reachcode
+#' 23.	Missing value in column Measure
+#' 24.	Missing value in column LLID
+#' 25.	Missing value in column River.Mile
+#'
+#' Deployment worksheet checks:
+#' 1.	Deployment worksheet is empty
+#' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment. Missing deployments listed in TRUE_row.
+#' 3.	Missing value in column Equipment.ID
+#' 4.	Invalid value in column Characteristic.Name
+#' 5.	Missing value in column Deployment.Start.Date
+#' 6.	Missing value in column Deployment.End.Date
+#' 7.	Missing value in column Sample.Depth
+#' 8.	Invalid value in column Sample.Depth.Unit
+#' 9.	Invalid value in column Sample.Media
+#' 10.	Invalid value in column Sample.Sub.Media
+#'
+#' Results worksheet checks:
+#' 1.	Results worksheet is empty
+#' 2.	Monitoring Location ID in Monitoring_Locations and not in Results
+#' 3.	Missing value in column Activity.Start.Date
+#' 4.	Missing value in column Activity.Start.Time
+#' 5.	Invalid value in column Activity.Start.End.Time.Zone
+#' 6.	Missing value in column Equipment.ID
+#' 7.	Invalid value in column Characteristic.Name
+#' 8.	Missing value in column Result.Value
+#' 9.	Invalid value in column Result.Unit
+#' 10.	Invalid value in column Result.Status.ID
+#'
+#' PrePost worksheet checks:
+#' 1.	PrePost worksheet is empty
+#' 2.	Missing PrePost Results for '\[Equipment.ID - Characteristic.Name\]' that are in Results worksheet.
+#' 3.	Invalid value in column Characteristic.Name
+#' 4.	Missing value in column Equipment.Result.Value
+#' 5.	Invalid value in column Equipment.Result.Unit
+#' 6.	Missing value in column Reference.Result.Value
+#' 7.	Invalid value in column Reference.Result.Unit
+#' 8.	Missing value in column Reference.ID
+#'
+#' Audit Data worksheet checks:
+#' 1.	Audit Data worksheet is empty
+#' 2.	Audits missing for some deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'.
+#' 3.	Missing value in column Project.ID
+#' 4.	Missing value in column Activity.Start.Date
+#' 5.	Missing value in column Activity.Start.Time
+#' 6.	Missing value in column Activity.End.Date
+#' 7.	Missing value in column Activity.End.Time
+#' 8.	Invalid value in column Activity.Start.End.Time.Zone
+#' 9.	Invalid value in column Activity.Type
+#' 10.	Missing value in column Activity.ID
+#' 11.	Missing value in column Equipment.ID
+#' 12.	Invalid value in column Sample.Collection.Method
+#' 13.	Invalid value in column Characteristic.Name
+#' 14.	Missing value in column Result.Value
+#' 15.	Invalid value in column Result.Unit
+#' 16.	Invalid value in column Result.Analytical.Method.ID
+#' 17.	Invalid value in column Result.Analytical.Method.Context
+#' 18.	Invalid value in column Result.Value.Type
+#' 19.	Invalid value in column Result.Status.ID
+#' 20.	Invalid value in column Result.Measure.Qualifier
+#'
 #' @param template_list A continuous data list object with each list holding
 #' a different worksheet from the xlsx data template. Use [odeqcdr::contin_import()] to make the list.
 #' @export
