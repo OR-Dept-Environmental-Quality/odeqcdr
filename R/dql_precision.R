@@ -80,6 +80,12 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
     return(df.audits.grab.dql)
   }
 
+  audits_deploy <- df.audits.grab.dql %>%
+    dplyr::filter(!Audit.Result.Status.ID=="Rejected") %>%
+    dplyr::mutate(audits_deploy = paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ",Characteristic.Name,"]")) %>%
+    dplyr::pull(audits_deploy) %>%
+    unique()
+
   df.results.grade <- df.audits.grab.dql %>%
     dplyr::filter(!Audit.Result.Status.ID=="Rejected") %>%
     dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
@@ -93,14 +99,17 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
                                          "Characteristic.Name", "Result.Value",
                                          "Result.Unit", "datetime")) %>%
     # Keep original calculated audit grade for datetime of audit. The rest will be filled in from lower grade in DQL_prec2
-    dplyr::mutate(DQL=DQL_prec) %>%
+    dplyr::mutate(results_deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
+                  DQL=DQL_prec) %>%
     dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
     dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime) %>%
     tidyr::fill(DQL_prec2, .direction = "downup") %>%
     dplyr::ungroup() %>%
     dplyr::mutate(DQL=dplyr::if_else(is.na(DQL), DQL_prec2, DQL)) %>%
-    # set DQL=E outside of deployment period
-    dplyr::mutate(DQL=dplyr::if_else(deployed,DQL,"E")) %>%
+    # set DQL=E outside of deployment period and for any deployments without audits
+    dplyr::mutate(DQL=dplyr::if_else(deployed, DQL, "E"),
+                  DQL=dplyr::case_when(results_deploy %in% audits_deploy ~ DQL,
+                                   TRUE ~ "E")) %>%
     dplyr::group_by(row.results) %>%
     # if there are two audits for the same sample take the lowest DQL
     dplyr::mutate(DQL=max(DQL, na.rm = TRUE)) %>%
