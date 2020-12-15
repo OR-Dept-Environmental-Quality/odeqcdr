@@ -51,7 +51,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
 
   df.audits.grab <- audits %>%
     dplyr::mutate(row.audits=dplyr::row_number()) %>%
-    dplyr::filter(Sample.Collection.Method=="Grab") %>%
+    dplyr::filter(Sample.Collection.Method %in% c("Grab", "Field Meter")) %>%
     dplyr::select(audit.datetime.start, Result.Status.ID, Project.ID, Monitoring.Location.ID,
                   Characteristic.Name, Equipment.ID, Audit.Result.Value=Result.Value,
                   Audit.Result.Status.ID=Result.Status.ID, row.audits)

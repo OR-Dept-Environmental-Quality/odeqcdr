@@ -103,8 +103,26 @@ pre_checks <- function(template_list) {
     mloc_ml_t <- NA
   }
 
+  # Check for Monitoring.Location.IDs that have been entered more than once
+  mloc_dup <- dplyr::count(locations_import, Monitoring.Location.ID) %>%
+    dplyr::filter(n > 1) %>%
+    dplyr::pull(Monitoring.Location.ID)
+
+  mloc_dup_check <- length(mloc_dups) > 0
+
+  if(mloc_dup_check) {
+
+    mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once. IDs with more than one entry listed in TRUE_row."
+    mloc_dup_t <- paste0(mloc_dups, collapse = ", ")
+
+  } else {
+    mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once."
+    mloc_dup_t <- NA
+  }
+
   mloc_msg <- c("Worksheet is empty",
                 mloc_ml_msg,
+                mloc_dup_msg,
                 "Value in column Monitoring.Location.ID is > 22 characters",
                 'Value in column in Monitoring.Location.ID has an invalid character: ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; \' \" < > / ? [space]',
                 "Missing value in column Monitoring.Location.Name",
@@ -131,6 +149,7 @@ pre_checks <- function(template_list) {
 
   mloc_checks <- list((nrow(locations_import) <= 0),
                       mloc_ml_check,
+                      mloc_dup_check,
                       nchar(locations_import$Monitoring.Location.ID) > 22,
                       grepl(pattern=invalid_chars, x=locations_import$Monitoring.Location.ID),
                       is.na(locations_import$Monitoring.Location.Name),
@@ -158,6 +177,7 @@ pre_checks <- function(template_list) {
   mloc_result <- unlist(lapply(mloc_checks, FUN=any, na.rm = TRUE))
   mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr))
   mloc_t_row[2] <- mloc_ml_t
+  mloc_t_row[3] <- mloc_dup_t
 
   mloc_df <- data.frame(worksheet=rep("Monitoring_Locations", length(mloc_msg)),
                         check=mloc_msg,
@@ -166,10 +186,10 @@ pre_checks <- function(template_list) {
 
   #- Deployment-----------------------------------------------------------------
 
-  deploy_d_check <- any(!deploy_deploy %in% results_deploy)
+  deploy_d_check <- any(!results_deploy %in% deploy_deploy)
 
   if(deploy_d_check) {
-    deploy_d_missing <- deploy_deploy[!deploy_deploy %in% results_deploy]
+    deploy_d_missing <- results_deploy[!results_deploy %in% deploy_deploy]
 
     deploy_d_msg <- "Deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results and not in Deployment. Missing deployments listed in TRUE_row."
     deploy_d_t <-paste0(deploy_d_missing, collapse = ", ")
@@ -305,10 +325,10 @@ pre_checks <- function(template_list) {
 
   #- Audit Data-----------------------------------------------------------------
 
-  audit_d_check <- any(!audits_deploy %in% deploy_deploy)
+  audit_d_check <- any(!deploy_deploy %in% audits_deploy)
 
   if(audit_d_check) {
-    audit_d_missing <- deploy_deploy[!audits_deploy %in% deploy_deploy]
+    audit_d_missing <- deploy_deploy[!deploy_deploy %in% audits_deploy]
 
     audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]. Deployments with missing audits listed in TRUE_row."
     audit_d_t <- paste0(audit_d_missing, collapse = ", ")
