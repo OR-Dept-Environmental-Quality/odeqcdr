@@ -109,21 +109,65 @@
 #'
 #' @param template_list A continuous data list object with each list holding
 #' a different worksheet from the xlsx data template. Use [odeqcdr::contin_import()] to make the list.
+#' Default is NULL. If NULL all individual worksheet data frames must be supplied instead.
+#' @param org data frame holding Organization Details. Default is NULL.
+#' @param projects data frame with Projects. Default is NULL.
+#' @param mloc data frame holding Monitoring_Locations. Default is NULL.
+#' @param deployment data frame holding Deployment. Default is NULL.
+#' @param results data frame holding Results. Default is NULL.
+#' @param prepost data frame holding PrePost. Default is NULL.
+#' @param audits data frame holding Audit_Data. Default is NULL.
+#' @param audits Dataframe of audits. Default is NULL.
 #' @export
 #' @return data frame of the check and check result.
 
-pre_checks <- function(template_list) {
+pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, deployment=NULL, results=NULL, prepost=NULL, audits=NULL) {
 
   # Test
   #template_list=df0
 
-  org_import <- template_list[["Organization_Details"]]
-  projects_import <- template_list[["Projects"]]
-  locations_import <- template_list[["Monitoring_Locations"]]
-  deployment_import <- template_list[["Deployment"]]
-  results_import <- template_list[["Results"]]
-  prepost_import <- template_list[["PrePost"]]
-  audit_import <- template_list[["Audit_Data"]]
+  if(all(is.null(template_list),
+         is.null(org),
+         is.null(projects),
+         is.null(mloc),
+         is.null(deployment),
+         is.null(results),
+         is.null(prepost),
+         is.null(audits))) {
+    stop("All arguments are NULL. Either template_list or all of org, projects, mloc, deployment, results, prepost, and audits must have data.")
+  }
+
+  if(!is.null(template_list)) {
+
+    org_import <- template_list[["Organization_Details"]]
+    projects_import <- template_list[["Projects"]]
+    locations_import <- template_list[["Monitoring_Locations"]]
+    deployment_import <- template_list[["Deployment"]]
+    results_import <- template_list[["Results"]]
+    prepost_import <- template_list[["PrePost"]]
+    audit_import <- template_list[["Audit_Data"]]
+
+  } else {
+
+    if(any(is.null(org),
+           is.null(projects),
+           is.null(mloc),
+           is.null(deployment),
+           is.null(results),
+           is.null(prepost),
+           is.null(audits))) {
+      stop("NULL argument/s. All of org, projects, mloc, deployment, results, prepost, and audits must have data.")
+    }
+
+    org_import <- org
+    projects_import <- projects
+    mloc_import <- mloc
+    deployment_import <- deployment
+    results_import <- results
+    prepost_import <- prepost
+    audit_import <- audits
+
+  }
 
   mlocid_locations <- unique(locations_import$Monitoring.Location.ID)
   mlocid_results <- unique(results_import$Monitoring.Location.ID)
@@ -210,12 +254,12 @@ pre_checks <- function(template_list) {
     dplyr::filter(n > 1) %>%
     dplyr::pull(Monitoring.Location.ID)
 
-  mloc_dup_check <- length(mloc_dups) > 0
+  mloc_dup_check <- length(mloc_dup) > 0
 
   if(mloc_dup_check) {
 
     mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once. IDs with more than one entry listed in TRUE_row."
-    mloc_dup_t <- paste0(mloc_dups, collapse = ", ")
+    mloc_dup_t <- paste0(mloc_dup, collapse = ", ")
 
   } else {
     mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once."

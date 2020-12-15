@@ -4,11 +4,35 @@
 \alias{pre_checks}
 \title{Basic pre-processing completeness review.}
 \usage{
-pre_checks(template_list)
+pre_checks(
+  template_list = NULL,
+  org = NULL,
+  projects = NULL,
+  mloc = NULL,
+  deployment = NULL,
+  results = NULL,
+  prepost = NULL,
+  audits = NULL
+)
 }
 \arguments{
 \item{template_list}{A continuous data list object with each list holding
-a different worksheet from the xlsx data template. Use \code{\link[=contin_import]{contin_import()}} to make the list.}
+a different worksheet from the xlsx data template. Use \code{\link[=contin_import]{contin_import()}} to make the list.
+Default is NULL. If NULL all individual worksheet data frames must be supplied instead.}
+
+\item{org}{data frame holding Organization Details. Default is NULL.}
+
+\item{projects}{data frame with Projects. Default is NULL.}
+
+\item{mloc}{data frame holding Monitoring_Locations. Default is NULL.}
+
+\item{deployment}{data frame holding Deployment. Default is NULL.}
+
+\item{results}{data frame holding Results. Default is NULL.}
+
+\item{prepost}{data frame holding PrePost. Default is NULL.}
+
+\item{audits}{Dataframe of audits. Default is NULL.}
 }
 \value{
 data frame of the check and check result.
