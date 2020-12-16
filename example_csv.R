@@ -75,9 +75,11 @@ df1.mloc <- odeqcdr::launch_map(mloc=df0.mloc)
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 # df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
+# Make sure there are no duplicate entries.
+df1.mloc <- dplyr::distinct(df1.mloc)
+
 # Save R global environment just in case.
 save.image(paste0(output_dir, "/Renv.RData"))
-
 
 #- Update Monitoring Location ID Name-------------------------------------------
 
