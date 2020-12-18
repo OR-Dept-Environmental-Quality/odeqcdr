@@ -53,15 +53,16 @@
 #'
 #' Deployment worksheet checks:
 #' 1.	Deployment worksheet is empty
-#' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment. Missing deployments listed in TRUE_row.
-#' 3.	Missing value in column Equipment.ID
-#' 4.	Invalid value in column Characteristic.Name
-#' 5.	Missing value in column Deployment.Start.Date
-#' 6.	Missing value in column Deployment.End.Date
-#' 7.	Missing value in column Sample.Depth
-#' 8.	Invalid value in column Sample.Depth.Unit
-#' 9.	Invalid value in column Sample.Media
-#' 10.	Invalid value in column Sample.Sub.Media
+#' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment.
+#' 3. More than 50% of results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' were sampled outside of the deployment period.
+#' 4.	Missing value in column Equipment.ID
+#' 5.	Invalid value in column Characteristic.Name
+#' 6.	Missing value in column Deployment.Start.Date
+#' 7.	Missing value in column Deployment.End.Date
+#' 8.	Missing value in column Sample.Depth
+#' 9.	Invalid value in column Sample.Depth.Unit
+#' 10.	Invalid value in column Sample.Media
+#' 11.	Invalid value in column Sample.Sub.Media
 #'
 #' Results worksheet checks:
 #' 1.	Results worksheet is empty
@@ -344,8 +345,30 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
     deploy_d_t <- NA
   }
 
+  # check if 25% or more of the results were sampled outside of the deployment period.
+  deploy_out_check <- results_import %>%
+    dplyr::left_join(deployment_import) %>%
+    dplyr::mutate(deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
+                  in.deploy=dplyr::if_else(Activity.Start.Date >= Deployment.Start.Date & Activity.Start.Date <= Deployment.End.Date, 1, 0),
+                  out.deploy=dplyr::if_else(Activity.Start.Date < Deployment.Start.Date | Activity.Start.Date > Deployment.End.Date, 1, 0)) %>%
+    dplyr::group_by(deploy) %>%
+    dplyr::summarise(in.deploy=sum(in.deploy, na.rm = TRUE),
+                     out.deploy=sum(out.deploy, na.rm = TRUE)) %>%
+    dplyr::filter(out.deploy/(out.deploy+in.deploy) > 0.50) %>%
+    dplyr::pull(deploy)
+
+  if(length(deploy_out_check) > 0) {
+    deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
+    deploy_out_t <- paste0(deploy_out_check, collapse = ", ")
+  } else {
+    deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period."
+    deploy_out_t <- NA
+  }
+
+
   deploy_msg <- c("Worksheet is empty",
                   deploy_d_msg,
+                  deploy_out_msg,
                   "Missing value in column Equipment.ID",
                   "Invalid value in column Characteristic.Name",
                   "Missing value in column Deployment.Start.Date",
@@ -358,6 +381,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
 
   deploy_checks <- list((nrow(deployment_import) <= 0),
                         deploy_d_check,
+                        length(deploy_out_check) > 0,
                         is.na(deployment_import$Equipment.ID),
                         !valid_values_check(col="Characteristic.Name", vals=deployment_import$Characteristic.Name),
                         is.na(deployment_import$Deployment.Start.Date),
@@ -371,6 +395,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
   deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr))
   deploy_t_row[2] <- deploy_d_t
+  deploy_t_row[3] < deploy_out_t
 
   deploy_df <- data.frame(worksheet=rep("Deployment",length(deploy_msg)),
                           check=deploy_msg,

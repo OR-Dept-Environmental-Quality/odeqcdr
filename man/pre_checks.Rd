@@ -99,7 +99,8 @@ Monitoring Locations worksheet checks:
 Deployment worksheet checks:
 \enumerate{
 \item Deployment worksheet is empty
-\item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' in Results and not in Deployment. Missing deployments listed in TRUE_row.
+\item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' in Results and not in Deployment.
+\item More than 50\% of results from a deployment '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' were sampled outside of the deployment period.
 \item Missing value in column Equipment.ID
 \item Invalid value in column Characteristic.Name
 \item Missing value in column Deployment.Start.Date
