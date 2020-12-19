@@ -185,8 +185,8 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
                                            year > 2006 & month==11 & wday=="Sun" & dnum==1 ~ -1,
                                            TRUE ~ 0)) %>%
       dplyr::filter(shift %in% c(-1, 1)) %>%
-      dplyr::mutate(start=if_else(shift==1,date+hms("2:00:00"),date+hms("1:00:00")),
-                    stop=if_else(shift==1,date+hms("2:59:59"),date+hms("1:59:59"))) %>%
+      dplyr::mutate(start=if_else(shift==1,date+lubridate::hms("2:00:00"),date+lubridate::hms("1:00:00")),
+                    stop=if_else(shift==1,date+lubridate::hms("2:59:59"),date+lubridate::hms("1:59:59"))) %>%
       dplyr::mutate(date=format(date, "%Y-%m-%d"))
 
     df.start.tz <- df2 %>%
