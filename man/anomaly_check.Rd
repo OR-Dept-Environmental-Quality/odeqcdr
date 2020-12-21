@@ -21,12 +21,20 @@ A result is flagged as an anomaly (Anomaly = TRUE) when when there is a datetime
 the daily summary statistics derived from the results fall outside the monthly 10th or 90th percentile
 of the daily mean, 10th percentile of the daily minimum, or the 90 percentile of the
 daily maximum for streams of the same strahler stream order; or any stream size
-if the strahler stream order is not known. If a result is flagged as an anomaly it
-should be closely reviewed.  The 10th and 90th percentiles were calculated from all
-available continuous temperature summary statistics in DEQ’s AWQMS database collected
-between January 1, 1990 and December 31, 2019 with a "Final" or "Accepted" result status.
+if the strahler stream order is not known. Currently these checks are only relevant
+for river temperature. If a result is flagged as an anomaly it should be closely reviewed.
 }
 \details{
+The 10th and 90th percentiles were calculated from all
+available continuous temperature summary statistics in DEQ’s AWQMS database collected
+between January 1, 1990 and December 31, 2019 with a "Final" or "Accepted" result status.
+
 The typical range for different characteristics are contained in odeqcdr::anomaly_stats
 data by month and stream order.
+
+A datetine shift is evaluated by checking that the daily maximum water temperature
+occurs between 13:00 and 19:00. If the daily maximum falls outside this hour range the function
+flags all temperature results on that day as an anomaly where dt_shift=TRUE. A datetime shift may
+indicate an issue with the time not being adjusted to the correct time zone
+(i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
 }
