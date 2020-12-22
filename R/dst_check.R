@@ -12,10 +12,10 @@
 #'    every 30 minutes there should be no results recorded from 2:00 AM until 2:59 AM.
 #'    If there are results recorded during this period it’s likely an adjustment
 #'    to daylight savings time was not made.
-#' 2. When there is only one result recorded for each datetime between 1:00 AM and 1:59 AM
+#' 2. When there is only one timestamp recorded for any results between 1:00 AM and 1:59 AM
 #'    after the transition back to standard time (-1 hour). As an example, in 2020 the switch from daylight savings
 #'    back to standard time occurred on November 1, 2020 at 2:00 AM resulting in a repeat of time
-#'    between 1:00 AM and 1:59 AM. If there are not duplicate times recorded it is likely
+#'    between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it is likely
 #'    the adjustment to standard time was not made.
 #'
 #'When one of the conditions are detected in a timeseries, the time at the beginning
