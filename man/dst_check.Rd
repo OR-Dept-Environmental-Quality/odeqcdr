@@ -11,7 +11,8 @@ dst_check(
   equip_col = "Equipment.ID",
   date_col = "Activity.Start.Date",
   time_col = "Activity.Start.Time",
-  tz_col = "Activity.Start.End.Time.Zone"
+  tz_col = "Activity.Start.End.Time.Zone",
+  base_offset = NULL
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ dst_check(
 \item{time_col}{Column name in df holding the POSIXct time values. Default is "Activity.Start.Time".}
 
 \item{tz_col}{Column name in df holding the timezone string values. Default is tz_col ="Activity.Start.End.Time.Zone".}
+
+\item{base_offset}{The numeric offset from UTC representing the "correct time". Using Pacific Standard Time the base_offset=-8. For
+Pacific Daylight Time the base_offset=-7. The Default is NULL and the time at the offset at the beginning
+of the deployment period is considered the correct time.}
 }
 \value{
 Vector of corrected datetime in POSISXct.
@@ -53,9 +58,13 @@ between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it 
 the adjustment to standard time was not made.
 }
 
-When one of the conditions are detected in a timeseries, the time at the beginning
-of the deployment period is considered the correct time and the appropriate adjustment
-for daylight savings is made from that point forward. The dst check evaluates
+When one of the conditions are detected, the time at the beginning
+of the deployment period is considered the correct time and the appropriate UTC offset is applied
+for daylight savings from that point forward. Use 'base_offset' if a specific
+offset from UTC is desired instead. For example if the time stamp were all recorded using Pacific Standard Time the base_offset=-8. For
+Pacific Daylight Time the base_offset=-7. The default is to use the offset at the time of deployment, base_offset=NULL.
+
+The dst check evaluates
 each deployment [Monitoring.Location.ID, Characteristic.Name, Equipment.ID]
 and any adjustments are made only to an individual deployment. A manual review of the results
 is recommend.

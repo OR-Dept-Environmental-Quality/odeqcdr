@@ -18,9 +18,13 @@
 #'    between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it is likely
 #'    the adjustment to standard time was not made.
 #'
-#'When one of the conditions are detected in a timeseries, the time at the beginning
-#'of the deployment period is considered the correct time and the appropriate adjustment
-#'for daylight savings is made from that point forward. The dst check evaluates
+#' When one of the conditions are detected, the time at the beginning
+#' of the deployment period is considered the correct time and the appropriate UTC offset is applied
+#' for daylight savings from that point forward. Use 'base_offset' if a specific
+#' offset from UTC is desired instead. For example if the time stamp were all recorded using Pacific Standard Time the base_offset=-8. For
+#' Pacific Daylight Time the base_offset=-7. The default is to use the offset at the time of deployment, base_offset=NULL.
+#'
+#'The dst check evaluates
 #'each deployment \[Monitoring.Location.ID, Characteristic.Name, Equipment.ID\]
 #'and any adjustments are made only to an individual deployment. A manual review of the results
 #'is recommend.
@@ -42,44 +46,64 @@
 #' @param date_col Column name in df holding the POSIXct date values. Default is "Activity.Start.Date"
 #' @param time_col Column name in df holding the POSIXct time values. Default is "Activity.Start.Time".
 #' @param tz_col Column name in df holding the timezone string values. Default is tz_col ="Activity.Start.End.Time.Zone".
+#' @param base_offset The numeric offset from UTC representing the "correct time". Using Pacific Standard Time the base_offset=-8. For
+#' Pacific Daylight Time the base_offset=-7. The Default is NULL and the time at the offset at the beginning
+#' of the deployment period is considered the correct time.
 #' @export
 #' @return Vector of corrected datetime in POSISXct.
 
 dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Characteristic.Name",
                       equip_col="Equipment.ID", date_col="Activity.Start.Date",
-                      time_col="Activity.Start.Time", tz_col="Activity.Start.End.Time.Zone") {
+                      time_col="Activity.Start.Time", tz_col="Activity.Start.End.Time.Zone",
+                      base_offset=NULL) {
 
   #- Test---
 
   # # From data
   # df_test <- df1.results
   #
-  # # Needs to add hour in March PST -> PDT
+  # # Always standard time =-8 or,
+  # # Deploy starts in March (PST), Needs to add hour in March PST -> PDT
   # # Detected by findings NA
-  # dt <- as.POSIXct(c("2020/03/08 0:30:00", "2020/03/08 1:00:00", "2020/03/08 1:30:00", "2020/03/08 2:00:00", "2020/03/08 2:30:00", "2020/03/08 3:00:00",
-  #                    "2020/11/01 0:30:00", "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00", "2020/11/01 2:30:00", "2020/11/01 3:00:00"),
+  # dt <- as.POSIXct(c("2020/03/08 0:30:00", "2020/03/08 1:00:00", "2020/03/08 1:30:00",
+  #                    "2020/03/08 2:00:00", "2020/03/08 2:30:00", "2020/03/08 3:00:00",
+  #                    "2020/10/31 23:30:00", "2020/11/01 0:00:00", "2020/11/01 0:30:00",
+  #                    "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00",
+  #                    "2020/11/01 2:30:00", "2020/11/01 3:00:00", "2020/11/01 3:30:00"),
   #                  format = "%Y/%m/%d %H:%M:%S", origin = "1970-01-01", tz ="UTC")
+  # base_offset <- -8
   #
-  # # Needs to subtract hour in November PDT -> PST
-  # # Detected by lack of
-  # dt <- as.POSIXct(c("2020/03/08 0:30:00", "2020/03/08 1:00:00", "2020/03/08 1:30:00", "2020/03/08 3:00:00", "2020/03/08 3:30:00", "2020/03/08 4:00:00",
-  #                     "2020/11/01 0:30:00", "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00", "2020/11/01 2:30:00", "2020/11/01 3:00:00"),
+  #
+  # # Deploy starts in March (PDT) Needs to subtract hour in November PDT -> PST
+  # # Detected by lack of duplicates
+  # dt <- as.POSIXct(c("2020/03/08 1:30:00", "2020/03/08 2:00:00", "2020/03/08 2:30:00",
+  #                    "2020/03/08 3:00:00", "2020/03/08 3:30:00", "2020/03/08 4:00:00",
+  #                    "2020/10/31 23:30:00", "2020/11/01 0:00:00", "2020/11/01 0:30:00",
+  #                    "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00",
+  #                    "2020/11/01 2:30:00", "2020/11/01 3:00:00", "2020/11/01 3:30:00"),
   #                   format = "%Y/%m/%d %H:%M:%S", origin = "1970-01-01", tz ="UTC")
+  # base_offset <- NULL
   #
   # # correct
-  # dt <- as.POSIXct(c("2020/03/08 0:30:00", "2020/03/08 1:00:00", "2020/03/08 1:30:00", "2020/03/08 3:00:00", "2020/03/08 3:30:00", "2020/03/08 4:00:00",
-  #                    "2020/11/01 0:30:00", "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00"),
+  # dt <- as.POSIXct(c("2020/03/08 0:30:00", "2020/03/08 1:00:00", "2020/03/08 1:30:00",
+  #                    "2020/03/08 3:00:00", "2020/03/08 3:30:00", "2020/03/08 4:00:00",
+  #                    "2020/11/01 0:30:00", "2020/11/01 1:00:00", "2020/11/01 1:30:00",
+  #                    "2020/11/01 1:00:00", "2020/11/01 1:30:00", "2020/11/01 2:00:00",
+  #                    "2020/11/01 2:30:00", "2020/11/01 3:00:00", "2020/11/01 3:30:00"),
   #                  format = "%Y/%m/%d %H:%M:%S", origin = "1970-01-01", tz ="UTC")
   #
-  # df_test <- data.frame(Monitoring.Location.ID= rep("ORDEQ-12345",6),
+  # df_test <- data.frame(Monitoring.Location.ID= rep("ORDEQ-12345",15),
   #                       Activity.Start.Date=dt,
   #                       Activity.Start.Time=dt,
-  #                       Activity.Start.End.Time.Zone=c("PST", "PST", "PST", "PDT", "PDT", "PDT",
-  #                                                      "PDT", "PDT", "PDT", "PST", "PST", "PST"),
-  #                       Characteristic.Name=rep("Temperature, water", 12),
-  #                       Equipment.ID=rep("abc", 12),
-  #                       tz_name=rep('America/Los_Angeles', 12),
-  #                       tz_utc=rep('UTC', 12), stringsAsFactors = FALSE)
+  #                       Activity.Start.End.Time.Zone=c("PST", "PST", "PST",
+  #                                                      "PDT", "PDT", "PDT",
+  #                                                      "PDT", "PDT", "PDT",
+  #                                                      "PST", "PST", "PST",
+  #                                                      "PST", "PST", "PST"),
+  #                       Characteristic.Name=rep("Temperature, water", 15),
+  #                       Equipment.ID=rep("abc", 15),
+  #                       tz_name=rep('America/Los_Angeles', 15),
+  #                       tz_utc=rep('UTC', 15), stringsAsFactors = FALSE)
   #
   # df_test$datetime <- odeqcdr::dt_combine(df=df_test,
   #                                         tz_col="tz_name")
@@ -164,7 +188,7 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
 
     df2 <- dplyr::select(df, -!!tz_col) %>%
       cbind(lutz::tz_offset(df$datetime_tz)) %>%
-      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
+      dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col))) %>%
       tidyr::fill(utc_offset_h, .direction="up") %>%
       tidyr::fill(is_dst, .direction="up") %>%
       dplyr::mutate(dst_eval=dplyr::if_else(min(datetime_utc, na.rm = TRUE) >= as.POSIXct("1985/10/27 02:01:00", tz="UTC"), TRUE, FALSE)) %>%
@@ -221,16 +245,31 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
       dplyr::left_join(df.start.tz) %>%
       as.data.frame()
 
-    # get offset at deployment convert to true UTC, and re-adjust to local timezone
-    df.fix <- df2 %>%
-      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
-      dplyr::filter(min(datetime_utc)==datetime_utc) %>%
-      dplyr::select(!!mloc_col, !!char_col, !!equip_col, deploy_offset=utc_offset_h) %>%
-      dplyr::right_join(df2)%>%
-      dplyr::left_join(df.fail) %>%
-      dplyr::mutate(datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc)) %>%
-      dplyr::group_by(tz_name) %>%
-      dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name)))
+    if(is.null(base_offset)) {
+
+      # get offset at deployment convert to true UTC, and re-adjust to local timezone
+      df.fix <- df2 %>%
+        dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
+        dplyr::filter(min(datetime_utc)==datetime_utc) %>%
+        dplyr::select(!!mloc_col, !!char_col, !!equip_col, deploy_offset=utc_offset_h) %>%
+        dplyr::right_join(df2) %>%
+        dplyr::left_join(df.fail) %>%
+        dplyr::mutate(dst_fail=dplyr::if_else(is.na(dst_fail), FALSE, dst_fail),
+                      datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc+(-1*lubridate::dhours(utc_offset_h)))) %>%
+        dplyr::group_by(tz_name) %>%
+        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name)))
+
+    } else {
+
+      # Use the set UTC offset, convert to true UTC, and re-adjust to local timezone
+      df.fix <- df2 %>%
+        dplyr::mutate(deploy_offset=base_offset) %>%
+        dplyr::left_join(df.fail) %>%
+        dplyr::mutate(datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc)) %>%
+        dplyr::group_by(tz_name) %>%
+        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name)))
+
+    }
 
     if(any(df.fix$dst_fail)) {
       print("Time change correction made for the following deployments:")
