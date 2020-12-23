@@ -395,7 +395,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
   deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr))
   deploy_t_row[2] <- deploy_d_t
-  deploy_t_row[3] < deploy_out_t
+  deploy_t_row[3] <- deploy_out_t
 
   deploy_df <- data.frame(worksheet=rep("Deployment",length(deploy_msg)),
                           check=deploy_msg,
