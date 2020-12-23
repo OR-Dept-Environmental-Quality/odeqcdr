@@ -152,7 +152,9 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
     stop(print(paste("tz_col",tz_col,"is not a column in df.")))
   }
 
-  df <- df[,c(mloc_col, char_col, equip_col, date_col, time_col, tz_col)]
+  df <- dplyr::mutate(df, row=dplyr::row_number())
+
+  df <- df[,c(mloc_col, char_col, equip_col, date_col, time_col, tz_col, "row")]
 
   df$tz_utc <- "UTC"
 
@@ -214,16 +216,18 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
       dplyr::mutate(date=format(date, "%Y-%m-%d"))
 
     df.start.tz <- df2 %>%
-      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
+      dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col))) %>%
       dplyr::filter(min(datetime_utc)==datetime_utc) %>%
-      dplyr::select(deploy.start.tz=zone)
+      dplyr::ungroup() %>%
+      dplyr::select(dplyr::all_of(c(mloc_col, char_col, equip_col)), deploy.start.tz=zone)
 
     df.start.dst <- df2 %>%
       dplyr::mutate(date=format(datetime_utc, "%Y-%m-%d")) %>%
       dplyr::inner_join(df.dst) %>%
       dplyr::filter(datetime_utc >= start & datetime_utc <= stop & shift == 1 & dst_eval) %>%
-      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col, "datetime_utc")) %>%
+      dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col, "datetime_utc"))) %>%
       dplyr::summarise(n=dplyr::n()) %>%
+      dplyr::ungroup() %>%
       dplyr::filter(n > 0) %>%
       dplyr::select(-n, -datetime_utc) %>%
       dplyr::distinct() %>%
@@ -233,8 +237,9 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
       dplyr::mutate(date=format(datetime_utc, "%Y-%m-%d")) %>%
       dplyr::inner_join(df.dst) %>%
       dplyr::filter(datetime_utc >= start &  datetime_utc <= stop & shift == -1 & dst_eval) %>%
-      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col, "datetime_utc")) %>%
+      dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col, "datetime_utc"))) %>%
       dplyr::summarise(n=dplyr::n()) %>%
+      dplyr::ungroup() %>%
       dplyr::filter(n < 2) %>%
       dplyr::select(-n, -datetime_utc) %>%
       dplyr::distinct() %>%
@@ -249,7 +254,7 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
 
       # get offset at deployment convert to true UTC, and re-adjust to local timezone
       df.fix <- df2 %>%
-        dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
+        dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col))) %>%
         dplyr::filter(min(datetime_utc)==datetime_utc) %>%
         dplyr::select(!!mloc_col, !!char_col, !!equip_col, deploy_offset=utc_offset_h) %>%
         dplyr::right_join(df2) %>%
@@ -257,7 +262,8 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
         dplyr::mutate(dst_fail=dplyr::if_else(is.na(dst_fail), FALSE, dst_fail),
                       datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc+(-1*lubridate::dhours(utc_offset_h)))) %>%
         dplyr::group_by(tz_name) %>%
-        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name)))
+        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name))) %>%
+        dplyr::arrange(row)
 
     } else {
 
@@ -267,7 +273,8 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
         dplyr::left_join(df.fail) %>%
         dplyr::mutate(datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc)) %>%
         dplyr::group_by(tz_name) %>%
-        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name)))
+        dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name))) %>%
+        dplyr::arrange(row)
 
     }
 
