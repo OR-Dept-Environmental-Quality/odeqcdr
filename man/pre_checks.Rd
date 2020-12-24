@@ -100,6 +100,7 @@ Deployment worksheet checks:
 \enumerate{
 \item Deployment worksheet is empty
 \item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' in Results and not in Deployment.
+\item There is more than one row of the same deployment '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]'. Make them unique or expand deployment start and end dates.
 \item More than 50\% of results from a deployment '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' were sampled outside of the deployment period.
 \item Missing value in column Equipment.ID
 \item Invalid value in column Characteristic.Name
