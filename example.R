@@ -12,6 +12,7 @@ xlsx_input <- "ContinuousDataTemplate_example.xlsx"
 output_dir <-"E:/GitHub/odeqcdr/test_templates"
 #output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
 
+xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 #- Import the Data -------------------------------------------------------------
@@ -38,7 +39,7 @@ df0.prepost <- df0[["PrePost"]]
 checks_df <- odeqcdr::pre_checks(template_list = df0)
 
 # Save pre check results to xlsx
-writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", gsub(".xlsx","",xlsx_output),"_PRE_CHECKS.xlsx"),
+writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", xlsx_pre_check_output),
                     format_headers=TRUE)
 
 #- Row numbers for indexing ----------------------------------------------------
@@ -235,6 +236,7 @@ df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results,
 
 # Set up final grade column to be verified using shiny app and further review
 # Update the rDQL when the submitted result status == "Rejected"
+# Automatically set Result.Status.ID = "Rejected" when results are outside of deployment period
 df4.results <- df3.results %>%
   dplyr::left_join(df1.deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                      "Characteristic.Name", "Deployment.Start.Date",
@@ -243,6 +245,8 @@ df4.results <- df3.results %>%
   dplyr::mutate(date=as.Date(datetime),
                 deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
                                           date <= as.Date(Deployment.End.Date), TRUE, FALSE),
+                Result.Status.ID=dplyr::case_when(!deployed ~ "Rejected",
+                                                  TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(precDQL == 'C' | accDQL== 'C' ~ 'C',
                                       precDQL == 'B' | accDQL== 'B' ~ 'B',
                                       precDQL == 'A' & accDQL== 'A' ~ 'A',
@@ -289,7 +293,8 @@ odeqcdr::launch_shiny()
 
 # Results Worksheet edits
 reject.rows <- c(NA)
-final.rows <- c(NA)
+final.rows <- dplyr::filter(df4.results, !(Result.Status.ID %in% c("Rejected") | row.results %in% reject.rows)) %>%
+  dplyr::pull(row.results)
 A.rows <- c(NA)
 B.rows <- c(NA)
 C.rows <- c(NA)
@@ -298,16 +303,16 @@ E.rows <- c(NA)
 F.rows <- c(NA)
 
 df.results.final <- df4.results %>%
-  dplyr::mutate(Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                row.results %in% final.rows ~ "Final",
-                                                TRUE ~ Result.Status.ID),
-                rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
+  dplyr::mutate(rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
                                       row.results %in% B.rows ~ "B",
                                       row.results %in% C.rows ~ "C",
                                       row.results %in% D.rows ~ "D",
                                       row.results %in% E.rows ~ "E",
                                       row.results %in% F.rows ~ "F",
-                                      TRUE ~ rDQL))
+                                      TRUE ~ rDQL),
+                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows | row.results %in% C.rows  ~ "Rejected",
+                                                  row.results %in% final.rows ~ "Final",
+                                                  TRUE ~ Result.Status.ID))
 
 # Generate Summary Stats -------------------------------------------------------
 
