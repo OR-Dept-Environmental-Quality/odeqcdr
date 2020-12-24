@@ -13,6 +13,7 @@ output_dir <-"E:/GitHub/odeqcdr/test_templates"
 #output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
 
 xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
+shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 #- Import the Data -------------------------------------------------------------
@@ -283,7 +284,7 @@ shiny_list <-list(Deployment=df1.deployment,
                   Audit_Stats=df3.audits.dql,
                   Results_Anom=df5.results.anom)
 
-save(shiny_list, file=paste0(gsub(".xlsx","",xlsx_output),"_CDR.Rdata"))
+save(shiny_list, file=shiny_output)
 
 # Launch Shiny app for further review.
 odeqcdr::launch_shiny()
@@ -335,6 +336,9 @@ df.results.final <- df.results.final %>%
   dplyr::select(-Result.Unit.orig) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
+
+# Save R global environment just in case.
+save.image(paste0(output_dir, "/Renv.RData"))
 
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
