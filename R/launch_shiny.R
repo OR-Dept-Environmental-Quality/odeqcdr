@@ -31,24 +31,29 @@ launch_shiny <- function(){
   app <- shiny::shinyApp(
 
     ui = shiny::shinyUI(
-      shiny::fluidPage(
-        shiny::verticalLayout(
-          shiny::titlePanel("Continuous Data Check"),
-          shiny::wellPanel(shiny::fileInput(inputId="rdata", label="Choose RData File", multiple = FALSE,
-                                            accept=c(".RData",".Rda"), buttonLabel="Select Data"),
-                           shiny::uiOutput("selectDeployment"),
-                           shiny::uiOutput("selectRange"),
-                           shiny::uiOutput("selectRange2")),
-          shiny::plotOutput('plot',
-                            click = "plot_click",
-                            dblclick = "plot1_dblclick",
-                            brush = shiny::brushOpts(id = "plot1_brush",
-                                                     resetOnNew = TRUE)),
-          shiny::wellPanel(shiny::h5("Selected Results"),
-                           shiny::verbatimTextOutput("results.print"),
-                           shiny::h5("Audit Data"),
-                           shiny::verbatimTextOutput("audit.print"))
-        )
+
+      shiny::navbarPage(title = "Continuous Data Check", fluid=TRUE,
+                        shiny::tabPanel("Plot",
+                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=9,
+                                                                                       shiny::fileInput(inputId="rdata",
+                                                                                                        label="Choose RData File", multiple = FALSE, width='100%',
+                                                                                                        accept=c(".RData",".Rda"), buttonLabel="Select Data"))),
+                                                         shiny::fluidRow(shiny::column(width=9, shiny::uiOutput("selectDeployment")),
+                                                                         shiny::column(width=1, shiny::actionButton(inputId="NEXT", label="Next", style = "margin-top: 25px;"), align = "left")),
+                                                         shiny::uiOutput("selectRange"),
+                                                         shiny::uiOutput("selectRange2"),
+                                                         shiny::fluidRow(shiny::column(width=12, shiny::plotOutput('plot',
+                                                                                                                   click = "plot_click",
+                                                                                                                   dblclick = "plot1_dblclick",
+                                                                                                                   brush = shiny::brushOpts(id = "plot1_brush",
+                                                                                                                                            resetOnNew = TRUE)
+                                                         )
+                                                         )
+                                                         )
+                                        )
+                        ),
+                        shiny::tabPanel("Selected Results", shiny::dataTableOutput("results.print")),
+                        shiny::tabPanel("Audit Data", shiny::dataTableOutput("audit.print"))
       )
     ),
 
@@ -67,7 +72,22 @@ launch_shiny <- function(){
           unique()
 
         shiny::selectInput("selectDeployment", label="Select Deployment",
-                           choices = deploy_choices)
+                           choices = deploy_choices,
+                           width='100%',
+                           selectize=TRUE)
+
+      })
+
+
+      deploy_data_reactive <- shiny::reactive({
+        # named shiny_list
+        load(input$rdata$datapath)
+
+        df.deploy <- shiny_list[["Deployment"]] %>%
+          dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+          dplyr::filter(Deployment==input$selectDeployment)
+
+        df.deploy
 
       })
 
@@ -99,24 +119,52 @@ launch_shiny <- function(){
 
       })
 
-      output$results.print <- shiny::renderPrint({
-        result_data <- result_data_reactive() %>%
-          dplyr::select(datetime, Result.Value, Anomaly, dt_shift,
-                        daily_min_q10,
-                        daily_max_q90,
-                        daily_mean_q10,
-                        daily_mean_q90,
-                        rDQL,
-                        Result.Status.ID,
-                        Result.Comment,
-                        Row=row.results)
+      shiny::observeEvent(input$plot1_brush, {
 
-        shiny::nearPoints(result_data, input$plot_click, allRows = FALSE)
+        output$results.print <- shiny::renderDataTable({
+
+          result_data <- result_data_reactive() %>%
+            dplyr::rename(Row=row.results) %>%
+            dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                          datetime, Result.Value, Anomaly, dt_shift,
+                          daily_min_q10,
+                          daily_max_q90,
+                          daily_mean_q10,
+                          daily_mean_q90,
+                          rDQL,
+                          Result.Status.ID,
+                          Result.Comment,
+                          Row)
+
+          shiny::brushedPoints(result_data, input$plot1_brush,
+                               xvar = "datetime", yvar = "Result.Value")})
+
       })
 
-      output$audit.print <- shiny::renderPrint({
+      shiny::observeEvent(input$plot_click, {
+
+        output$results.print <- shiny::renderDataTable({
+
+          result_data <- result_data_reactive() %>%
+            dplyr::rename(Row=row.results) %>%
+            dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                          datetime, Result.Value, Anomaly, dt_shift,
+                          daily_min_q10,
+                          daily_max_q90,
+                          daily_mean_q10,
+                          daily_mean_q90,
+                          rDQL,
+                          Result.Status.ID,
+                          Result.Comment,
+                          Row)
+
+          shiny::nearPoints(result_data, input$plot_click, allRows = FALSE)})
+
+      })
+
+      output$audit.print <- shiny::renderDataTable({
         audit_data_reactive() %>%
-          dplyr::select(audit.datetime.start, Audit.Result.Value, Result.datetime=datetime,
+          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime=datetime,
                         Result.Value, diff.minutes, diff.Result, DQL_prec, Audit.Result.Status.ID,
                         Row=row.audits)
       })
@@ -146,8 +194,6 @@ launch_shiny <- function(){
       output$plot <- shiny::renderPlot({
         result_data <- result_data_reactive()
 
-        ltitle <- "Field Audit\nGrade and\nAnomaly Check"
-
         p <- ggplot2::ggplot(data=result_data) +
           ggplot2::geom_point(ggplot2::aes(x=datetime, y=Result.Value, color=rDQL, shape = Anomaly), size = 3) +
           ggplot2::scale_color_manual(name ="Result DQL", values = c("A"="black","B"="#FF9B4C","C"="#7277C1","E"="#998B6B","NA"="#C0C0C0","D"="#0528a8")) +
@@ -165,7 +211,37 @@ launch_shiny <- function(){
           ggplot2::geom_point(data = audit_data, ggplot2::aes(x = audit.datetime.start, y = Audit.Result.Value),
                               color = 'green', size = 4)
 
+        deploy_data <- deploy_data_reactive()
+        p <- p +
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.Start.Date']), color= 'black', size=1.5) +
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.End.Date']), color= 'black', size=1.5)
+
         p
+      })
+
+      # When the next button is clicked, advance to next deployment
+      shiny::observeEvent(input$NEXT, {
+
+        # named shiny_list
+        load(input$rdata$datapath)
+
+        deploy <- shiny_list[["Deployment"]] %>%
+          dplyr::mutate(choices=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - "),
+                        row=dplyr::row_number())
+
+        next.row <- grep(input$selectDeployment, deploy$choices, fixed=TRUE) + 1
+
+        next.choice <- deploy %>%
+          dplyr::filter(row==next.row) %>%
+          dplyr::pull(choices)
+
+        shiny::updateSelectizeInput(
+          session = session,
+          inputId = "selectDeployment",
+          selected = next.choice
+        )
+
+
       })
 
       session$onSessionEnded(function() {
