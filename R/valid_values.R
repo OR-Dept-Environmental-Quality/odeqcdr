@@ -185,7 +185,7 @@ valid_values <- function(col=NULL) {
                      "Sample-Routine Resample")
 
   Sample.Collection.Method <- c("Composite",
-                                "Continuous Summar",
+                                "Continuous Summary",
                                 "Field Meter",
                                 "Grab",
                                 "Staff Gage")
