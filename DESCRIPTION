@@ -12,6 +12,7 @@ Depends:
 Imports:
     cellranger (>= 1.1.0),
     dplyr (>= 1.0.0),
+    DT (>= 0.15),
     geojsonsf (>= 2.0.0),
     ggplot2 (>= 3.3.0),
     htmlwidgets (>= 1.5.1),
