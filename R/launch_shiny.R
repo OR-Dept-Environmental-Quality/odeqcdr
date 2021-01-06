@@ -33,29 +33,37 @@ launch_shiny <- function(){
     ui = shiny::shinyUI(
 
       shiny::navbarPage(title = "Continuous Data Check", fluid=TRUE,
-                        shiny::tabPanel("Plot",
-                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=9,
+                        shiny::tabPanel("Choose RData",
+                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=10,
                                                                                        shiny::fileInput(inputId="rdata",
                                                                                                         label="Choose RData File", multiple = FALSE, width='100%',
-                                                                                                        accept=c(".RData",".Rda"), buttonLabel="Select Data"))),
-                                                         shiny::fluidRow(shiny::column(width=9, shiny::uiOutput("selectDeployment")),
-                                                                         shiny::column(width=1, shiny::actionButton(inputId="NEXT", label="Next", style = "margin-top: 25px;"), align = "left")),
-                                                         shiny::uiOutput("selectRange"),
-                                                         shiny::uiOutput("selectRange2"),
-                                                         shiny::fluidRow(shiny::column(width=12, shiny::plotOutput('plot',
+                                                                                                        accept=c(".RData",".Rda"), buttonLabel="Select Data"))))),
+                        shiny::tabPanel("Plot",
+                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=8, shiny::uiOutput("selectDeployment")),
+                                                                         shiny::column(width=2, align = "left",
+                                                                                       shiny::actionButton(inputId="PREVIOUS", label="Previous", style = "margin-top: 25px;"),
+                                                                                       shiny::actionButton(inputId="NEXT", label="Next", style = "margin-top: 25px;"))),
+                                                         shiny::fluidRow(shiny::column(width=6, align = "left",
+                                                                                       shiny::checkboxGroupInput("HLcolumns", "Highlight Results",
+                                                                                                                 choices= c("dt_shift",
+                                                                                                                            "daily_min_q10",
+                                                                                                                            "daily_max_q90",
+                                                                                                                            "daily_mean_q10",
+                                                                                                                            "daily_mean_q90",
+                                                                                                                            "Rejected"), inline = TRUE)),
+                                                                         shiny::column(width=4, align = "left",
+                                                                                       shiny::numericInput(inputId="dph", label = "Delta per hour >=", width= "50%", min = 0, max=1000, value=5, step=0.5))),
+                                                         shiny::fluidRow(shiny::column(width=10, shiny::plotOutput('plot',
                                                                                                                    click = "plot_click",
-                                                                                                                   dblclick = "plot1_dblclick",
-                                                                                                                   brush = shiny::brushOpts(id = "plot1_brush",
-                                                                                                                                            resetOnNew = TRUE)
-                                                         )
-                                                         )
-                                                         )
-                                        )
-                        ),
-                        shiny::tabPanel("Selected Results", shiny::dataTableOutput("results.print")),
-                        shiny::tabPanel("Audit Data", shiny::dataTableOutput("audit.print"))
-      )
-    ),
+                                                                                                                   dblclick = "plot_dblclick",
+                                                                                                                   brush = shiny::brushOpts(id = "plot_brush",
+                                                                                                                                            resetOnNew = TRUE)))),
+                                                         shiny::fluidRow(shiny::column(width=1, align = "right", shiny::h6("Table Rows")),
+                                                                         shiny::column(width=9, align = "left", shiny::verbatimTextOutput("SELECTprintout", placeholder=TRUE))),
+                                                         shiny::fluidRow(shiny::column(width=10, DT::dataTableOutput("results_dt"))),
+                                        )),
+                        shiny::tabPanel("Audit Data", DT::dataTableOutput("audit_dt"))
+      )),
 
     server = shiny::shinyServer(function(input, output, session) {
 
@@ -67,8 +75,8 @@ launch_shiny <- function(){
         load(input$rdata$datapath)
 
         deploy_choices  <- shiny_list[["Deployment"]] %>%
-          dplyr::mutate(choices=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-          dplyr::pull(choices) %>%
+          dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+          dplyr::pull(Deployment) %>%
           unique()
 
         shiny::selectInput("selectDeployment", label="Select Deployment",
@@ -78,17 +86,30 @@ launch_shiny <- function(){
 
       })
 
-
       deploy_data_reactive <- shiny::reactive({
-        # named shiny_list
-        load(input$rdata$datapath)
 
-        df.deploy <- shiny_list[["Deployment"]] %>%
-          dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+        if(!is.null(input$rdata$datapath)) {
+
+          load(input$rdata$datapath)
+
+          df.deploy <- shiny_list[["Deployment"]] %>%
+            dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - "))
+
+          df.deploy
+
+        } else {
+          NULL
+        }
+
+      })
+
+      deploy_select_reactive <- shiny::reactive({
+        # named shiny_list
+
+        df.deploy <- deploy_data_reactive() %>%
           dplyr::filter(Deployment==input$selectDeployment)
 
         df.deploy
-
       })
 
       audit_data_reactive <- shiny::reactive({
@@ -97,9 +118,9 @@ launch_shiny <- function(){
         load(input$rdata$datapath)
 
         df.audit.stats <-  shiny_list[["Audit_Stats"]] %>%
-          dplyr::mutate(choices=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-          dplyr::filter(choices==input$selectDeployment) %>%
-          dplyr::select(-choices)
+          dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+          dplyr::filter(Deployment==input$selectDeployment) %>%
+          dplyr::select(-Deployment)
 
         df.audit.stats
 
@@ -111,129 +132,315 @@ launch_shiny <- function(){
         load(input$rdata$datapath)
 
         df.results.anom <- shiny_list[["Results_Anom"]] %>%
-          dplyr::mutate(choices=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-          dplyr::filter(choices==input$selectDeployment) %>%
-          dplyr::select(-choices)
+          dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+          dplyr::filter(Deployment==input$selectDeployment) %>%
+          dplyr::select(-Deployment)
 
         df.results.anom
 
       })
 
-      shiny::observeEvent(input$plot1_brush, {
+      result_dt <- shiny::reactiveValues(dt=NULL)
 
-        output$results.print <- shiny::renderDataTable({
+      output$results_dt <- DT::renderDT({
 
-          result_data <- result_data_reactive() %>%
-            dplyr::rename(Row=row.results) %>%
-            dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
-                          datetime, Result.Value, Anomaly, dt_shift,
-                          daily_min_q10,
-                          daily_max_q90,
-                          daily_mean_q10,
-                          daily_mean_q90,
-                          rDQL,
-                          Result.Status.ID,
-                          Result.Comment,
-                          Row)
+        dt <- result_data_reactive() %>%
+          dplyr::rename(Row=row.results) %>%
+          dplyr::select(datetime, Result.Value, Anomaly, dt_shift, delta_per_hour,
+                        daily_min_q10,
+                        daily_max_q90,
+                        daily_mean_q10,
+                        daily_mean_q90,
+                        rDQL,
+                        Result.Status.ID,
+                        Result.Comment,
+                        Row) %>%
+          dplyr::mutate(datetime=format(datetime, format="%Y-%m-%d %H:%M %Z"),
+                        Anomaly=factor(as.character(Anomaly)),
+                        dt_shift=factor(as.character(dt_shift)),
+                        daily_min_q10=factor(as.character(daily_min_q10)),
+                        daily_max_q90=factor(as.character(daily_max_q90)),
+                        daily_mean_q10=factor(as.character(daily_mean_q10)),
+                        daily_mean_q90=factor(as.character(daily_mean_q90)),
+                        rDQL=factor(rDQL),
+                        Result.Status.ID=factor(Result.Status.ID),
+                        Result.Comment=factor(Result.Comment))
 
-          shiny::brushedPoints(result_data, input$plot1_brush,
-                               xvar = "datetime", yvar = "Result.Value")})
+        DT::datatable(data=shiny::isolate(dt), selection = "multiple",
+                      options = list(searching=FALSE),
+                      filter = "top",
+                      class = "nowrap cell-border hover stripe",
+                      rownames = FALSE) %>%
+          DT::formatStyle(columns=c(2:14), `text-align`="right")
+
+      })
+
+      output$audit_dt <- DT::renderDT({
+
+        dt <- audit_data_reactive() %>%
+          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime=datetime,
+                        Result.Value, diff.minutes, diff.Result, DQL_prec, Audit.Result.Status.ID,
+                        Row=row.audits) %>%
+          dplyr::mutate(audit.datetime.start=format(audit.datetime.start, format="%Y-%m-%d %H:%M %Z"),
+                        Result.datetime=format(Result.datetime, format="%Y-%m-%d %H:%M %Z"))
+
+        DT::datatable(data=shiny::isolate(dt), selection = "none",
+                      options = list(lengthChange=FALSE, searching=FALSE, searchable = FALSE),
+                      class = "nowrap cell-border hover stripe",
+                      rownames = FALSE)
+
+      })
+
+      shiny::observeEvent(input$selectDeployment, {
+        # When a new deployment is selected, update the row printout
+
+
+        rows_selected <- result_data_reactive() %>%
+          dplyr::mutate(Row=dplyr::row_number(),
+                        Row.dt=dplyr::row_number())
+
+        result_dt$dt <- rows_selected %>%
+          dplyr::select(Row, Row.dt)
+
+        output$SELECTprintout <- shiny::renderPrint({
+
+          if(nrow(rows_selected)>0){
+
+            rows_selected2 <- rows_selected %>%
+              dplyr::arrange(Row) %>%
+              dplyr::pull(Row)
+
+            rconseq <- split(rows_selected2, cumsum(c(0, diff(rows_selected2) > 1)))
+
+            # find the range of each sequence
+            rrange <- lapply(rconseq, FUN=range)
+
+            # collapse the range into start:stop format and unlist to a single string
+            cat(paste0("[",input$selectDeployment,"]: ", paste(unlist(lapply(rrange, FUN=function(x) {paste(unique(x), collapse = ":")})), collapse = ", ")))
+
+          } else {cat("None")}
+        })
+
+      })
+
+      shiny::observeEvent(input$plot_brush, {
+        # If there's a brush on the plot set the
+        # table to the rows in the brush area, and summarize the selected rows
+        # in the printout
+
+        pb <- input$plot_brush
+
+        proxy1 <- DT::dataTableProxy("results_dt")
+
+        result_data <- result_data_reactive() %>%
+          dplyr::rename(Row=row.results) %>%
+          dplyr::select(datetime, Result.Value, Anomaly, dt_shift, delta_per_hour,
+                        daily_min_q10,
+                        daily_max_q90,
+                        daily_mean_q10,
+                        daily_mean_q90,
+                        rDQL,
+                        Result.Status.ID,
+                        Result.Comment,
+                        Row)
+
+        rows_selected <- shiny::brushedPoints(result_data, pb,
+                                              xvar = "datetime", yvar = "Result.Value") %>%
+          dplyr::mutate(datetime=format(datetime, format="%Y-%m-%d %H:%M %Z"),
+                        Anomaly=as.character(Anomaly),
+                        dt_shift=as.character(dt_shift),
+                        daily_min_q10=as.character(daily_min_q10),
+                        daily_max_q90=as.character(daily_max_q90),
+                        daily_mean_q10=as.character(daily_mean_q10),
+                        daily_mean_q90=as.character(daily_mean_q90))
+
+        result_dt$dt <- rows_selected %>%
+          dplyr::mutate(Row.dt=dplyr::row_number()) %>%
+          dplyr::select(Row, Row.dt)
+
+        DT::replaceData(proxy=proxy1, data=rows_selected, rownames = FALSE)
+
+        output$SELECTprintout <- shiny::renderPrint({
+
+          if(nrow(rows_selected)>0){
+
+            rows_selected2 <- rows_selected %>%
+              dplyr::arrange(Row) %>%
+              dplyr::pull(Row)
+
+            rconseq <- split(rows_selected2, cumsum(c(0, diff(rows_selected2) > 1)))
+
+            # find the range of each sequence
+            rrange <- lapply(rconseq, FUN=range)
+
+            # collapse the range into start:stop format and unlist to a single string
+            cat(paste0("[",input$selectDeployment,"]: ", paste(unlist(lapply(rrange, FUN=function(x) {paste(unique(x), collapse = ":")})), collapse = ", ")))
+
+          } else {cat("None")}
+        })
+
+
+      })
+
+      shiny::observeEvent(input$plot_dblclick, {
+        # When a double-click happens, check if there's a brush on the plot.
+        # If so, zoom to the brush bounds; if not, reset the zoom and table
+
+        proxy1 <- DT::dataTableProxy("results_dt")
+
+        shiny::isolate({
+
+          brush <- input$plot_brush
+          if (!is.null(brush)) {
+            ranges$x <- c(as.POSIXct(brush$xmin, origin = "1970-01-01"),
+                          as.POSIXct(brush$xmax, origin = "1970-01-01"))
+            ranges$y <- c(brush$ymin, brush$ymax)
+          } else {
+            ranges$x <- NULL
+            ranges$y <- NULL
+
+            dt <- result_data_reactive() %>%
+              dplyr::rename(Row=row.results) %>%
+              dplyr::select(datetime, Result.Value, Anomaly, dt_shift, delta_per_hour,
+                            daily_min_q10,
+                            daily_max_q90,
+                            daily_mean_q10,
+                            daily_mean_q90,
+                            rDQL,
+                            Result.Status.ID,
+                            Result.Comment,
+                            Row) %>%
+              dplyr::mutate(datetime=format(datetime, format="%Y-%m-%d %H:%M %Z"),
+                            Anomaly=as.character(Anomaly),
+                            dt_shift=as.character(dt_shift),
+                            daily_min_q10=as.character(daily_min_q10),
+                            daily_max_q90=as.character(daily_max_q90),
+                            daily_mean_q10=as.character(daily_mean_q10),
+                            daily_mean_q90=as.character(daily_mean_q90))
+
+            result_dt$dt <- dt %>%
+              dplyr::mutate(Row.dt=dplyr::row_number()) %>%
+              dplyr::select(Row, Row.dt)
+
+            DT::replaceData(proxy=proxy1, data=dt, rownames = FALSE)
+
+            output$SELECTprintout <- shiny::renderPrint({
+
+              if(nrow(dt)>0){
+
+                rows_selected2 <- dt %>%
+                  dplyr::arrange(Row) %>%
+                  dplyr::pull(Row)
+
+                rconseq <- split(rows_selected2, cumsum(c(0, diff(rows_selected2) > 1)))
+
+                # find the range of each sequence
+                rrange <- lapply(rconseq, FUN=range)
+
+                # collapse the range into start:stop format and unlist to a single string
+                cat(paste0("[",input$selectDeployment,"]: ", paste(unlist(lapply(rrange, FUN=function(x) {paste(unique(x), collapse = ":")})), collapse = ", ")))
+
+              } else {cat("None")}
+            })
+
+
+
+          }
+        })
 
       })
 
       shiny::observeEvent(input$plot_click, {
+        # If there's a click on the plot set the
+        # table to nearby rows and summarize the selected rows
+        # in the printout
 
-        output$results.print <- shiny::renderDataTable({
+        proxy1 <- DT::dataTableProxy("results_dt")
 
-          result_data <- result_data_reactive() %>%
-            dplyr::rename(Row=row.results) %>%
-            dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
-                          datetime, Result.Value, Anomaly, dt_shift,
-                          daily_min_q10,
-                          daily_max_q90,
-                          daily_mean_q10,
-                          daily_mean_q90,
-                          rDQL,
-                          Result.Status.ID,
-                          Result.Comment,
-                          Row)
+        result_data <- result_data_reactive() %>%
+          dplyr::rename(Row=row.results) %>%
+          dplyr::select(datetime, Result.Value, Anomaly, dt_shift,
+                        delta_per_hour,
+                        daily_min_q10,
+                        daily_max_q90,
+                        daily_mean_q10,
+                        daily_mean_q90,
+                        rDQL,
+                        Result.Status.ID,
+                        Result.Comment,
+                        Row)
 
-          shiny::nearPoints(result_data, input$plot_click, allRows = FALSE)})
+        rows_clicked <- shiny::nearPoints(result_data, input$plot_click, allRows = FALSE) %>%
+          dplyr::mutate(datetime=format(datetime, format="%Y-%m-%d %H:%M %Z"),
+                        Anomaly=as.character(Anomaly),
+                        dt_shift=as.character(dt_shift),
+                        daily_min_q10=as.character(daily_min_q10),
+                        daily_max_q90=as.character(daily_max_q90),
+                        daily_mean_q10=as.character(daily_mean_q10),
+                        daily_mean_q90=as.character(daily_mean_q90))
+
+        result_dt$dt <- rows_clicked %>%
+          dplyr::mutate(Row.dt=dplyr::row_number()) %>%
+          dplyr::select(Row, Row.dt)
+
+        output$SELECTprintout <- shiny::renderPrint({
+
+          if(nrow(rows_clicked)>0){
+
+            rows_clicked2 <- rows_clicked %>%
+              dplyr::arrange(Row) %>%
+              dplyr::pull(Row)
+
+            rconseq <- split(rows_clicked2, cumsum(c(0, diff(rows_clicked2) > 1)))
+
+            # find the range of each sequence
+            rrange <- lapply(rconseq, FUN=range)
+
+            # collapse the range into start:stop format and unlist to a single string
+            cat(paste0("[",input$selectDeployment,"]: ", paste((lapply(rrange, FUN=function(x) {paste(unique(x), collapse = ":")})), collapse = ", ")))
+
+          } else {
+            cat("None")}
+
+        })
+
+        DT::replaceData(proxy=proxy1, data=rows_clicked, rownames = FALSE)
 
       })
 
-      output$audit.print <- shiny::renderDataTable({
-        audit_data_reactive() %>%
-          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime=datetime,
-                        Result.Value, diff.minutes, diff.Result, DQL_prec, Audit.Result.Status.ID,
-                        Row=row.audits)
+      shiny::observeEvent(input$PREVIOUS, {
+        # When the previous button is clicked, go to the previous deployment
+
+        deploy <- deploy_data_reactive() %>%
+          dplyr::mutate(row=dplyr::row_number())
+
+        prev.row <- grep(input$selectDeployment, deploy$Deployment, fixed=TRUE) -1
+
+        if(prev.row <=0) {prev.row <-1}
+
+        prev.choice <- deploy %>%
+          dplyr::filter(row==prev.row) %>%
+          dplyr::pull(Deployment)
+
+        shiny::updateSelectizeInput(
+          session = session,
+          inputId = "selectDeployment",
+          selected = prev.choice
+        )
+
       })
 
-      output$displayAudit <- shiny::renderUI({
-        df <- audit_data_reactive()
-        output$intermediate <- shiny::renderPrint(df,
-                                                  options = list(paging = FALSE,
-                                                                 searching = FALSE))
-        shiny::dataTableOutput("intermediate")
-      })
-
-      ranges <- shiny::reactiveValues(x = NULL, y = NULL)
-
-      shiny::observeEvent(input$plot1_dblclick, {
-        brush <- input$plot1_brush
-        if (!is.null(brush)) {
-          ranges$x <- c(as.POSIXct(brush$xmin, origin = "1970-01-01"),
-                        as.POSIXct(brush$xmax, origin = "1970-01-01"))
-          ranges$y <- c(brush$ymin, brush$ymax)
-        } else {
-          ranges$x <- NULL
-          ranges$y <- NULL
-        }
-      })
-
-      output$plot <- shiny::renderPlot({
-        result_data <- result_data_reactive()
-
-        p <- ggplot2::ggplot(data=result_data) +
-          ggplot2::geom_point(ggplot2::aes(x=datetime, y=Result.Value, color=rDQL, shape = Anomaly), size = 3) +
-          ggplot2::scale_color_manual(name ="Result DQL", values = c("A"="black","B"="#FF9B4C","C"="#7277C1","E"="#998B6B","NA"="#C0C0C0","D"="#0528a8")) +
-          ggplot2::scale_shape_manual(name ="Anamoly", values=c('TRUE' = 4, 'FALSE' = 16)) +
-          ggplot2::coord_cartesian(xlim = ranges$x, ylim = ranges$y) +
-          ggplot2::theme_linedraw() +
-          ggplot2::theme(legend.position="right",
-                         #legend.direction = "horizontal", legend.box = "horizontal",
-                         panel.grid.major = ggplot2::element_line(color = "gray"),
-                         panel.grid.minor = ggplot2::element_line(color = "gray"))
-
-        audit_data <- audit_data_reactive()
-        p <- p +
-          ggplot2::geom_vline(xintercept = as.numeric(audit_data[,'audit.datetime.start']), color= 'green', size=1) +
-          ggplot2::geom_point(data = audit_data, ggplot2::aes(x = audit.datetime.start, y = Audit.Result.Value),
-                              color = 'green', size = 4)
-
-        deploy_data <- deploy_data_reactive()
-        p <- p +
-          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.Start.Date']), color= 'black', size=1.5) +
-          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.End.Date']), color= 'black', size=1.5)
-
-        p
-      })
-
-      # When the next button is clicked, advance to next deployment
       shiny::observeEvent(input$NEXT, {
+        # When the next button is clicked, advance to next deployment
 
-        # named shiny_list
-        load(input$rdata$datapath)
+        deploy <- deploy_data_reactive() %>%
+          dplyr::mutate(row=dplyr::row_number())
 
-        deploy <- shiny_list[["Deployment"]] %>%
-          dplyr::mutate(choices=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - "),
-                        row=dplyr::row_number())
-
-        next.row <- grep(input$selectDeployment, deploy$choices, fixed=TRUE) + 1
+        next.row <- grep(input$selectDeployment, deploy$Deployment, fixed=TRUE) + 1
 
         next.choice <- deploy %>%
           dplyr::filter(row==next.row) %>%
-          dplyr::pull(choices)
+          dplyr::pull(Deployment)
 
         shiny::updateSelectizeInput(
           session = session,
@@ -241,7 +448,81 @@ launch_shiny <- function(){
           selected = next.choice
         )
 
+      })
 
+      ranges <- shiny::reactiveValues(x = NULL, y = NULL)
+
+      output$plot <- shiny::renderPlot({
+
+        result_data <- result_data_reactive()
+
+        if(is.null(input$results_dt_rows_selected)) {
+
+          tselect <- c(NA)
+
+          } else {
+
+          tselect <- result_dt$dt %>%
+            dplyr::filter(Row.dt %in% input$results_dt_rows_selected) %>%
+            dplyr::pull(Row)
+        }
+
+        if("delta_per_hour" %in% names(result_data)) {
+
+        result_data <- result_data %>%
+          mutate(dph=dplyr::if_else(delta_per_hour >= input$dph, TRUE, FALSE),
+                 Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
+                 tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
+
+        } else {
+
+          result_data <- result_data %>%
+            mutate(delta_per_hour=NA,
+                   dph=NA,
+                   Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
+                   tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
+
+        }
+
+        if(!is.null(input$HLcolumns)) {
+
+          result_data$hl_row <-rowSums(result_data[, c(input$HLcolumns, "dph", "tselect")], na.rm = TRUE) > 0
+        } else {
+          result_data$hl_row <-rowSums(result_data[, c("dph", "tselect")], na.rm = TRUE) > 0
+        }
+
+        p <- ggplot2::ggplot(data=result_data) +
+          ggplot2::geom_point(ggplot2::aes(x=datetime, y=Result.Value, color=rDQL, shape=Anomaly), size = 3) +
+          ggplot2::scale_shape_manual(name ="Anomaly", values=c('TRUE' = 4, 'FALSE' = 16)) +
+          ggplot2::scale_color_manual(name ="Result DQL", values = c("A"="black","B"="#FF9B4C","C"="#7277C1","E"="#998B6B","NA"="#C0C0C0","D"="#0528a8")) +
+          ggplot2::coord_cartesian(xlim = ranges$x, ylim = ranges$y) +
+          ggplot2::theme_linedraw() +
+          ggplot2::theme(legend.position="right",
+                         #legend.direction = "horizontal", legend.box = "horizontal",
+                         panel.grid.major = ggplot2::element_line(color = "gray"),
+                         panel.grid.minor = ggplot2::element_line(color = "gray"))
+
+        hl_rows <- dplyr::filter(result_data, hl_row)
+
+        if(nrow(hl_rows) > 0) {
+
+          p <- p +
+            ggplot2::geom_point(data = hl_rows, ggplot2::aes(x=datetime, y=Result.Value),
+                                color = 'yellow', size = 4)
+        }
+
+        audit_data <- audit_data_reactive()
+        p <- p +
+          ggplot2::geom_vline(xintercept = as.numeric(audit_data[,'audit.datetime.start']), color= 'green', size=1) +
+          ggplot2::geom_point(data = audit_data, ggplot2::aes(x = audit.datetime.start, y = Audit.Result.Value),
+                              color = 'green', size = 4)
+
+        deploy_data <- deploy_select_reactive()
+        p <- p +
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.Start.Date']), color= 'black', size=1.5) +
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.End.Date']), color= 'black', size=1.5)
+
+        p
       })
 
       session$onSessionEnded(function() {
