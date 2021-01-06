@@ -41,6 +41,17 @@ anomaly_check <- function(results, deployment, return_df=FALSE) {
 
   result.cols <- names(results)
 
+  df.d_hour <- results %>%
+    dplyr::mutate(row.results=dplyr::row_number()) %>%
+    dplyr::filter(Characteristic.Name == "Temperature, water") %>%
+    dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
+    dplyr::arrange(datetime) %>%
+    dplyr::mutate(delta_per_hour=abs(Result.Value - dplyr::lag(Result.Value)) / abs(as.numeric(datetime - dplyr::lag(datetime), units="hours"))) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, delta_per_hour, row.results) %>%
+    dplyr::arrange(row.results) %>%
+    as.data.frame()
+
   df.dt_shift <- results %>%
     dplyr::mutate(date=as.Date(datetime)) %>%
     dplyr::filter(Characteristic.Name == "Temperature, water") %>%
@@ -69,6 +80,7 @@ anomaly_check <- function(results, deployment, return_df=FALSE) {
     ) %>%
     dplyr::left_join(anomaly_stats) %>%
     dplyr::left_join(df.dt_shift) %>%
+    dplyr::left_join(df.d_hour) %>%
     dplyr::mutate(daily_max_q90=dplyr::if_else(d_max > q90_daily_max, TRUE, FALSE),
                   daily_min_q10=dplyr::if_else(d_min < q10_daily_min, TRUE, FALSE),
                   daily_mean_q10=dplyr::if_else(d_mean < q10_daily_mean, TRUE, FALSE),
@@ -82,7 +94,7 @@ anomaly_check <- function(results, deployment, return_df=FALSE) {
                   # No Anomaly outside deployment period
                   Anomaly=dplyr::if_else(deployed, Anomaly, FALSE)
     ) %>%
-    dplyr::select(dplyr::any_of(result.cols), deployed, date, Anomaly, dt_shift, daily_min_q10, daily_max_q90, daily_mean_q10, daily_mean_q90) %>%
+    dplyr::select(dplyr::any_of(result.cols), deployed, date, Anomaly, dt_shift, delta_per_hour, daily_min_q10, daily_max_q90, daily_mean_q10, daily_mean_q90) %>%
     as.data.frame()
 
   df.results.anom <- results %>%
