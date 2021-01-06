@@ -1,6 +1,6 @@
 Package: odeqcdr
 Title: ODEQ Continuous Data Review
-Version: 0.8.4
+Version: 0.9.0
 Authors@R: 
     person(given = "Ryan",
            family = "Michie",
