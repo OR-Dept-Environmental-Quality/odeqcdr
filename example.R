@@ -291,11 +291,10 @@ odeqcdr::launch_shiny()
 
 #- Make DQL and Status edits based on Shiny Review------------------------------
 # Edits can also be made in the xlsx. Just skip this step.
+# Updates Result Status ID also
 
 # Results Worksheet edits
 reject.rows <- c(NA)
-final.rows <- dplyr::filter(df4.results, !(Result.Status.ID %in% c("Rejected") | row.results %in% reject.rows)) %>%
-  dplyr::pull(row.results)
 A.rows <- c(NA)
 B.rows <- c(NA)
 C.rows <- c(NA)
@@ -311,8 +310,12 @@ df.results.final <- df4.results %>%
                                       row.results %in% E.rows ~ "E",
                                       row.results %in% F.rows ~ "F",
                                       TRUE ~ rDQL),
-                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows | row.results %in% C.rows  ~ "Rejected",
-                                                  row.results %in% final.rows ~ "Final",
+                Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
+                                                  rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
+                                                  TRUE ~ Result.Status.ID),
+                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
+                                                  TRUE ~ Result.Status.ID),
+                Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
                                                   TRUE ~ Result.Status.ID))
 
 # Generate Summary Stats -------------------------------------------------------
