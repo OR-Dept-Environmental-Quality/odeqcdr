@@ -114,7 +114,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
     # if there are two audits for the same sample take the lowest DQL
     dplyr::mutate(DQL=max(DQL, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    dplyr::distinct() %>%
+    dplyr::distinct(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, row.results, DQL) %>%
     dplyr::arrange(row.results) %>%
     as.data.frame()
 
