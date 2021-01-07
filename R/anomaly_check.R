@@ -21,8 +21,8 @@
 #' A datetime shift may indicate an issue with the time not being adjusted to the correct time zone
 #' (i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
 #'
-#' @param results Data frame of the results data generated using [odeqcdr::import_contin()].
-#' @param deployment Data frame of the deployment data generated using [odeqcdr::import_contin()].
+#' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
+#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
 #' @param return_df Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.
 #' @export
 #' @return Vector of the anomaly result as TRUE or FALSE indexed in the same order as the result input. Or if return_df=TRUE a data frame.

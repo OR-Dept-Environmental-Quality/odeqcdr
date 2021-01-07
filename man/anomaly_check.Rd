@@ -7,9 +7,9 @@
 anomaly_check(results, deployment, return_df = FALSE)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=import_contin]{import_contin()}}.}
+\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
 
-\item{deployment}{Data frame of the deployment data generated using \code{\link[=import_contin]{import_contin()}}.}
+\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
 
 \item{return_df}{Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.}
 }
