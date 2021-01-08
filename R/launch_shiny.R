@@ -196,8 +196,8 @@ launch_shiny <- function(){
 
 
         rows_selected <- result_data_reactive() %>%
-          dplyr::mutate(Row=dplyr::row_number(),
-                        Row.dt=dplyr::row_number())
+          dplyr::rename(Row=row.results) %>%
+          dplyr::mutate(Row.dt=dplyr::row_number())
 
         result_dt$dt <- rows_selected %>%
           dplyr::select(Row, Row.dt)
