@@ -34,7 +34,6 @@ df0.deployment <- df0[["Deployment"]]
 
 df0.prepost <- df0[["PrePost"]]
 
-
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
@@ -185,7 +184,6 @@ df2.audits <- odeqcdr::dt_parts(df=df1.audits,
                                 date_col="Activity.End.Date",
                                 time_col="Activity.End.Time")
 
-
 #- Convert Units ---------------------------------------------------------------
 # This converts the result value and changes the Unit column.
 # This is needed for grading and anomaly checking
@@ -232,7 +230,6 @@ df3.results$accDQL <- odeqcdr::dql_accuracy(prepost=df3.prepost, results=df3.res
 df3.results$precDQL <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment)
 df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment,
                                          audits_only = TRUE)
-
 #- Final DQL -------------------------------------------------------------------
 
 # Set up final grade column to be verified using shiny app and further review
@@ -258,7 +255,6 @@ df4.results <- df3.results %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
-
 #- Anomalies -------------------------------------------------------------------
 # Flag potential anomalies
 # Anomaly = TRUE if one of the daily summary statistics deviate from the typical range.
@@ -276,6 +272,13 @@ df5.results.anom.stats <- df5.results %>%
 
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
 
+#- If line 273 results in a vector allocation error use the below instead.
+# df5.results.anom <- df5.results %>%
+#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
+#   dplyr::group_split() %>%
+#   lapply(FUN = odeqcdr::anomaly_check, deployment=df1.deployment, return_df=TRUE) %>%
+#   dplyr::bind_rows() %>%
+#   dplyr::mutate(row.results=dplyr::row_number())
 
 #- Output for further review using Shiny Tool ----------------------------------
 
@@ -321,7 +324,6 @@ df.results.final <- df4.results %>%
 # Generate Summary Stats -------------------------------------------------------
 
 df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
-
 
 #- Output updated data back to xlsx template -----------------------------------
 
