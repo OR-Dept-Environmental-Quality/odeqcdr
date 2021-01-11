@@ -441,24 +441,61 @@ params <- dplyr::bind_rows(param_list)
   # 21	Result Measure Qualifier
   # 22	Result Comment
 
-  if("Audit_Data" %in% sheets) {
-    audit_col_types <- c('text', 'text', 'text', 'text', 'date', 'date', 'date', 'date', 'text', 'text',
-                         'text', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text', 'text', 'text',
-                         'text', 'text')
+    audit_col_types <- c('text', 'text', 'text', 'text', 'text', 'text', 'date', 'date', 'numeric', 'numeric','numeric',
+                         'text', "text")
 
-    audit_col_names <- c("Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
-                         "Activity.Start.Date", "Activity.Start.Time", "Activity.End.Date", "Activity.End.Time",
-                         "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
-                         "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
-                         "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type", "Result.Status.ID",
-                         "Result.Measure.Qualifier", "Result.Comment")
+    audit_col_names <- c("Equipment.ID", 'Monitoring.Location.ID',  'Characteristic.Name', 'Result.Unit', 'Reference.ID',
+                         'AuditType', 'Activity.Start.Date', 'Activity.Start.Time', 'Result.Value', 'logger.value', 'DIFF', 'DQL', 'Result.Comment')
 
-    audit_import <- readxl::read_excel(file, sheet = "Audit_Data", col_types = audit_col_types)
+
+
+    # audit_col_names <- c("Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
+    #                      "Activity.Start.Date", "Activity.Start.Time", "Activity.End.Date", "Activity.End.Time",
+    #                      "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
+    #                      "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
+    #                      "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type", "Result.Status.ID",
+    #                      "Result.Measure.Qualifier", "Result.Comment")
+
+    audit_import <- readxl::read_excel(file, sheet = "FieldAuditResults", col_types = audit_col_types)
     colnames(audit_import) <- audit_col_names
+
+
+    audit_import$Project.ID <- project
+    audit_import$Alternate.Project.ID.1 <- NA
+    audit_import$Alternate.Project.ID.2 <- NA
+    audit_import$Activity.End.Date <- audit_import$Activity.Start.Date
+    audit_import$Activity.End.Time <- audit_import$Activity.Start.Time
+    audit_import$Activity.Start.End.Time.Zone <- project
+    audit_import$Activity.Type <- "Quality Control Field Replicate Portable Data Logger"
+    audit_import <- dplyr::mutate(audit_import, Activity.ID  = paste0(Monitoring.Location.ID, ":",
+                                                                      format.Date(Activity.Start.Date, "%Y"),
+                                                                      format.Date(Activity.Start.Date, "%m"),
+                                                                      format.Date(Activity.Start.Date, "%d"),
+                                                                      format.Date(Activity.Start.Time, "%H"),
+                                                                      format.Date(Activity.Start.Time, "%M"),
+                                                                      ":QPDL"
+                                                                      ))
+    audit_import$Sample.Collection.Method <-"Grab"
+    audit_import$Result.Analytical.Method.ID <- '170.1'
+    audit_import$Result.Analytical.Method.Context <- "USEPA"
+    audit_import$Result.Value.Type <- NA
+    audit_import$Result.Status.ID <- "Accepted"
+    audit_import$Result.Measure.Qualifier <- NA
+
+    audit_import <- dplyr::select(audit_import,
+                                  "Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
+                                  "Activity.Start.Date", "Activity.Start.Time", "Activity.End.Date", "Activity.End.Time",
+                                  "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
+                                  "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
+                                  "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type",
+                                  "Result.Status.ID", "Result.Measure.Qualifier", "Result.Comment")
+
+
+
 
     # remove rows with all NAs
     audit_import <- audit_import[rowSums(is.na(audit_import)) != ncol(audit_import), ]
-  }
+
   # Add Sheets to list  --------------------------------------------------------
 
   template_sheets <-list(Organization_Details=as.data.frame(org_import),
