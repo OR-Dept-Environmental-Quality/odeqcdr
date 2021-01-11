@@ -277,9 +277,21 @@ params <- dplyr::bind_rows(param_list)
 
     print("Begin results import")
 
-    results_col_types <- c('date', 'date', 'numeric',
-                           'text','numeric','text','numeric','text','numeric',
-                           'text','numeric','text','numeric','text', 'numeric')
+    results_col_types <- c('date', #Date
+                           'date', #Time
+                           'numeric', #Temp_r
+                           'text', #Temp DQL
+                           'numeric', #DO_r
+                           'numeric', #DOs_r
+                           'text',
+                           'numeric',
+                           'text',
+                           'numeric',
+                           'text',
+                           'numeric',
+                           'text',
+                           'numeric',
+                           'text')
 
     results_col_names <- c("Activity.Start.Date", "Activity.Start.Time","Temperature, water",
                            "TEMP_DQL",
