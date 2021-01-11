@@ -29,7 +29,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT") {
 
   #library(readxl)
-  file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/OriginalCopy_PBWC_ODEQ_ContinuousTempDataSubmittal_2019.xlsx"
+  #file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/OriginalCopy_PBWC_ODEQ_ContinuousTempDataSubmittal_2019.xlsx"
 
   options(scipen=999)
 
@@ -49,7 +49,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # audit_import <- NA
 
   # Organizational Details -----------------------------------------------------
-
+print("Begin org import")
 
     org_import <- readxl::read_excel(file, sheet = "SiteMasterInfo",
                                      range = "C1:D1", col_types = c('text'), col_names = FALSE)
@@ -80,7 +80,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
   # Import Project Info -------------------------------------------------------------------
 
-
+print("Begin projects import")
 
 
     projects_col_names <- c("Project.ID", "Project.Name", "Project.Description", "Approved.QAPP.Indicator",
@@ -127,7 +127,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # 28  Monitoring Location Status ID (ADDED)
   # 29  Monitoring Location Status Comment (ADDED)
 
-
+print("Begin locations import")
 
     locations_col_names_orig <- c( "Monitoring.Location.ID", "Site_ID", "Monitoring.Location.Name", "Latitude",
                                   "Longitude", "Coordinate.Collection.Method")
@@ -189,6 +189,8 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # 8	Sample Media
   # 9	Sample Media Subdivision
 
+
+print("Begin deployment import")
  #Get logger parameters
 template_sheets <- readxl::excel_sheets(file)
 
@@ -272,9 +274,12 @@ params <- dplyr::bind_rows(param_list)
   # 9	Result Status ID
   # 10 Result Comment (ADDED)
 
+
+    print("Begin results import")
+
     results_col_types <- c('date', 'date', 'numeric',
                            'text','numeric','text','numeric','text','numeric',
-                           'text','numeric','text','numeric','tex', 'numeric', 'text')
+                           'text','numeric','text','numeric','text', 'numeric')
 
     results_col_names <- c("Activity.Start.Date", "Activity.Start.Time","Temperature, water",
                            "TEMP_DQL",
@@ -292,7 +297,7 @@ params <- dplyr::bind_rows(param_list)
 
     results_list <- list()
 
-    mloc_lookup <- distinct(select(deployment_import,
+    mloc_lookup <- dplyr::distinct(dplyr::select(deployment_import,
                            Equipment.ID, Monitoring.Location.ID))
 
     for(i in 1:length(template_sheets)){
@@ -303,15 +308,18 @@ params <- dplyr::bind_rows(param_list)
 
     # read results tab of submitted file
     #results_import <- readxl::read_excel(file, sheet = template_sheets[i], range = "A5:N10000", col_types = results_col_types)
-    results_import <-openxlsx::read.xlsx(file, sheet = template_sheets[i],
-                                         startRow = 5,
-                                         colNames = FALSE,
-                                         detectDates = TRUE)
-    results_import <- results_import[-1,]
+    results_import <-readxl::read_excel(file, sheet = template_sheets[i],
+                                        skip = 4,
+                                        range = cellranger::cell_cols("A:O"),
+                                        col_names = FALSE,
+                                        col_types = results_col_types
+                                        )
+
 
     colnames(results_import) <- results_col_names
-    results_import$Activity.Start.Date <- openxlsx::convertToDateTime(results_import$Activity.Start.Date)
-    results_import$Activity.Start.Time <- openxlsx::convertToDateTime(results_import$Activity.Start.Time)
+    results_import <- results_import[-c(1:5), ]
+    # results_import$Activity.Start.Date <- openxlsx::convertToDateTime(results_import$Activity.Start.Date)
+    # results_import$Activity.Start.Time <- openxlsx::convertToDateTime(results_import$Activity.Start.Time)
 
   #Error check for time formatting. Stop processing and direct the user to correct time issue beofre continuing
 
@@ -358,7 +366,7 @@ params <- dplyr::bind_rows(param_list)
 
     results_import <- dplyr::left_join(results_import, mloc_lookup, by = "Equipment.ID")
 
-    results_import <- select(results_import,
+    results_import <- dplyr::select(results_import,
                              "Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time", "Activity.Start.End.Time.Zone",
                              "Equipment.ID", "Characteristic.Name", "Result.Value", "Result.Unit", "Result.Status.ID", "Result.Comment")
 
@@ -381,6 +389,7 @@ params <- dplyr::bind_rows(param_list)
   # 6	Reference Result Unit
   # 7	Reference ID #
 
+print("Begin prep/post aduit import")
 
     prepost_col_types <- c('text', 'text','text', 'date', 'numeric', 'numeric',  'text', 'numeric', 'text', 'text')
 
@@ -441,6 +450,8 @@ params <- dplyr::bind_rows(param_list)
   # 21	Result Measure Qualifier
   # 22	Result Comment
 
+
+    print("Begin field audit import")
     audit_col_types <- c('text', 'text', 'text', 'text', 'text', 'text', 'date', 'date', 'numeric', 'numeric','numeric',
                          'text', "text")
 
