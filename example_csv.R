@@ -40,7 +40,6 @@ df0.results <- odeqcdr::contin_results_csv()
 # Put results data in the list with the other worksheets
 df0[["Results"]] <- df0.results
 
-
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
@@ -189,7 +188,6 @@ df2.audits <- odeqcdr::dt_parts(df=df1.audits,
                                 date_col="Activity.End.Date",
                                 time_col="Activity.End.Time")
 
-
 #- Convert Units ---------------------------------------------------------------
 # This converts the result value and changes the Unit column.
 # This is needed for grading and anomaly checking
@@ -262,7 +260,6 @@ df4.results <- df3.results %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
-
 #- Anomalies -------------------------------------------------------------------
 # Flag potential anomalies
 # Anomaly = TRUE if one of the daily summary statistics deviate from the typical range.
@@ -280,6 +277,13 @@ df5.results.anom.stats <- df5.results %>%
 
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
 
+#- If line 278 results in a vector allocation error use the below instead.
+# df5.results.anom <- df5.results %>%
+#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
+#   dplyr::group_split() %>%
+#   lapply(FUN = odeqcdr::anomaly_check, deployment=df1.deployment, return_df=TRUE) %>%
+#   dplyr::bind_rows() %>%
+#   dplyr::mutate(row.results=dplyr::row_number())
 
 #- Output for further review using Shiny Tool ----------------------------------
 
