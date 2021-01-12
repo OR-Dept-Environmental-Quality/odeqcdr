@@ -40,6 +40,32 @@ df0.results <- odeqcdr::contin_results_csv()
 # Put results data in the list with the other worksheets
 df0[["Results"]] <- df0.results
 
+# ------------------------------------------------------------------------------
+# Code below filters the deployments and Monitoring Locations to only those that
+# are in the imported results. This will make review a bit easier if the csv files
+# are being imported in batches.
+
+# Filter to just the Deployments in Results
+result_deploys <- df0.results %>%
+  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+  dplyr::pull(deployment) %>%
+  unique()
+
+# Put the updated deployments back in the list
+df0[["Deployment"]] <- df0.deployment
+
+df0.deployment <- df0.deployment %>%
+  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+  dplyr::filter(deployment %in% result_deploys) %>%
+  dplyr::select(-deployment)
+
+# Filter to just the MLocs in Results
+df0.mloc <- df0.mloc %>%
+  dplyr::filter(Monitoring.Location.ID %in% unique(df0.results$Monitoring.Location.ID))
+
+# Put the updated MLocs back in the list
+df0[["Monitoring_Locations"]] <- df0.mloc
+
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
