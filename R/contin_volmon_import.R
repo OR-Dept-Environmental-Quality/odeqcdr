@@ -29,7 +29,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT") {
 
   #library(readxl)
-  #file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/OriginalCopy_PBWC_ODEQ_ContinuousTempDataSubmittal_2019.xlsx"
+  file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/20200423_UpperDeschutes_Continous.xlsx"
 
   options(scipen=999)
 
@@ -176,6 +176,11 @@ print("Begin locations import")
     locations_import <- locations_import[rowSums(is.na(locations_import)) != ncol(locations_import), ]
 
 
+     locations_import$Monitoring.Location.Type <- "River/Stream"
+    locations_import$Latitude <- as.numeric(locations_import$Latitude)
+    locations_import$Longitude <- as.numeric(locations_import$Longitude)
+
+
   # Import Deployment Info -------------------------------------------------------------------
 
   # Column
@@ -206,7 +211,7 @@ deply_col_types <- c('date', 'date', 'numeric', 'numeric', 'numeric', 'numeric',
 
 for(i in 1:length(template_sheets)){
 param_read <- readxl::read_excel(file, sheet = template_sheets[i],
-                                 range = "A5:O10000", col_types = deply_col_types)
+                                 range = "A5:O100000", col_types = deply_col_types)
 param_read <- dplyr::mutate(param_read, Equipment.ID = template_sheets[i],
                             Deployment.Start.Date = min(DATE, na.rm = TRUE),
                             Deployment.End.Date = max(DATE, na.rm = TRUE))
@@ -488,7 +493,7 @@ print("Begin prep/post aduit import")
     audit_import$Alternate.Project.ID.2 <- NA
     audit_import$Activity.End.Date <- audit_import$Activity.Start.Date
     audit_import$Activity.End.Time <- audit_import$Activity.Start.Time
-    audit_import$Activity.Start.End.Time.Zone <- project
+    audit_import$Activity.Start.End.Time.Zone <- timezone
     audit_import$Activity.Type <- "Quality Control Field Replicate Portable Data Logger"
     audit_import <- dplyr::mutate(audit_import, Activity.ID  = paste0(Monitoring.Location.ID, ":",
                                                                       format.Date(Activity.Start.Date, "%Y"),
