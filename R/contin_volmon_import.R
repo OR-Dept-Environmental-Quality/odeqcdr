@@ -206,12 +206,24 @@ template_sheets <-setdiff(template_sheets, sheet_exclude)
 param_list <- list()
 
 
-deply_col_types <- c('date', 'date', 'numeric', 'numeric', 'numeric', 'numeric', 'numeric', 'numeric', 'numeric', 'numeric',
-                         'numeric', 'numeric', 'numeric', 'numeric', 'numeric')
+deply_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
 
 for(i in 1:length(template_sheets)){
+
+  #get list of parameters
+  parameters <- readxl::read_excel(file, sheet = template_sheets[i],
+                                 range = "A5:AF5")
+  #parameters <- dplyr::select(parameters, -dplyr::contains('DQL'), -dplyr::contains('DQL'))
+
+
 param_read <- readxl::read_excel(file, sheet = template_sheets[i],
-                                 range = "A5:O100000", col_types = deply_col_types)
+                                 range = cellranger::cell_cols("A:AF"),
+                                 col_types = deply_col_types)
+
+colnames(param_read) <- names(parameters)
+param_read <- param_read[-c(1:5), ]
+param_read <- dplyr::select(param_read, -dplyr::contains('DQL'), -dplyr::contains('...'))
+
 param_read <- dplyr::mutate(param_read, Equipment.ID = template_sheets[i],
                             Deployment.Start.Date = min(DATE, na.rm = TRUE),
                             Deployment.End.Date = max(DATE, na.rm = TRUE))
@@ -220,19 +232,38 @@ param_read <- head(param_read, 1)
 
 # param_read <- dplyr::filter(param_read, DATE == min(DATE, na.rm = TRUE) |
 #                               DATE == max(DATE, na.rm = TRUE)  )
-param_read <- dplyr::select(param_read, -DATE, -TIME, -TEMP_DQL, -DO_DQL, -PH_DQL, -TURB_DQL, -COND_DQL, -Q_DQL )
-param_read <- dplyr::rename(param_read, "Temperature, water" = 'TEMP_r',
-                            "Dissolved oxygen (DO)" = 'DO_r',
-                            "Dissolved oxygen saturation" = "DOs_r",
-                            "pH" = "PH_r",
-                            "Turbidity" = "TURB_r",
-                            "Conductivity" = "COND_r",
-                            "Flow" = "Q_r")
-param_read <- tidyr::pivot_longer(param_read, cols = c("Temperature, water", "Dissolved oxygen (DO)",
-                                                       "Dissolved oxygen saturation", "pH",
-                                                       "Turbidity", "Conductivity", "Flow"), names_to = "Characteristic.Name",
+param_read <- dplyr::select(param_read, -DATE, -TIME)
+
+
+param_read <- tidyr::pivot_longer(param_read, cols = c(1:(length(param_read)-3)), names_to = "Characteristic.Name",
                                   values_drop_na = TRUE)
+
+# param_read <- dplyr::rename(param_read, "Temperature, water" = 'TEMP_r',
+#                             "Dissolved oxygen (DO)" = 'DO_r',
+#                             "Dissolved oxygen saturation" = "DOs_r",
+#                             "pH" = "PH_r",
+#                             "Turbidity" = "TURB_r",
+#                             "Conductivity" = "COND_r",
+#                             "Flow" = "Q_r")
+# param_read <- tidyr::pivot_longer(param_read, cols = c("Temperature, water", "Dissolved oxygen (DO)",
+#                                                        "Dissolved oxygen saturation", "pH",
+#                                                        "Turbidity", "Conductivity", "Flow"), names_to = "Characteristic.Name",
+#                                   values_drop_na = TRUE)
 param_read <- dplyr::select(param_read, -value)
+
+param_read <- dplyr::mutate(param_read, Characteristic.Name = dplyr::case_when(grepl("temp", tolower(Characteristic.Name)) ~ "Temperature, water",
+                                                                               grepl("dos", tolower(Characteristic.Name)) ~ "Dissolved oxygen saturation",
+                                                                               grepl("do", tolower(Characteristic.Name)) ~ "Dissolved oxygen (DO)",
+                                                                               grepl("ph", tolower(Characteristic.Name)) ~ "pH",
+                                                                               grepl("turb", tolower(Characteristic.Name)) ~ "Turbidity",
+                                                                               grepl("cond", tolower(Characteristic.Name)) ~ "Conductivity",
+                                                                               tolower(Characteristic.Name) == 'q_r' ~ 'Flow',
+                                                                               grepl("flow", tolower(Characteristic.Name)) ~ "Flow",
+                                                                               grepl("chl", tolower(Characteristic.Name)) ~ "Chlorophyll a",
+                                                                               grepl("depth", tolower(Characteristic.Name)) ~ "Depth",
+                                                                               grepl("bga", tolower(Characteristic.Name)) ~ "Algae, blue-green (phylum cyanophyta) density",
+                                                                               TRUE ~ Characteristic.Name)
+                     )
 
 param_list[[i]] <- param_read
 }
