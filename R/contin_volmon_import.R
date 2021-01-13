@@ -313,35 +313,21 @@ params <- dplyr::bind_rows(param_list)
 
     print("Begin results import")
 
-    results_col_types <- c('date', #Date
-                           'date', #Time
-                           'numeric', #Temp_r
-                           'text', #Temp DQL
-                           'numeric', #DO_r
-                           'numeric', #DOs_r
-                           'text',
-                           'numeric',
-                           'text',
-                           'numeric',
-                           'text',
-                           'numeric',
-                           'text',
-                           'numeric',
-                           'text')
+    results_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
 
-    results_col_names <- c("Activity.Start.Date", "Activity.Start.Time","Temperature, water",
-                           "TEMP_DQL",
-                           "Dissolved oxygen (DO)",
-                           "Dissolved oxygen saturation",
-                           "DO_DQL",
-                           "pH",
-                           "PH_DQL",
-                           "Turbidity",
-                           "TURB_DQL",
-                           "Conductivity",
-                           "COND_DQL",
-                            "Flow",
-                           "Q_DQL")
+    # results_col_names <- c("Activity.Start.Date", "Activity.Start.Time","Temperature, water",
+    #                        "TEMP_DQL",
+    #                        "Dissolved oxygen (DO)",
+    #                        "Dissolved oxygen saturation",
+    #                        "DO_DQL",
+    #                        "pH",
+    #                        "PH_DQL",
+    #                        "Turbidity",
+    #                        "TURB_DQL",
+    #                        "Conductivity",
+    #                        "COND_DQL",
+    #                         "Flow",
+    #                        "Q_DQL")
 
     results_list <- list()
 
@@ -352,19 +338,21 @@ params <- dplyr::bind_rows(param_list)
 
 
 
-
+      #get list of parameters
+      parameters <- readxl::read_excel(file, sheet = template_sheets[i],
+                                       range = "A5:AF5")
 
     # read results tab of submitted file
     #results_import <- readxl::read_excel(file, sheet = template_sheets[i], range = "A5:N10000", col_types = results_col_types)
     results_import <-readxl::read_excel(file, sheet = template_sheets[i],
                                         skip = 4,
-                                        range = cellranger::cell_cols("A:O"),
+                                        range = cellranger::cell_cols("A:AF"),
                                         col_names = FALSE,
                                         col_types = results_col_types
                                         )
 
 
-    colnames(results_import) <- results_col_names
+    colnames(results_import) <- names(parameters)
     results_import <- results_import[-c(1:5), ]
     # results_import$Activity.Start.Date <- openxlsx::convertToDateTime(results_import$Activity.Start.Date)
     # results_import$Activity.Start.Time <- openxlsx::convertToDateTime(results_import$Activity.Start.Time)
@@ -380,18 +368,31 @@ params <- dplyr::bind_rows(param_list)
     #
 
     results_import <- dplyr::select(results_import,
-                                    -TEMP_DQL,
-                                    -DO_DQL,
-                                    -PH_DQL,
-                                    -TURB_DQL,
-                                    -COND_DQL,
-                                    -Q_DQL)
+                                    -dplyr::contains('DQL'), -dplyr::contains('...'))
+
+    results_cols <- names(results_import)
+    results_cols <- dplyr::case_when(grepl("date", tolower(results_cols)) ~ "Activity.Start.Date",
+                                     grepl("time", tolower(results_cols)) ~ "Activity.Start.Time",
+                                     grepl("temp", tolower(results_cols)) ~ "Temperature, water",
+                                     grepl("dos", tolower(results_cols)) ~ "Dissolved oxygen saturation",
+                                     grepl("do", tolower(results_cols)) ~ "Dissolved oxygen (DO)",
+                                     grepl("ph", tolower(results_cols)) ~ "pH",
+                                     grepl("turb", tolower(results_cols)) ~ "Turbidity",
+                                     grepl("cond", tolower(results_cols)) ~ "Conductivity",
+                                     tolower(results_cols) == 'q_r' ~ 'Flow',
+                                     grepl("flow", tolower(results_cols)) ~ "Flow",
+                                     grepl("chl", tolower(results_cols)) ~ "Chlorophyll a",
+                                     grepl("depth", tolower(results_cols)) ~ "Depth",
+                                     grepl("bga", tolower(results_cols)) ~ "Algae, blue-green (phylum cyanophyta) density",
+                                     TRUE ~ results_cols)
+
+    colnames(results_import) <- results_cols
+
+
+
 
     results_import <- tidyr::pivot_longer(results_import,
-                                           cols = c("Temperature, water","Dissolved oxygen (DO)",
-                                                    "Dissolved oxygen saturation", "pH",
-                                                    "Turbidity","Conductivity",
-                                                    "Flow"),
+                                           cols = c(3:length(results_import)),
                                            names_to = "Characteristic.Name",
                                            values_to = "Result.Value",
                                            values_drop_na = TRUE
@@ -407,6 +408,7 @@ params <- dplyr::bind_rows(param_list)
                                                                    Characteristic.Name == "Turbidity" ~ "NTU",
                                                                    Characteristic.Name == "Conductivity" ~'umho/cm',
                                                                    Characteristic.Name == 'Flow' ~ 'cfs',
+                                                                   Characteristic.Name == "Depth" ~ "m",
                                                                    TRUE ~ "ERROR"),
                                     Result.Comment = NA,
                                     Result.Status.ID = "Final")
