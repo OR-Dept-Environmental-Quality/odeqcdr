@@ -29,7 +29,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT") {
 
   #library(readxl)
-  file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/20200423_UpperDeschutes_Continous.xlsx"
+  #file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
   options(scipen=999)
 
@@ -47,6 +47,26 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # results_import <- NA
   # prepost_import <- NA
   # audit_import <- NA
+
+
+  param_transform <- function(col){
+    dplyr::case_when(grepl("date", tolower(col)) ~ "Activity.Start.Date",
+                     grepl("time", tolower(col)) ~ "Activity.Start.Time",
+                     grepl("temp", tolower(col)) ~ "Temperature, water",
+                     grepl("dos", tolower(col)) ~ "Dissolved oxygen saturation",
+                     grepl("do", tolower(col)) ~ "Dissolved oxygen (DO)",
+                     grepl("ph", tolower(col)) ~ "pH",
+                     grepl("turb", tolower(col)) ~ "Turbidity",
+                     grepl("cond", tolower(col)) ~ "Conductivity",
+                     tolower(col) == 'q_r' ~ 'Flow',
+                     grepl("flow", tolower(col)) ~ "Flow",
+                     grepl("chl", tolower(col)) ~ "Chlorophyll a",
+                     grepl("depth", tolower(col)) ~ "Depth",
+                     grepl("bga", tolower(col)) ~ "Algae, blue-green (phylum cyanophyta) density",
+                     TRUE ~ col)
+  }
+
+
 
   # Organizational Details -----------------------------------------------------
 print("Begin org import")
@@ -251,18 +271,7 @@ param_read <- tidyr::pivot_longer(param_read, cols = c(1:(length(param_read)-3))
 #                                   values_drop_na = TRUE)
 param_read <- dplyr::select(param_read, -value)
 
-param_read <- dplyr::mutate(param_read, Characteristic.Name = dplyr::case_when(grepl("temp", tolower(Characteristic.Name)) ~ "Temperature, water",
-                                                                               grepl("dos", tolower(Characteristic.Name)) ~ "Dissolved oxygen saturation",
-                                                                               grepl("do", tolower(Characteristic.Name)) ~ "Dissolved oxygen (DO)",
-                                                                               grepl("ph", tolower(Characteristic.Name)) ~ "pH",
-                                                                               grepl("turb", tolower(Characteristic.Name)) ~ "Turbidity",
-                                                                               grepl("cond", tolower(Characteristic.Name)) ~ "Conductivity",
-                                                                               tolower(Characteristic.Name) == 'q_r' ~ 'Flow',
-                                                                               grepl("flow", tolower(Characteristic.Name)) ~ "Flow",
-                                                                               grepl("chl", tolower(Characteristic.Name)) ~ "Chlorophyll a",
-                                                                               grepl("depth", tolower(Characteristic.Name)) ~ "Depth",
-                                                                               grepl("bga", tolower(Characteristic.Name)) ~ "Algae, blue-green (phylum cyanophyta) density",
-                                                                               TRUE ~ Characteristic.Name)
+param_read <- dplyr::mutate(param_read, Characteristic.Name = param_transform(Characteristic.Name)
                      )
 
 param_list[[i]] <- param_read
@@ -312,6 +321,33 @@ params <- dplyr::bind_rows(param_list)
 
 
     print("Begin results import")
+
+
+
+    # Get units from field audit sheet
+
+
+
+    audit_col_types <- c('text', 'text', 'text', 'text', 'text', 'text', 'date', 'date', 'numeric', 'numeric','numeric',
+                         'text', "text")
+
+    audit_col_names <- c("Equipment.ID", 'Monitoring.Location.ID',  'Characteristic.Name', 'Result.Unit', 'Reference.ID',
+                         'AuditType', 'Activity.Start.Date', 'Activity.Start.Time', 'Result.Value', 'logger.value', 'DIFF', 'DQL', 'Result.Comment')
+
+
+
+
+    audit_import_units <- readxl::read_excel(file, sheet = "FieldAuditResults",range = cellranger::cell_cols("A:M"),
+                                                            col_types = audit_col_types)
+
+
+    colnames(audit_import_units) <- audit_col_names
+    audit_import_units <- dplyr::distinct(audit_import_units, Equipment.ID,Monitoring.Location.ID, Characteristic.Name,Result.Unit  )
+    # remove rows with all NAs
+    audit_import_units <- audit_import_units[rowSums(is.na(audit_import_units)) != ncol(audit_import_units), ]
+    #standardize parameter names
+    audit_import_units <- dplyr::mutate(audit_import_units, Characteristic.Name = param_transform(Characteristic.Name))
+
 
     results_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
 
@@ -371,20 +407,7 @@ params <- dplyr::bind_rows(param_list)
                                     -dplyr::contains('DQL'), -dplyr::contains('...'))
 
     results_cols <- names(results_import)
-    results_cols <- dplyr::case_when(grepl("date", tolower(results_cols)) ~ "Activity.Start.Date",
-                                     grepl("time", tolower(results_cols)) ~ "Activity.Start.Time",
-                                     grepl("temp", tolower(results_cols)) ~ "Temperature, water",
-                                     grepl("dos", tolower(results_cols)) ~ "Dissolved oxygen saturation",
-                                     grepl("do", tolower(results_cols)) ~ "Dissolved oxygen (DO)",
-                                     grepl("ph", tolower(results_cols)) ~ "pH",
-                                     grepl("turb", tolower(results_cols)) ~ "Turbidity",
-                                     grepl("cond", tolower(results_cols)) ~ "Conductivity",
-                                     tolower(results_cols) == 'q_r' ~ 'Flow',
-                                     grepl("flow", tolower(results_cols)) ~ "Flow",
-                                     grepl("chl", tolower(results_cols)) ~ "Chlorophyll a",
-                                     grepl("depth", tolower(results_cols)) ~ "Depth",
-                                     grepl("bga", tolower(results_cols)) ~ "Algae, blue-green (phylum cyanophyta) density",
-                                     TRUE ~ results_cols)
+    results_cols <- param_transform(results_cols)
 
     colnames(results_import) <- results_cols
 
@@ -397,24 +420,20 @@ params <- dplyr::bind_rows(param_list)
                                            values_to = "Result.Value",
                                            values_drop_na = TRUE
                                            )
-    # remove rows with all NAs
+
     results_import <- dplyr::mutate(results_import,
                                     Activity.Start.End.Time.Zone = timezone,
                                     Equipment.ID = template_sheets[i],
-                                    Result.Unit = dplyr::case_when(Characteristic.Name == "Temperature, water" ~ "deg C",
-                                                                   Characteristic.Name == "Dissolved oxygen (DO)" ~ "mg/l",
-                                                                   Characteristic.Name == "Dissolved oxygen saturation" ~ "%",
-                                                                   Characteristic.Name == "pH" ~ "pH Units",
-                                                                   Characteristic.Name == "Turbidity" ~ "NTU",
-                                                                   Characteristic.Name == "Conductivity" ~'umho/cm',
-                                                                   Characteristic.Name == 'Flow' ~ 'cfs',
-                                                                   Characteristic.Name == "Depth" ~ "m",
-                                                                   TRUE ~ "ERROR"),
                                     Result.Comment = NA,
                                     Result.Status.ID = "Final")
-
-
     results_import <- dplyr::left_join(results_import, mloc_lookup, by = "Equipment.ID")
+    #get units
+
+    results_import <- dplyr::left_join(results_import, audit_import_units, by = c("Characteristic.Name", "Equipment.ID", "Monitoring.Location.ID"))
+    results_import <- dplyr::mutate(results_import, Result.Unit = ifelse(Characteristic.Name == "Dissolved oxygen saturation", "%", Result.Unit))
+
+
+
 
     results_import <- dplyr::select(results_import,
                              "Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time", "Activity.Start.End.Time.Zone",
@@ -456,17 +475,19 @@ print("Begin prep/post aduit import")
     prepost_import <- dplyr::select(prepost_import,
                                     "Equipment.ID", "Characteristic.Name", "Equipment.Result.Value", "Equipment.Result.Unit",
                                     "Reference.Result.Value", "Reference.Result.Unit", "Reference.ID")
+    prepost_import <- mutate(prepost_import, Characteristic.Name = param_transform(Characteristic.Name))
 
 
-    #Error check for correct parameters. Stop processing and direct the user to correct parameter name issue before continuing
 
-      if(!all(prepost_import$Characteristic.Name %in% c("Temperature, water", "Dissolved oxygen (DO)",
-                                                        "Dissolved oxygen saturation",
-                                                        "pH","Turbidity","Conductivity"))){
-      stop(paste0("Invalid Parameter name in PrePostResults tab. Please fix before continuing"))
-
-    }
-
+    # #Error check for correct parameters. Stop processing and direct the user to correct parameter name issue before continuing
+    #
+    #   if(!all(prepost_import$Characteristic.Name %in% c("Temperature, water", "Dissolved oxygen (DO)",
+    #                                                     "Dissolved oxygen saturation",
+    #                                                     "pH","Turbidity","Conductivity"))){
+    #   stop(paste0("Invalid Parameter name in PrePostResults tab. Please fix before continuing"))
+    #
+    # }
+    #
 
 
 
@@ -517,8 +538,15 @@ print("Begin prep/post aduit import")
     #                      "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type", "Result.Status.ID",
     #                      "Result.Measure.Qualifier", "Result.Comment")
 
-    audit_import <- readxl::read_excel(file, sheet = "FieldAuditResults", col_types = audit_col_types)
+    audit_import <- readxl::read_excel(file, sheet = "FieldAuditResults",range = cellranger::cell_cols("A:M"),
+                                       col_types = audit_col_types)
     colnames(audit_import) <- audit_col_names
+
+    # remove rows with all NAs
+    audit_import <- audit_import[rowSums(is.na(audit_import)) != ncol(audit_import), ]
+
+
+    audit_import <- dplyr::mutate(audit_import, Characteristic.Name = param_transform(Characteristic.Name))
 
 
     audit_import$Project.ID <- project
@@ -536,9 +564,11 @@ print("Begin prep/post aduit import")
                                                                       format.Date(Activity.Start.Time, "%M"),
                                                                       ":QPDL"
                                                                       ))
+
+    #Some of this probably needs to be edited.
     audit_import$Sample.Collection.Method <-"Grab"
-    audit_import$Result.Analytical.Method.ID <- '170.1'
-    audit_import$Result.Analytical.Method.Context <- "USEPA"
+    audit_import$Result.Analytical.Method.ID <- NA
+    audit_import$Result.Analytical.Method.Context <- NA
     audit_import$Result.Value.Type <- NA
     audit_import$Result.Status.ID <- "Accepted"
     audit_import$Result.Measure.Qualifier <- NA
@@ -554,8 +584,7 @@ print("Begin prep/post aduit import")
 
 
 
-    # remove rows with all NAs
-    audit_import <- audit_import[rowSums(is.na(audit_import)) != ncol(audit_import), ]
+
 
   # Add Sheets to list  --------------------------------------------------------
 
