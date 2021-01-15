@@ -2,15 +2,23 @@ library(dplyr)
 library(lutz)
 library(odeqcdr)
 library(writexl)
+library(magrittr)
 
 
-xlsx_input <- "C:/Users/tpritch/Documents/odeqcdr/test templates/OriginalCopy_PBWC_ODEQ_ContinuousTempDataSubmittal_2019_corrected.xlsx"
-output_dir <-"/test_templates"
+#Volmon template file
+xlsx_input <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+
+#Directory where files are saved to
+output_dir <-"C:/Users/tpritch/Documents/odeqcdr/test templates"
 
 
 xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
+
+# Filename for Data to load into shiny
 shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
-xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
+
+#Script output
+xlsx_output <- "ContinuousDataTemplate_example_output_2.xlsx"
 
 
 #- Import the Data -------------------------------------------------------------
@@ -53,16 +61,7 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
 
 #- Set Project ID --------------------------------------------------------------
 
-df1.projects <- df0.projects %>%
-  dplyr::mutate(Project.ID="TMDL Data Submission",
-                Project.Name="TMDL Data Submission",
-                Project.Description="Data submitted to DEQ to support TMDL development or TMDL implementation")
-
-df1.audits <- df1.audits %>%
-  dplyr::mutate(Alternate.Project.ID.2=Alternate.Project.ID.1,
-                Alternate.Project.ID.1=Project.ID,
-                Project.ID="TMDL Data Submission")
-
+ df1.projects <- df0.projects
 #- Review Monitoring Location Info----------------------------------------------
 
  odeqcdr::launch_map(mloc=df0.mloc)
@@ -271,7 +270,10 @@ df5.results.anom.stats <- df5.results %>%
   dplyr::left_join(odeqcdr::anomaly_stats) %>%
   dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, dplyr::contains("daily"))
 
-df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
+
+#Note- Anomaly check does not work for DO, so this manually sets anomaly to FALSE.
+df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE) %>%
+  mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
 
 
 #- Output for further review using Shiny Tool ----------------------------------
