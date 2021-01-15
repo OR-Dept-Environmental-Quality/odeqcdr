@@ -286,6 +286,7 @@ sumstats <-function(results, deployment, project_id) {
                   ActivityType = "FMC",
                   Result.Analytical.Method.ID = dplyr::case_when(charID == "Temperature, water" ~ "170.1",
                                                                  charID == "Conductivity" ~ "120.1",
+                                                                 charID == "Dissolved oxygen (DO)" ~ "NFM 6.2.1-LUM",
                                                                  charID == "Dissolved oxygen saturation" ~ "NFM 6.2.1-LUM",
                                                                  charID == "pH" ~ "150.1",
                                                                  charID == "Turbidity" ~ "180.1",
