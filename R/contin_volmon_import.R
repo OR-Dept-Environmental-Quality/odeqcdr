@@ -1,6 +1,8 @@
-#' Import continuous information from a template xlsx file.
+#' Import continuous information from volmon data template.
 #'
-#' Retrieve monitoring results from Oregon DEQ's continuous data submission template xlsx file v2.03.
+#' This functions uses the volmon data template as an input and returns a list with each element that matches the output
+#' of contin_import(). This function does the same thing as contin_import() but uses the different template.
+#'
 #' This function will read the template and return a list with each list element holding a
 #' dataframe of the information for each spreadsheet. Any rows with all NAs are removed.
 #'
@@ -19,9 +21,9 @@
 #'   This function relies heavily upon the [readxl] package.
 #'
 #' @param file The path and file name to template xlsx file.
-#' @param sheets Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
-#' Acceptable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".
-#' @seealso [readxl::read_excel()]
+#' @param project Optional variable identifying project. ODEQ volmon's program (ODEQVolMonWQProgram) is the default
+#' @param timezone Optionalvariable setting time zone. Defaults to "PDT"
+#' @seealso [readxl::read_excel()], [odeqcdr::contin_import()]
 #' @export
 #' @return list of each continuous template data
 
