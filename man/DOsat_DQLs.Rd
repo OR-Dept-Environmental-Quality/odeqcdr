@@ -4,7 +4,7 @@
 \alias{DOsat_DQLs}
 \title{Assigns DO concentration DQLs to DO saturation}
 \usage{
-DOsat_DQLs(results)
+DOsat_DQLs(df = results)
 }
 \arguments{
 \item{results}{Dataframe of results after manual grade corrections have been applied to DO concentration values}
