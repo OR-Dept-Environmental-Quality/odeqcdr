@@ -9,7 +9,7 @@
 #'@return Dataframe of all results with final grade.
 
 
-DOsat_DQLs <- function(results){
+DOsat_DQLs <- function(df = results){
 
 
 if(!"Dissolved oxygen saturation" %in% df$Characteristic.Name){
@@ -18,7 +18,7 @@ if(!"Dissolved oxygen saturation" %in% df$Characteristic.Name){
   return(results)
 } else {
 
-DOs_DQLs <- results %>%
+DOs_DQLs <- df %>%
   dplyr::filter(Characteristic.Name == "Dissolved oxygen (DO)") %>%
   dplyr::select(Monitoring.Location.ID, Activity.Start.Date,Activity.Start.Time, Equipment.ID, Result.Status.ID,
                 datetime, accDQL, precDQL, rDQL) %>%
@@ -27,7 +27,7 @@ DOs_DQLs <- results %>%
                 new_rDQL = rDQL) %>%
   dplyr::mutate(Characteristic.Name = "Dissolved oxygen saturation")
 
-df_joined <- results %>%
+df_joined <- df %>%
   dplyr::left_join(DOs_DQLs, by = c("Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time",
                                       "Equipment.ID","Characteristic.Name", "Result.Status.ID", "datetime")) %>%
   dplyr::mutate(accDQL =  ifelse(Characteristic.Name == "Dissolved oxygen saturation" & !is.na(new_accDQL), new_accDQL, accDQL),
