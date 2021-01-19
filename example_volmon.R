@@ -317,6 +317,7 @@ df.results.final <- df4.results %>%
                 Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
                                                   TRUE ~ Result.Status.ID))
 
+df.results.final <- odeqcdr::DOsat_DQLs(df.results.final)
 # Generate Summary Stats -------------------------------------------------------
 
 df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
