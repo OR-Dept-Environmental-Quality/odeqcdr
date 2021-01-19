@@ -8,17 +8,17 @@ library(magrittr)
 #Volmon template file
 xlsx_input <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
-#Directory where files are saved to
+#Directory where files are saved to- SHould be a voldata folder
 output_dir <-"C:/Users/tpritch/Documents/odeqcdr/test templates"
 
 
 xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
 
 # Filename for Data to load into shiny
-shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
+shiny_output <- "Siuslaw_WC_2018_Continuous_Temp_SHINY_CDR.Rdata"
 
 #Script output
-xlsx_output <- "ContinuousDataTemplate_example_output_2.xlsx"
+xlsx_output <- "Siuslaw_WC_2018_Continuous_Temp_export.xlsx"
 
 
 #- Import the Data -------------------------------------------------------------
@@ -73,7 +73,7 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
 df1.mloc <- dplyr::distinct(df0.mloc)
 
 # Save R global environment just in case.
-#save.image(paste0(output_dir, "/Renv.RData"))
+save.image(paste0(output_dir, "/Renv.RData"))
 
 #- Update Monitoring Location ID Name-------------------------------------------
 
@@ -300,6 +300,7 @@ C.rows <- c(NA)
 D.rows <- c(NA)
 E.rows <- c(NA)
 F.rows <- c(NA)
+
 
 df.results.final <- df4.results %>%
   dplyr::mutate(rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
