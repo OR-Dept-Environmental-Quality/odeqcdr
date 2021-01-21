@@ -38,4 +38,7 @@ flags all temperature results on that day as an anomaly where dt_shift=TRUE.
 See \code{\link[=dt_shift]{dt_shift()}} to run this check without all the other anomaly checks.
 A datetime shift may indicate an issue with the time not being adjusted to the correct time zone
 (i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
+
+Also calculated for each deployment is the absolute change from one result value to the next along the timseries. The change
+is normalized per hour. The output value is saved to the column 'delta_per_hour'.
 }

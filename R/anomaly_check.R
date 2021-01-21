@@ -21,6 +21,9 @@
 #' A datetime shift may indicate an issue with the time not being adjusted to the correct time zone
 #' (i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
 #'
+#' Also calculated for each deployment is the absolute change from one result value to the next along the timseries. The change
+#' is normalized per hour. The output value is saved to the column 'delta_per_hour'.
+#'
 #' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
 #' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
 #' @param return_df Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.
@@ -39,44 +42,47 @@ anomaly_check <- function(results, deployment, return_df=FALSE) {
     results$StreamOrder <- NA
   }
 
+  # keep original col names
   result.cols <- names(results)
 
+  results <- results %>%
+    dplyr::mutate(date_char1=format(datetime, format="%Y-%m-%d"),
+                  date_char2=format(datetime, format="%Y-%m-%d %Z"),
+                  row.anom=dplyr::row_number())
+
+  # Calculate the change in result value per hour. This is normalized to every 60 min regardless of sample frequency
   df.d_hour <- results %>%
-    dplyr::mutate(row.results=dplyr::row_number()) %>%
-    dplyr::filter(Characteristic.Name == "Temperature, water") %>%
     dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
     dplyr::arrange(datetime) %>%
     dplyr::mutate(delta_per_hour=abs(Result.Value - dplyr::lag(Result.Value)) / abs(as.numeric(datetime - dplyr::lag(datetime), units="hours"))) %>%
     dplyr::ungroup() %>%
-    dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, delta_per_hour, row.results) %>%
-    dplyr::arrange(row.results) %>%
+    dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, delta_per_hour, row.anom) %>%
+    dplyr::arrange(row.anom) %>%
     as.data.frame()
 
   df.dt_shift <- results %>%
-    dplyr::mutate(date=as.Date(datetime)) %>%
     dplyr::filter(Characteristic.Name == "Temperature, water") %>%
-    dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date) %>%
+    dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_char1) %>%
     dplyr::slice(which.max(Result.Value)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(dt_shift=dplyr::if_else(lubridate::hour(datetime) %in% c(13:19), FALSE, TRUE)) %>%
-    dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date, dt_shift) %>%
+    dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_char1, dt_shift) %>%
     as.data.frame()
 
   df1.stats <- results %>%
-    dplyr::mutate(date=as.Date(datetime)) %>%
-    dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, StreamOrder, date) %>%
-    dplyr::summarise(d_min=min(Result.Value, na.rm = TRUE),
-                     d_max=max(Result.Value, na.rm = TRUE),
-                     d_mean=mean(Result.Value, na.rm = TRUE),
-                     .groups="keep"
+    dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, StreamOrder, date_char1) %>%
+    dplyr::mutate(d_min=min(Result.Value, na.rm = TRUE),
+                  d_max=max(Result.Value, na.rm = TRUE),
+                  d_mean=mean(Result.Value, na.rm = TRUE)
     ) %>%
+    dplyr::ungroup() %>%
     dplyr::left_join(deployment) %>%
     as.data.frame()
 
-  df2.stats <- df1.stats %>%
-    dplyr::mutate(deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
-                                            date <= as.Date(Deployment.End.Date), TRUE, FALSE),
-                  month=lubridate::month(date)
+  df.results.anom <- df1.stats %>%
+    dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
+                                            datetime <= Deployment.End.Date, TRUE, FALSE),
+                  month=lubridate::month(datetime)
     ) %>%
     dplyr::left_join(anomaly_stats) %>%
     dplyr::left_join(df.dt_shift) %>%
@@ -94,14 +100,8 @@ anomaly_check <- function(results, deployment, return_df=FALSE) {
                   # No Anomaly outside deployment period
                   Anomaly=dplyr::if_else(deployed, Anomaly, FALSE)
     ) %>%
-    dplyr::select(dplyr::any_of(result.cols), deployed, date, Anomaly, dt_shift, delta_per_hour, daily_min_q10, daily_max_q90, daily_mean_q10, daily_mean_q90) %>%
-    as.data.frame()
-
-  df.results.anom <- results %>%
-    dplyr::mutate(row.results=dplyr::row_number(),
-                  date=as.Date(datetime)) %>%
-    dplyr::left_join(df2.stats) %>%
-    dplyr::arrange(row.results) %>%
+    dplyr::arrange(row.anom) %>%
+    dplyr::select(dplyr::any_of(result.cols), deployed, Anomaly, dt_shift, delta_per_hour, daily_min_q10, daily_max_q90, daily_mean_q10, daily_mean_q90) %>%
     as.data.frame()
 
   if(return_df) {
