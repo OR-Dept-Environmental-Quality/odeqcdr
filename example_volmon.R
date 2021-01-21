@@ -239,9 +239,8 @@ df4.results <- df3.results %>%
                                      "Characteristic.Name", "Deployment.Start.Date",
                                      "Deployment.End.Date")],
                    by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
-  dplyr::mutate(date=as.Date(datetime),
-                deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
-                                          date <= as.Date(Deployment.End.Date), TRUE, FALSE),
+  dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
+                                          datetime <= Deployment.End.Date, TRUE, FALSE),
                 Result.Status.ID=dplyr::case_when(!deployed ~ "Rejected",
                                                   TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(precDQL == 'C' | accDQL== 'C' ~ 'C',
@@ -250,10 +249,9 @@ df4.results <- df3.results %>%
                                       precDQL == 'E' & accDQL== 'E' ~ 'E',
                                       TRUE ~ 'B'),
                 rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL)) %>%
-  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date, -date) %>%
+  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
-
 
 #- Anomalies -------------------------------------------------------------------
 # Flag potential anomalies
