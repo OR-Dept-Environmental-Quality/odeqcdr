@@ -493,7 +493,7 @@ launch_shiny <- function(){
 
         p <- ggplot2::ggplot(data=result_data) +
           ggplot2::geom_point(ggplot2::aes(x=datetime, y=Result.Value, color=rDQL, shape=Anomaly), size = 3) +
-          ggplot2::scale_shape_manual(name ="Anomaly", values=c('TRUE' = 4, 'FALSE' = 16)) +
+          ggplot2::scale_shape_manual(name ="Anomaly", values=c('TRUE' = 4, 'FALSE' = 16, 'NA'=16)) +
           ggplot2::scale_color_manual(name ="Result DQL", values = c("A"="black","B"="#FF9B4C","C"="#7277C1","E"="#998B6B","NA"="#C0C0C0","D"="#0528a8")) +
           ggplot2::coord_cartesian(xlim = ranges$x, ylim = ranges$y) +
           ggplot2::theme_linedraw() +
