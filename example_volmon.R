@@ -4,15 +4,15 @@ library(odeqcdr)
 library(writexl)
 library(magrittr)
 
+setwd("C:/workspace/Data_Solicitation/examples")
 
 #Volmon template file
-xlsx_input <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+xlsx_input <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
 #Directory where files are saved to- SHould be a voldata folder
-output_dir <-"C:/Users/tpritch/Documents/odeqcdr/test templates"
+output_dir <-"C:/workspace/Data_Solicitation/examples"
 
-
-xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
+xlsx_pre_check_output <- "Siuslaw_WC_2018_Continuous_Temp_PRECHECK.xlsx"
 
 # Filename for Data to load into shiny
 shiny_output <- "Siuslaw_WC_2018_Continuous_Temp_SHINY_CDR.Rdata"
@@ -45,8 +45,8 @@ df0.prepost <- df0[["PrePost"]]
 checks_df <- odeqcdr::pre_checks(template_list = df0)
 
 # Save pre check results to xlsx
-# writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", xlsx_pre_check_output),
-#                     format_headers=TRUE)
+writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", xlsx_pre_check_output),
+                    format_headers=TRUE)
 
 #- Row numbers for indexing ----------------------------------------------------
 df1.results <- dplyr::mutate(df0.results, row.results=dplyr::row_number())
@@ -313,6 +313,7 @@ df.results.final <- df4.results %>%
                                                   TRUE ~ Result.Status.ID),
                 Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
                                                   TRUE ~ Result.Status.ID),
+                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
                 Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
                                                   TRUE ~ Result.Status.ID))
 

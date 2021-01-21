@@ -321,6 +321,7 @@ df.results.final <- df4.results %>%
                                                   TRUE ~ Result.Status.ID),
                 Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
                                                   TRUE ~ Result.Status.ID),
+                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
                 Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
                                                   TRUE ~ Result.Status.ID))
 
