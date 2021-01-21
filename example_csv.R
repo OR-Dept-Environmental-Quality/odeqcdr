@@ -41,19 +41,23 @@ df0.results <- odeqcdr::contin_results_csv()
 df0[["Results"]] <- df0.results
 
 # ------------------------------------------------------------------------------
-# Code below filters the deployments and Monitoring Locations to only those that
+# Code below filters the worksheets to only the relevant info that
 # are in the imported results. This will make review a bit easier if the csv files
 # are being imported in batches.
 
-# Filter to just the Deployments in Results
+# Get a vector of the deployments in results
 result_deploys <- df0.results %>%
   dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
   dplyr::pull(deployment) %>%
   unique()
 
-# Put the updated deployments back in the list
-df0[["Deployment"]] <- df0.deployment
+# Get a vector of the equipment IDs and chars in results
+result_eqiupid_char <- df0.results %>%
+  dplyr::mutate(eqiupid_char=paste(Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+  dplyr::pull(eqiupid_char) %>%
+  unique()
 
+# Filter to just the Deployments in Results
 df0.deployment <- df0.deployment %>%
   dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
   dplyr::filter(deployment %in% result_deploys) %>%
@@ -63,8 +67,25 @@ df0.deployment <- df0.deployment %>%
 df0.mloc <- df0.mloc %>%
   dplyr::filter(Monitoring.Location.ID %in% unique(df0.results$Monitoring.Location.ID))
 
-# Put the updated MLocs back in the list
+# Filter to just to relevant audits
+df0.audits <- df0.audits %>%
+  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+  dplyr::filter(deployment %in% result_deploys) %>%
+  dplyr::select(-deployment)
+
+# Filter to just to relevant PrePost
+df0.prepost <- df0.prepost %>%
+  dplyr::mutate(eqiupid_char=paste(Equipment.ID, Characteristic.Name, sep = " - ")) %>%
+  dplyr::filter(eqiupid_char %in% result_eqiupid_char) %>%
+  dplyr::select(-eqiupid_char)
+
+# Put the updated dataframes back in the list
 df0[["Monitoring_Locations"]] <- df0.mloc
+df0[["Deployment"]] <- df0.deployment
+df0[["Audit_Data"]] <- df0.audits
+df0[["PrePost"]] <- df0.prepost
+
+rm(result_deploys, result_eqiupid_char)
 
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
@@ -271,9 +292,8 @@ df4.results <- df3.results %>%
                                      "Characteristic.Name", "Deployment.Start.Date",
                                      "Deployment.End.Date")],
                    by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
-  dplyr::mutate(date=as.Date(datetime),
-                deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
-                                          date <= as.Date(Deployment.End.Date), TRUE, FALSE),
+  dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
+                                          datetime <= Deployment.End.Date, TRUE, FALSE),
                 Result.Status.ID=dplyr::case_when(!deployed ~ "Rejected",
                                                   TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(precDQL == 'C' | accDQL== 'C' ~ 'C',
@@ -282,7 +302,7 @@ df4.results <- df3.results %>%
                                       precDQL == 'E' & accDQL== 'E' ~ 'E',
                                       TRUE ~ 'B'),
                 rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL)) %>%
-  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date, -date) %>%
+  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
@@ -303,13 +323,17 @@ df5.results.anom.stats <- df5.results %>%
 
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
 
-#- If line 278 results in a vector allocation error use the below instead.
+#- If line 325 results in a vector allocation error use the below instead.
 # df5.results.anom <- df5.results %>%
-#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
+#   dplyr::mutate(year=lubridate::month(datetime)) %>%
+#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, year) %>%
 #   dplyr::group_split() %>%
 #   lapply(FUN = odeqcdr::anomaly_check, deployment=df1.deployment, return_df=TRUE) %>%
 #   dplyr::bind_rows() %>%
-#   dplyr::mutate(row.results=dplyr::row_number())
+#   dplyr::select(-year)
+#
+# df5.results.anom <- df5.results %>%
+#   dplyr::left_join(df5.results.anom)
 
 #- Output for further review using Shiny Tool ----------------------------------
 
