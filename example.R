@@ -240,9 +240,8 @@ df4.results <- df3.results %>%
                                      "Characteristic.Name", "Deployment.Start.Date",
                                      "Deployment.End.Date")],
                    by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
-  dplyr::mutate(date=as.Date(datetime),
-                deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
-                                          date <= as.Date(Deployment.End.Date), TRUE, FALSE),
+  dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
+                                          datetime <= Deployment.End.Date, TRUE, FALSE),
                 Result.Status.ID=dplyr::case_when(!deployed ~ "Rejected",
                                                   TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(precDQL == 'C' | accDQL== 'C' ~ 'C',
@@ -251,7 +250,7 @@ df4.results <- df3.results %>%
                                       precDQL == 'E' & accDQL== 'E' ~ 'E',
                                       TRUE ~ 'B'),
                 rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL)) %>%
-  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date, -date) %>%
+  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
@@ -274,11 +273,15 @@ df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.d
 
 #- If line 273 results in a vector allocation error use the below instead.
 # df5.results.anom <- df5.results %>%
-#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
+#   dplyr::mutate(year=lubridate::month(datetime)) %>%
+#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, year) %>%
 #   dplyr::group_split() %>%
 #   lapply(FUN = odeqcdr::anomaly_check, deployment=df1.deployment, return_df=TRUE) %>%
 #   dplyr::bind_rows() %>%
-#   dplyr::mutate(row.results=dplyr::row_number())
+#   dplyr::select(-year)
+#
+# df5.results.anom <- df5.results %>%
+#   dplyr::left_join(df5.results.anom)
 
 #- Output for further review using Shiny Tool ----------------------------------
 
