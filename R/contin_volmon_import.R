@@ -28,7 +28,7 @@
 #' @return list of each continuous template data
 
 contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
-                                 timezone = "PDT") {
+                                 timezone = "PDT", append_ordeq = TRUE) {
 
   #library(readxl)
   file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
@@ -209,6 +209,14 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   locations_import$Measure <- as.numeric(locations_import$Measure)
   locations_import$River.Mile <- as.numeric(locations_import$River.Mile)
 
+  if(append_ordeq == TRUE){
+
+    locations_import <- dplyr::mutate(locations_import,
+                                      Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
+                                                                      paste0(Monitoring.Location.ID, "-ORDEQ"),
+                                                                      Monitoring.Location.ID))
+
+  }
 
 
   # Import Deployment Info -------------------------------------------------------------------
@@ -312,7 +320,14 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
 
 
+  if(append_ordeq == TRUE){
 
+    deployment_import <- dplyr::mutate(deployment_import,
+                                  Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
+                                                                  paste0(Monitoring.Location.ID, "-ORDEQ"),
+                                                                  Monitoring.Location.ID))
+
+  }
 
 
   # Import Results -------------------------------------------------------------------
@@ -363,10 +378,10 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   valid_unit_lookup <- data.frame(valid = odeqcdr::valid_values(col="Result.Unit"), lowercase= tolower(odeqcdr::valid_values(col="Result.Unit")))
 
   audit_import_units <- audit_import_units %>%
-    mutate(lowercase = tolower(Result.Unit)) %>%
-    left_join(valid_unit_lookup, by = "lowercase") %>%
-    mutate(Result.Unit = ifelse(!is.na(valid), valid,Result.Unit )) %>%
-    select(-valid, -lowercase)
+    dplyr::mutate(lowercase = tolower(Result.Unit)) %>%
+    dplyr::left_join(valid_unit_lookup, by = "lowercase") %>%
+    dplyr::mutate(Result.Unit = ifelse(!is.na(valid), valid,Result.Unit )) %>%
+    dplyr::select(-valid, -lowercase)
 
 
   results_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
@@ -604,7 +619,14 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
   audit_import <- dplyr::mutate_if(audit_import, is.logical, as.character)
 
+  if(append_ordeq == TRUE){
 
+    audit_import <- dplyr::mutate(audit_import,
+                                      Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
+                                                                      paste0(Monitoring.Location.ID, "-ORDEQ"),
+                                                                      Monitoring.Location.ID))
+
+  }
 
   # Add Sheets to list  --------------------------------------------------------
 
