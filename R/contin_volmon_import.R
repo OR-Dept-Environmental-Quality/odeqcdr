@@ -31,7 +31,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT") {
 
   #library(readxl)
-  #file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+  file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
   options(scipen=999)
 
@@ -210,6 +210,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   locations_import$River.Mile <- as.numeric(locations_import$River.Mile)
 
 
+
   # Import Deployment Info -------------------------------------------------------------------
 
   # Column
@@ -356,6 +357,16 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   audit_import_units <- audit_import_units[rowSums(is.na(audit_import_units)) != ncol(audit_import_units), ]
   #standardize parameter names
   audit_import_units <- dplyr::mutate(audit_import_units, Characteristic.Name = param_transform(Characteristic.Name))
+
+
+
+  valid_unit_lookup <- data.frame(valid = odeqcdr::valid_values(col="Result.Unit"), lowercase= tolower(odeqcdr::valid_values(col="Result.Unit")))
+
+  audit_import_units <- audit_import_units %>%
+    mutate(lowercase = tolower(Result.Unit)) %>%
+    left_join(valid_unit_lookup, by = "lowercase") %>%
+    mutate(Result.Unit = ifelse(!is.na(valid), valid,Result.Unit )) %>%
+    select(-valid, -lowercase)
 
 
   results_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
