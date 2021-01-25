@@ -4,7 +4,12 @@
 \alias{contin_volmon_import}
 \title{Import continuous information from volmon data template.}
 \usage{
-contin_volmon_import(file, project = "ODEQVolMonWQProgram", timezone = "PDT")
+contin_volmon_import(
+  file,
+  project = "ODEQVolMonWQProgram",
+  timezone = "PDT",
+  append_ordeq = TRUE
+)
 }
 \arguments{
 \item{file}{The path and file name to template xlsx file.}
