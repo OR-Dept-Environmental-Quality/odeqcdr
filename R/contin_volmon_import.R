@@ -31,7 +31,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT", append_ordeq = TRUE) {
 
   #library(readxl)
-  #file <- "C:/Users/tpritch/Documents/odeqcdr/test templates/WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+  #file <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
   options(scipen=999)
 
@@ -383,6 +383,15 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
     dplyr::mutate(Result.Unit = ifelse(!is.na(valid), valid,Result.Unit )) %>%
     dplyr::select(-valid, -lowercase)
 
+  if(append_ordeq == TRUE){
+
+    audit_import_units <- dplyr::mutate(audit_import_units,
+                                       Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
+                                                                       paste0(Monitoring.Location.ID, "-ORDEQ"),
+                                                                       Monitoring.Location.ID))
+
+  }
+
 
   results_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
 
@@ -416,12 +425,9 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
     # read results tab of submitted file
     #results_import <- readxl::read_excel(file, sheet = template_sheets[i], range = "A5:N10000", col_types = results_col_types)
     results_import <-readxl::read_excel(file, sheet = template_sheets[i],
-                                        skip = 4,
                                         range = cellranger::cell_cols("A:AF"),
                                         col_names = FALSE,
-                                        col_types = results_col_types
-    )
-
+                                        col_types = results_col_types)
 
     colnames(results_import) <- names(parameters)
     results_import <- results_import[-c(1:5), ]
@@ -446,15 +452,11 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
     colnames(results_import) <- results_cols
 
-
-
-
     results_import <- tidyr::pivot_longer(results_import,
                                           cols = c(3:length(results_import)),
                                           names_to = "Characteristic.Name",
                                           values_to = "Result.Value",
-                                          values_drop_na = TRUE
-    )
+                                          values_drop_na = TRUE)
 
     results_import <- dplyr::mutate(results_import,
                                     Activity.Start.End.Time.Zone = timezone,
@@ -466,9 +468,6 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
     results_import <- dplyr::left_join(results_import, audit_import_units, by = c("Characteristic.Name", "Equipment.ID", "Monitoring.Location.ID"))
     results_import <- dplyr::mutate(results_import, Result.Unit = ifelse(Characteristic.Name == "Dissolved oxygen saturation", "%", Result.Unit))
-
-
-
 
     results_import <- dplyr::select(results_import,
                                     "Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time", "Activity.Start.End.Time.Zone",
