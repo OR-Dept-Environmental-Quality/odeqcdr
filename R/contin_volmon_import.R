@@ -509,7 +509,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   prepost_import <- dplyr::select(prepost_import,
                                   "Equipment.ID", "Characteristic.Name", "Equipment.Result.Value", "Equipment.Result.Unit",
                                   "Reference.Result.Value", "Reference.Result.Unit", "Reference.ID")
-  prepost_import <- mutate(prepost_import, Characteristic.Name = param_transform(Characteristic.Name))
+  prepost_import <- dplyr::mutate(prepost_import, Characteristic.Name = param_transform(Characteristic.Name))
 
 
 
