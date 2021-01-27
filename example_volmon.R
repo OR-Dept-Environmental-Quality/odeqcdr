@@ -39,6 +39,18 @@ df0.deployment <- df0[["Deployment"]]
 
 df0.prepost <- df0[["PrePost"]]
 
+#- Sort Results and Audits -----------------------------------------------------
+
+df0.results <- df0.results %>%
+  dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                 Activity.Start.Date, Activity.Start.Time)
+
+df0.audits <- df0.audits %>%
+  dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                 Activity.Start.Date, Activity.Start.Time)
+
+df0[["Results"]] <- df0.results
+df0[["Audit_Data"]] <- df0.audits
 
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
