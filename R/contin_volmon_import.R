@@ -237,7 +237,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   #Get logger parameters
   template_sheets <- readxl::excel_sheets(file)
 
-  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1" )
+  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1", "Introduction" )
 
   template_sheets <-setdiff(template_sheets, sheet_exclude)
 
