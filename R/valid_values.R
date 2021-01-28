@@ -107,12 +107,22 @@ valid_values <- function(col=NULL) {
 
   Tribal.Land <- c("Yes", "No")
 
+  # Includes counties from OR, and border counties from WA, ID, NV, and CA
   County.Name <- c("BAKER", "BENTON", "CLACKAMAS", "CLATSOP", "COLUMBIA", "COOS",
                    "CROOK", "CURRY", "DESCHUTES", "DOUGLAS", "GILLIAM", "GRANT",
                    "HARNEY", "HOOD RIVER", "JACKSON", "JEFFERSON", "JOSEPHINE",
                    "KLAMATH", "LAKE", "LANE", "LINCOLN", "LINN", "MALHEUR", "MARION",
                    "MORROW", "MULTNOMAH", "POLK", "SHERMAN", "TILLAMOOK", "UMATILLA",
-                   "UNION", "WALLOWA", "WASCO", "WASHINGTON", "WHEELER", "YAMHILL", NA)
+                   "UNION", "WALLOWA", "WASCO", "WASHINGTON", "WHEELER", "YAMHILL",
+
+                   "ASOTIN", "CLARK", "COWLITZ", "GARFIELD", "KLICKITAT", "SKAMANIA",
+                   "PACIFIC", "WAHKIAKUM", "WALLA WALLA",
+
+                   "ADAMS", "CANYON", "IDAHO", "NEZ PERCE", "OWYHEE", "PAYETTE",
+
+                   "HUMBOLDT", "WASHOE",
+
+                   "DEL NORTE", "MODOC", "SISKIYOU", NA)
 
   State.Code <- c("OR",
                   "WA",
@@ -140,6 +150,12 @@ valid_values <- function(col=NULL) {
                   "17120007", "18010201", "17050119", "17070104", "17100203",
                   "17090008", NA)
 
+  #- Equipment -----------------------------------------------------------------
+
+  Equipment.Type <- c("Probe/Sensor", "Water Bottle", "Water Sampler", "D-Net")
+
+  Quality.Assurance.Plan <- c("Yes", "No", NA)
+
   #- Deployment ----------------------------------------------------------------
 
   Sample.Depth.Unit <- Result.Unit
@@ -158,6 +174,10 @@ valid_values <- function(col=NULL) {
                         "Sludge", "Snowmelt", "Soil Gas", "Stack Gases",
                         "Stormwater", "Subsurface Soil/Sediment", "Surface Soil/Sediment",
                         "Surface Water", NA)
+
+  Media <- Sample.Media
+
+  Media.Subdivision <- Monitoring.Location.Type
 
   #- PrePost -------------------------------------------------------------------
 
@@ -237,6 +257,10 @@ valid_values <- function(col=NULL) {
                   County.Name=County.Name,
                   State.Code=State.Code,
                   HUC.8.Code=HUC.8.Code,
+                  Equipment.Type=Equipment.Type,
+                  Quality.Assurance.Plan=Quality.Assurance.Plan,
+                  Media=Media,
+                  Media.Subdivision=Media.Subdivision,
                   Sample.Depth.Unit=Sample.Depth.Unit,
                   Sample.Media=Sample.Media,
                   Sample.Sub.Media=Sample.Sub.Media,
