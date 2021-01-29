@@ -237,7 +237,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   #Get logger parameters
   template_sheets <- readxl::excel_sheets(file)
 
-  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1" )
+  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1", "Introduction" )
 
   template_sheets <-setdiff(template_sheets, sheet_exclude)
 
@@ -509,7 +509,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   prepost_import <- dplyr::select(prepost_import,
                                   "Equipment.ID", "Characteristic.Name", "Equipment.Result.Value", "Equipment.Result.Unit",
                                   "Reference.Result.Value", "Reference.Result.Unit", "Reference.ID")
-  prepost_import <- mutate(prepost_import, Characteristic.Name = param_transform(Characteristic.Name))
+  prepost_import <- dplyr::mutate(prepost_import, Characteristic.Name = param_transform(Characteristic.Name))
 
 
 
