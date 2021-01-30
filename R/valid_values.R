@@ -56,7 +56,7 @@ valid_values <- function(col=NULL) {
                    "mg/m2-hr", "ml/l", "mS/cm", "ng/g", "ng/kg", "ng/l", "None",
                    "Normal", "nu", "ppb", "ppm", "ppt", "per m", "% CaCO3", "PSS", "PSU",
                    "mmHg", "S/m", "AU", "BU", "FBU", "FNMU", "FNRU", "FNU", "FAU", "JTU",
-                   "NTMU", "NTRU")
+                   "NTMU", "NTRU", "RFU")
 
   Result.Status.ID <- c("Accepted",
                         "Final",
