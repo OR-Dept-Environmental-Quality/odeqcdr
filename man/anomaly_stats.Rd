@@ -5,7 +5,7 @@
 \alias{anomaly_stats}
 \title{Oregon Water Quality Anomaly Stats}
 \format{
-An object of class \code{grouped_df} (inherits from \code{tbl_df}, \code{tbl}, \code{data.frame}) with 151 rows and 18 columns.
+An object of class \code{data.frame} with 147 rows and 18 columns.
 }
 \usage{
 data(anomaly_stats)
