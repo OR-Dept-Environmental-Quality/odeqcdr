@@ -373,8 +373,6 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   #standardize parameter names
   audit_import_units <- dplyr::mutate(audit_import_units, Characteristic.Name = param_transform(Characteristic.Name))
 
-
-
   valid_unit_lookup <- data.frame(valid = odeqcdr::valid_values(col="Result.Unit"), lowercase= tolower(odeqcdr::valid_values(col="Result.Unit")))
 
   audit_import_units <- audit_import_units %>%
@@ -523,11 +521,22 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # }
   #
 
-
-
-
   # remove rows with all NAs
   prepost_import <- prepost_import[rowSums(is.na(prepost_import)) != ncol(prepost_import), ]
+
+  # Fix Equipment.Result.Unit
+  prepost_import <- prepost_import %>%
+    dplyr::mutate(lowercase = tolower(Equipment.Result.Unit)) %>%
+    dplyr::left_join(valid_unit_lookup, by = "lowercase") %>%
+    dplyr::mutate(Equipment.Result.Unit = ifelse(!is.na(valid), valid, Equipment.Result.Unit)) %>%
+    dplyr::select(-valid, -lowercase)
+
+  # Fix Reference.Result.Unit
+  prepost_import <- prepost_import %>%
+    dplyr::mutate(lowercase = tolower(Reference.Result.Unit)) %>%
+    dplyr::left_join(valid_unit_lookup, by = "lowercase") %>%
+    dplyr::mutate(Reference.Result.Unit = ifelse(!is.na(valid), valid, Reference.Result.Unit)) %>%
+    dplyr::select(-valid, -lowercase)
 
   # Read Audit Data --------------------------------------------------------
 
@@ -626,6 +635,14 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                                                       Monitoring.Location.ID))
 
   }
+
+  # Fix the units
+  audit_import <- audit_import %>%
+    dplyr::mutate(lowercase = tolower(Result.Unit)) %>%
+    dplyr::left_join(valid_unit_lookup, by = "lowercase") %>%
+    dplyr::mutate(Result.Unit = ifelse(!is.na(valid), valid, Result.Unit)) %>%
+    dplyr::select(-valid, -lowercase)
+
 
   # Add Sheets to list  --------------------------------------------------------
 
