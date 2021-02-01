@@ -177,16 +177,20 @@ contin_import <- function(file,
   # 8	Result Unit
   # 9	Result Status ID
   # 10 Result Comment (ADDED)
+  # 11 accDQL
+  # 12 precDQL
+  # 13 rDQL
 
   if("Results" %in% sheets) {
 
-    results_col_types <- c('text', 'date', 'date', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text')
+    results_col_types <- c('text', 'date', 'date', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text', 'text', 'text', 'text')
 
     results_col_names <- c("Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time", "Activity.Start.End.Time.Zone",
-                           "Equipment.ID", "Characteristic.Name", "Result.Value", "Result.Unit", "Result.Status.ID", "Result.Comment")
+                           "Equipment.ID", "Characteristic.Name", "Result.Value", "Result.Unit", "Result.Status.ID", "Result.Comment",
+                           "accDQL", "precDQL", "rDQL")
 
     # read results tab of submitted file
-    results_import <- readxl::read_excel(file, sheet = "Results", range = cellranger::cell_cols(1:10), col_types = results_col_types)
+    results_import <- readxl::read_excel(file, sheet = "Results", range = cellranger::cell_cols(1:13), col_types = results_col_types)
     colnames(results_import) <- results_col_names
 
     # remove rows with all NAs
