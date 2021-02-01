@@ -4,14 +4,23 @@ library(odeqcdr)
 library(writexl)
 library(magrittr)
 
-setwd("C:/workspace/Data_Solicitation/examples")
+
+
+# Setup -----------------------------------------------------------------------------------------------------------
+
+#Analyst Name
+analyst <- "Travis Pritchard"
+
+#Set directory where files come from
+input_dir <- ("//deqlab1/Vol_Data/Siuslaw/2018/SWC_2018_Cont_Data_Sub")
+
+#Directory where files are saved to- SHould be a voldata folder
+output_dir <-"//deqlab1/Vol_Data/Siuslaw/2018/SWC_2018_Cont_Data_Sub/R"
 
 #Volmon template file
 xlsx_input <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
 
-#Directory where files are saved to- SHould be a voldata folder
-output_dir <-"C:/workspace/Data_Solicitation/examples"
-
+#precheck file name
 xlsx_pre_check_output <- "Siuslaw_WC_2018_Continuous_Temp_PRECHECK.xlsx"
 
 # Filename for Data to load into shiny
@@ -20,10 +29,14 @@ shiny_output <- "Siuslaw_WC_2018_Continuous_Temp_SHINY_CDR.Rdata"
 #Script output
 xlsx_output <- "Siuslaw_WC_2018_Continuous_Temp_export.xlsx"
 
+#changelog output
+changelog <-  'Siuslaw_WC_2018_Continuous_Temp_changelog'
+
+
 
 #- Import the Data -------------------------------------------------------------
 
-df0 <-contin_volmon_import(file=xlsx_input)
+df0 <-contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
 
 df0.projects <- df0[["Projects"]]
 
@@ -293,34 +306,30 @@ shiny_list <-list(Deployment=df1.deployment,
                   Audit_Stats=df3.audits.dql,
                   Results_Anom=df5.results.anom)
 
-save(shiny_list, file=shiny_output)
+save(shiny_list, file=paste0(output_dir, "/", shiny_output))
 
 # Launch Shiny app for further review.
 odeqcdr::launch_shiny()
 
 #- Make DQL and Status edits based on Shiny Review------------------------------
-# Edits can also be made in the xlsx. Just skip this step.
 # Updates Result Status ID also
+# This section should be structured like this:
 
-# Results Worksheet edits
-reject.rows <- c(NA)
-A.rows <- c(NA)
-B.rows <- c(NA)
-C.rows <- c(NA)
-D.rows <- c(NA)
-E.rows <- c(NA)
-F.rows <- c(NA)
+#######################################################################################################################
+#######################################################################################################################
 
+#df.results.final <- df4.results #%>%
+  # update_DQL(rows = c(1:6), "C", "test Comment 1") %>%
+  # update_DQL(rows = c(3:6), "D", "test Comment 2") %>%
+  # update_DQL(c(60, 65,67), "E")
 
-df.results.final <- df4.results %>%
-  dplyr::mutate(rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
-                                      row.results %in% B.rows ~ "B",
-                                      row.results %in% C.rows ~ "C",
-                                      row.results %in% D.rows ~ "D",
-                                      row.results %in% E.rows ~ "E",
-                                      row.results %in% F.rows ~ "F",
-                                      TRUE ~ rDQL),
-                Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
+#######################################################################################################################
+#######################################################################################################################
+
+#Once that is done update status IDs
+# Set status IDs
+df.results.final <- df.results.final %>%
+  dplyr::mutate(Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
                                                   rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
                                                   TRUE ~ Result.Status.ID),
                 Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
@@ -329,6 +338,17 @@ df.results.final <- df4.results %>%
                 Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
                                                   TRUE ~ Result.Status.ID))
 
+
+#Output changelog
+
+#Calualte difference in the dataframes
+differences <- compareDF::compare_df(df.results.final, df4.results, group_col = 'row.results')
+
+#output this file into excel
+compareDF::create_output_table(differences, output_type = "xlsx", file_name = paste0(output_dir,"/", changelog,"_", analyst, ".xlsx"))
+
+
+#Set DOsat grades to grades for DO concentration
 df.results.final <- odeqcdr::DOsat_DQLs(df.results.final)
 # Generate Summary Stats -------------------------------------------------------
 
