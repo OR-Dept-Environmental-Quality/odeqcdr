@@ -13,16 +13,21 @@
 #'
 #'
 
-update_DQL <- function(df, rows, DQL, comment){
+update_DQL <- function(df, rows, DQL, comment = NA_character_){
+
+if(!DQL %in% c("A", 'B', 'C', 'D', 'E', 'F')){
+  stop("Invalid DQL. Please update using valid DQL")
+}
 
 
   df2 <- df %>%
     dplyr::mutate(rDQL = dplyr::case_when(row.results %in% rows ~ DQL,
                                           TRUE ~ rDQL),
-                  Result.Comment = dplyr::case_when(row.results %in% rows ~ comment,
-                                                    TRUE ~ Result.Comment)
+                  Result.Comment = dplyr::case_when(row.results %in% rows & is.na(Result.Comment) ~ comment,
+                                                    row.results %in% rows & !is.na(Result.Comment) & !is.na(comment) ~ paste(Result.Comment, ";", comment),
+                                                    TRUE ~ Result.Comment
+                                                    )) %>%
 
-    )
 
   return(df2)
 
