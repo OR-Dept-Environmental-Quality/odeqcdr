@@ -6,14 +6,14 @@
 #'
 #' @param df Dataframe to modify. Should be df4.results. No need to specify if part or pipe structure
 #' @param rows Rows to modify. Get these from reviewing the shinyapp
-#' @param DQL Updated final DQL value
+#' @param dql Updated final DQL value
 #' @param comment Comment to be used in Result.Comment field
 #' @export
 #' @return Dataframe with updated DQL and comment
 #'
 #'
 
-update_DQL <- function(df, rows, DQL, comment = NA_character_){
+dql_update <- function(df, rows, DQL, comment = NA_character_){
 
 if(!DQL %in% c("A", 'B', 'C', 'D', 'E', 'F')){
   stop("Invalid DQL. Please update using valid DQL")
