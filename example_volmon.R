@@ -339,7 +339,7 @@ odeqcdr::launch_shiny()
 
 #Once that is done update status IDs
 # Set status IDs
-df.results.final <- status_update(df5.results)
+df6.results <- status_update(df5.results)
 df.audits.final <- status_update(df4.audits.dql)
 
 #Output changelog
@@ -352,7 +352,12 @@ compareDF::create_output_table(differences, output_type = "xlsx", file_name = pa
 
 
 #Set DOsat grades to grades for DO concentration
-df.results.final <- odeqcdr::DOsat_DQLs(df.results.final)
+df7.results <- odeqcdr::DOsat_DQLs(df6.results)
+
+
+#Drop results outside deployment periods
+df.results.final <- dplyr::filter(df7.results, deployed)
+
 # Generate Summary Stats -------------------------------------------------------
 
 df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
