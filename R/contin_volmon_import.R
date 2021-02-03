@@ -69,6 +69,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   }
 
 
+  template_sheets <- readxl::excel_sheets(file)
+
+  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1", "Introduction" )
+
+  template_sheets <-setdiff(template_sheets, sheet_exclude)
+
+
 
   # Organizational Details -----------------------------------------------------
   print("Begin org import")
@@ -567,8 +574,8 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
 
   audit_import$Project.ID <- project
-  audit_import$Alternate.Project.ID.1 <- NA
-  audit_import$Alternate.Project.ID.2 <- NA
+  audit_import$Alternate.Project.ID.1 <- NA_character_
+  audit_import$Alternate.Project.ID.2 <- NA_character_
   audit_import$Activity.End.Date <- audit_import$Activity.Start.Date
   audit_import$Activity.End.Time <- audit_import$Activity.Start.Time
   audit_import$Activity.Start.End.Time.Zone <- timezone
@@ -584,11 +591,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
   #Some of this probably needs to be edited.
   audit_import$Sample.Collection.Method <-"Grab"
-  audit_import$Result.Analytical.Method.ID <- NA
-  audit_import$Result.Analytical.Method.Context <- NA
-  audit_import$Result.Value.Type <- NA
+  audit_import$Result.Analytical.Method.ID <- NA_character_
+  audit_import$Result.Analytical.Method.Context <- NA_character_
+  audit_import$Result.Value.Type <- NA_character_
   audit_import$Result.Status.ID <- "Accepted"
-  audit_import$Result.Measure.Qualifier <- NA
+  audit_import$Result.Measure.Qualifier <- NA_character_
+  audit_import$precDQL <- NA_character_
+  audit_import$rDQL <- NA_character_
 
   audit_import <- dplyr::select(audit_import,
                                 "Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
@@ -596,7 +605,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                 "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
                                 "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
                                 "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type",
-                                "Result.Status.ID", "Result.Measure.Qualifier", "Result.Comment")
+                                "Result.Status.ID", "Result.Measure.Qualifier", "Result.Comment", "precDQL", "rDQL")
 
 
   audit_import <- dplyr::mutate_if(audit_import, is.logical, as.character)
