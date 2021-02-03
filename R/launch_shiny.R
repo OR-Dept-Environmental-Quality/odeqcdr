@@ -199,10 +199,17 @@ launch_shiny <- function(){
             dplyr::mutate(rDQL=precDQL)
         }
 
+        if("Audit.Result.Status.ID" %in% names(df)){
+
+          df <- df %>%
+            dplyr::mutate(Result.Status.ID=Audit.Result.Status.ID) %>%
+            dplyr::select(-Audit.Result.Status.ID)
+        }
+
 
         dt <- df %>%
           dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime,
-                        Result.Value, diff.minutes, diff.Result, precDQL, rDQL, Audit.Result.Status.ID,
+                        Result.Value, diff.minutes, diff.Result, precDQL, rDQL, Result.Status.ID,
                         Row=row.audits) %>%
           dplyr::mutate(audit.datetime.start=format(audit.datetime.start, format="%Y-%m-%d %H:%M %Z"),
                         Result.datetime=format(Result.datetime, format="%Y-%m-%d %H:%M %Z"))
