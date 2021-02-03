@@ -254,6 +254,7 @@ df3.results$precDQL <- odeqcdr::dql_precision(audits=df3.audits, results=df3.res
 df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment,
                                          audits_only = TRUE)
 
+
 #- Final DQL -------------------------------------------------------------------
 
 # Set up final grade column to be verified using shiny app and further review
@@ -318,26 +319,22 @@ odeqcdr::launch_shiny()
 #######################################################################################################################
 #######################################################################################################################
 
-#df.results.final <- df4.results #%>%
-  # update_DQL(rows = c(1:6), "C", "test Comment 1") %>%
-  # update_DQL(rows = c(3:6), "D", "test Comment 2") %>%
-  # update_DQL(c(60, 65,67), "E")
+#df5.results <- df4.results %>%
+  # dql_update(rows = c(1:6), "C", "test Comment 1") %>%
+  # dql_update(rows = c(3:6), "D", "test Comment 2") %>%
+  # dql_update(c(60, 65,67), "E")
+
+
+#df4.audits.dql <- df3.audits.dql %>%
+  # dql_update(rows = c(1:6), "C", "test Comment 1")
 
 #######################################################################################################################
 #######################################################################################################################
 
 #Once that is done update status IDs
 # Set status IDs
-df.results.final <- df.results.final %>%
-  dplyr::mutate(Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
-                                                  rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
-                                                  TRUE ~ Result.Status.ID),
-                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                  TRUE ~ Result.Status.ID),
-                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
-                Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
-                                                  TRUE ~ Result.Status.ID))
-
+df.results.final <- status_update(df5.results)
+df.audits.final <- status_update(df4.audits.dql)
 
 #Output changelog
 
