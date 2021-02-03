@@ -43,10 +43,11 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
 
   # join results and deployments
   df.results <- results %>%
+    dplyr::rename(Result.datetime=datetime) %>%
     dplyr::left_join(deployment, by=c("Monitoring.Location.ID", "Equipment.ID",
                                          "Characteristic.Name")) %>%
-    dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
-                                            datetime <= Deployment.End.Date, TRUE, FALSE))
+    dplyr::mutate(deployed=dplyr::if_else(Result.datetime >= Deployment.Start.Date &
+                                            Result.datetime <= Deployment.End.Date, TRUE, FALSE))
 
   df.audits.grab <- audits %>%
     dplyr::select(audit.datetime.start, Result.Status.ID, Project.ID, Monitoring.Location.ID,
@@ -55,29 +56,28 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
 
   # Grade the grab sample Audits
   df.audits.grab.dql <- results %>%
-    dplyr::select(-Activity.Start.Date, -Activity.Start.Time, -Activity.Start.End.Time.Zone) %>%
+    dplyr::select(Monitoring.Location.ID, Characteristic.Name, Equipment.ID, Result.datetime=datetime, Result.Value, Result.Unit) %>%
+    #dplyr::select(-Activity.Start.Date, -Activity.Start.Time, -Activity.Start.End.Time.Zone) %>%
     dplyr::full_join(df.audits.grab, by=c("Monitoring.Location.ID", "Characteristic.Name", "Equipment.ID")) %>%
     dplyr::group_by(Monitoring.Location.ID, Characteristic.Name, Equipment.ID, row.audits) %>%
-    dplyr::slice(which.min(abs(datetime - audit.datetime.start))) %>%
-    dplyr::mutate(diff.minutes=abs(as.numeric(difftime(datetime, audit.datetime.start, units="mins")))) %>%
+    dplyr::slice(which.min(abs(Result.datetime - audit.datetime.start))) %>%
+    dplyr::mutate(diff.minutes=abs(as.numeric(difftime(Result.datetime, audit.datetime.start, units="mins")))) %>%
     dplyr::left_join(conqc, by=c("Characteristic.Name", "Result.Unit")) %>%
     dplyr::mutate(diff.Result=abs(Result.Value - Audit.Result.Value),
-                  DQL_prec=dplyr::case_when(diff.Result < prec_A & diff.minutes <=30 ~ "A",
+                  precDQL=dplyr::case_when(diff.Result < prec_A & diff.minutes <=30 ~ "A",
                                             diff.Result < prec_B & diff.minutes <=30  ~ "B",
                                             diff.Result >= prec_B & diff.minutes <=30 ~ "C",
                                             diff.minutes >30 ~ "E",
                                             TRUE ~ "E")
                   ) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(rDQL=DQL_prec) %>%
-    dplyr::select(datetime, dplyr::any_of(audit.cols), diff.minutes, Audit.Result.Value, diff.Result,
-                  DQL_prec, rDQL, Audit.Result.Status.ID, row.audits) %>%
-    dplyr::arrange(row.audits)
+    dplyr::mutate(rDQL=precDQL) %>%
+    dplyr::select(Result.datetime, dplyr::any_of(audit.cols), diff.minutes, Audit.Result.Value, diff.Result,
+                  precDQL, rDQL, Audit.Result.Status.ID, row.audits) %>%
+    dplyr::arrange(row.audits) %>%
     as.data.frame()
 
   if(audits_only) {
-
-    df.audits.grab.dql <- dplyr::rename(df.audits.grab.dql, precDQL=DQL_prec)
 
     return(df.audits.grab.dql)
   }
@@ -91,20 +91,20 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
   df.results.grade <- df.audits.grab.dql %>%
     dplyr::filter(!Audit.Result.Status.ID=="Rejected") %>%
     dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
-                  Result.Value, Result.Unit, datetime, DQL_prec) %>%
-    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime) %>%
+                  Result.Value, Result.Unit, Result.datetime, DQL_prec=precDQL) %>%
+    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, Result.datetime) %>%
     dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
     # choose lower grade in order of index
     dplyr::mutate(DQL_prec2=pmax(DQL_prec, dplyr::lead(DQL_prec, n=1), na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     dplyr::right_join(df.results, by = c("Monitoring.Location.ID", "Equipment.ID",
                                          "Characteristic.Name", "Result.Value",
-                                         "Result.Unit", "datetime")) %>%
+                                         "Result.Unit", "Result.datetime")) %>%
     # Keep original calculated audit grade for datetime of audit. The rest will be filled in from lower grade in DQL_prec2
     dplyr::mutate(results_deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
                   precDQL=DQL_prec) %>%
     dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name) %>%
-    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime) %>%
+    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, Result.datetime) %>%
     tidyr::fill(DQL_prec2, .direction = "downup") %>%
     dplyr::ungroup() %>%
     dplyr::mutate(precDQL=dplyr::if_else(is.na(precDQL), DQL_prec2, precDQL)) %>%
