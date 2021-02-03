@@ -36,7 +36,7 @@ changelog <-  'Siuslaw_WC_2018_Continuous_Temp_changelog'
 
 #- Import the Data -------------------------------------------------------------
 
-df0 <-contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
+df0 <-odeqcdr::contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
 
 df0.projects <- df0[["Projects"]]
 
@@ -297,7 +297,7 @@ df5.results.anom.stats <- df5.results %>%
 
 #Note- Anomaly check does not work for DO, so this manually sets anomaly to FALSE.
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE) %>%
-  mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
+  dplyr::mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
 
 
 #- Output for further review using Shiny Tool ----------------------------------
@@ -320,13 +320,13 @@ odeqcdr::launch_shiny()
 #######################################################################################################################
 
 #df5.results <- df4.results %>%
-  # dql_update(rows = c(1:6), "C", "test Comment 1") %>%
-  # dql_update(rows = c(3:6), "D", "test Comment 2") %>%
-  # dql_update(c(60, 65,67), "E")
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1") %>%
+  # odeqcdr::dql_update(rows = c(3:6), "D", "test Comment 2") %>%
+  # odeqcdr::dql_update(c(60, 65,67), "E")
 
 
 #df4.audits.dql <- df3.audits.dql %>%
-  # dql_update(rows = c(1:6), "C", "test Comment 1")
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1")
 
 #######################################################################################################################
 
@@ -339,8 +339,8 @@ odeqcdr::launch_shiny()
 
 #Once that is done update status IDs
 # Set status IDs
-df6.results <- status_update(df5.results)
-df.audits.final <- status_update(df4.audits.dql)
+df6.results <- odeqcdr::status_update(df5.results)
+df.audits.final <- odeqcdr::status_update(df4.audits.dql)
 
 #Output changelog
 
