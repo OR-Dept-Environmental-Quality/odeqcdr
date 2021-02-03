@@ -4,13 +4,10 @@ library(odeqcdr)
 library(writexl)
 
 setwd("C:/workspace/Data_Solicitation/examples")
-#setwd("/Users/rmichie/GitHub/odeqcdr/test_templates")
 
 xlsx_input <- "ContinuousDataTemplate_example.xlsx"
-#xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
 
-output_dir <-"E:/GitHub/odeqcdr/test_templates"
-#output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
+output_dir <-"C:/workspace/Data_Solicitation/examples"
 
 xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
 shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
@@ -271,18 +268,6 @@ df5.results.anom.stats <- df5.results %>%
 
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
 
-#- If line 273 results in a vector allocation error use the below instead.
-# df5.results.anom <- df5.results %>%
-#   dplyr::mutate(year=lubridate::month(datetime)) %>%
-#   dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, year) %>%
-#   dplyr::group_split() %>%
-#   lapply(FUN = odeqcdr::anomaly_check, deployment=df1.deployment, return_df=TRUE) %>%
-#   dplyr::bind_rows() %>%
-#   dplyr::select(-year)
-#
-# df5.results.anom <- df5.results %>%
-#   dplyr::left_join(df5.results.anom)
-
 #- Output for further review using Shiny Tool ----------------------------------
 
 # list to export to Shiny
@@ -357,5 +342,6 @@ odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        deployment=df1.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df2.audits,
+                       audits=df3.audits.dql,
                        sumstats=df.sumstats)
+
