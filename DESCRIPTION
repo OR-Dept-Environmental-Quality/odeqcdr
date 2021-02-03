@@ -1,12 +1,12 @@
 Package: odeqcdr
 Title: ODEQ Continuous Data Review
-Version: 0.9.0
+Version: 0.10.0
 Authors@R: 
     person(given = "Ryan",
            family = "Michie",
            role = c("aut", "cre"),
            email = "Ryan.Michie@state.or.us")
-Description: This package provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's Continuous Water Quality Data Template v2.03.
+Description: This package provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's Continuous Water Quality Data Template.
 Depends:
     R (>= 3.5),
 Imports:
@@ -23,15 +23,15 @@ Imports:
     lubridate (>= 1.7.0),
     lutz (>= 0.3.1),
     lwgeom (>= 0.2-5),
+    magrittr (>= 1.5),
     openxlsx (>= 4.2.0),
     readxl (>= 1.3.0),
     sf (>= 0.9-6),
     shiny (>= 1.5.0),
     smoothr (>= 0.1.2),
+    stringr (>= 1.4),
     tidyr (>= 1.0.0),
-    zoo (>= 1.8.0),
-    magrittr,
-    stringr
+    zoo (>= 1.8.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
