@@ -177,9 +177,32 @@ launch_shiny <- function(){
 
       output$audit_dt <- DT::renderDT({
 
-        dt <- audit_data_reactive() %>%
-          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime=datetime,
-                        Result.Value, diff.minutes, diff.Result, DQL_prec, Audit.Result.Status.ID,
+        df <- audit_data_reactive()
+
+        # These if statements update col names in older audit dataframes
+        # developed with odeqcdr < v 0.10.
+
+        if("DQL_prec" %in% names(df)) {
+
+          df <- dplyr::rename(df, precDQL=DQL_prec)
+        }
+
+        if("datetime" %in% names(df)) {
+
+          df <- dplyr::rename(df, Result.datetime=datetime)
+        }
+
+        if(!"rDQL" %in% names(df)) {
+          # Add rDQL
+
+          df <- df %>%
+            dplyr::mutate(rDQL=precDQL)
+        }
+
+
+        dt <- df %>%
+          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime,
+                        Result.Value, diff.minutes, diff.Result, precDQL, rDQL, Audit.Result.Status.ID,
                         Row=row.audits) %>%
           dplyr::mutate(audit.datetime.start=format(audit.datetime.start, format="%Y-%m-%d %H:%M %Z"),
                         Result.datetime=format(Result.datetime, format="%Y-%m-%d %H:%M %Z"))
