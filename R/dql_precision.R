@@ -50,6 +50,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
                                             Result.datetime <= Deployment.End.Date, TRUE, FALSE))
 
   df.audits.grab <- audits %>%
+    dplyr::filter(Sample.Collection.Method %in% c("Composite","Field Meter","Grab","Staff Gage")) %>%
     dplyr::select(audit.datetime.start, Result.Status.ID, Project.ID, Monitoring.Location.ID,
                   Characteristic.Name, Equipment.ID, Audit.Result.Value=Result.Value,
                   Audit.Result.Status.ID=Result.Status.ID, row.audits)
@@ -57,7 +58,6 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
   # Grade the grab sample Audits
   df.audits.grab.dql <- results %>%
     dplyr::select(Monitoring.Location.ID, Characteristic.Name, Equipment.ID, Result.datetime=datetime, Result.Value, Result.Unit) %>%
-    #dplyr::select(-Activity.Start.Date, -Activity.Start.Time, -Activity.Start.End.Time.Zone) %>%
     dplyr::full_join(df.audits.grab, by=c("Monitoring.Location.ID", "Characteristic.Name", "Equipment.ID")) %>%
     dplyr::group_by(Monitoring.Location.ID, Characteristic.Name, Equipment.ID, row.audits) %>%
     dplyr::slice(which.min(abs(Result.datetime - audit.datetime.start))) %>%
@@ -74,12 +74,19 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
     dplyr::mutate(rDQL=precDQL) %>%
     dplyr::select(Result.datetime, dplyr::any_of(audit.cols), diff.minutes, Audit.Result.Value, diff.Result,
                   precDQL, rDQL, Audit.Result.Status.ID, row.audits) %>%
-    dplyr::arrange(row.audits) %>%
     as.data.frame()
 
   if(audits_only) {
 
-    return(df.audits.grab.dql)
+    df.audits.grab.dql2 <- df.audits.grab.dql %>%
+      dplyr::select(Result.datetime, diff.minutes, Audit.Result.Value, diff.Result, precDQL, rDQL, row.audits)
+
+    df.audits.return <- audits %>%
+      dplyr::select(-precDQL, -rDQL) %>%
+      dplyr::left_join(df.audits.grab.dql2, by=c("row.audits")) %>%
+      as.data.frame()
+
+    return(df.audits.return)
   }
 
   audits_deploy <- df.audits.grab.dql %>%
