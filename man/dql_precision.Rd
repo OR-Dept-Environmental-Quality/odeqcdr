@@ -14,10 +14,10 @@ dql_precision(audits, results, deployment, audits_only = FALSE)
 \item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
 
 \item{audits_only}{Boolean to indicate if the audit data frame should be returned with new columns for the audit sample DQL,
-corresponding result value, result units, absolute difference between the result and audit, and an auto assigned row number. Default is FALSE.}
+corresponding result value, result units, absolute difference between the result and audit. Default is FALSE.}
 }
 \value{
-Vector of the precision DQL indexed in the same order as the result input. Or if audit_only=TRUE a data frame.
+Vector of the precision DQL indexed in the same order as the result input. Or if audit_only=TRUE the audit data frame with the precision DQL for each audit.
 }
 \description{
 This function assigns a precision data quality level to parameters measured in the field using replicate measurements
