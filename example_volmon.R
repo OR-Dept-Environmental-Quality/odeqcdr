@@ -329,6 +329,12 @@ odeqcdr::launch_shiny()
   # dql_update(rows = c(1:6), "C", "test Comment 1")
 
 #######################################################################################################################
+
+# If no edits are required:
+#df5.results <- df4.results
+#df4.audits.dql <- df3.audits.dql
+
+#######################################################################################################################
 #######################################################################################################################
 
 #Once that is done update status IDs
@@ -369,16 +375,24 @@ df.results.final <- df.results.final %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
+df2.deployment <- odeqcdr::update_deploy(deploy = df1.deployment)
+
+# Fill in the project ID
+df2.deployment$Project.ID <- df0.projects$Project.ID
+
+
 # Save R global environment just in case.
 save.image(paste0(output_dir, "/Renv.RData"))
 
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
-                       projects=df1.projects,
+                       projects=df0.projects,
                        mloc=df1.mloc,
-                       deployment=df1.deployment,
+                       deployment=df2.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df2.audits,
-                       sumstats=df.sumstats)
+                       audits=df.audits.final,
+                       sumstats=df.sumstats,
+                       ver=3)
+
