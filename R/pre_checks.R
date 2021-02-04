@@ -224,7 +224,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   projects_result <- unlist(lapply(projects_checks, FUN=any, na.rm = TRUE))
-  projects_t_row <- unlist(lapply(projects_checks, FUN=odeqcdr:::tstr))
+  projects_t_row <- unlist(lapply(projects_checks, FUN=odeqcdr:::tstr, n=1))
 
   projects_df <- data.frame(worksheet=rep("Projects",length(projects_msg)),
                             check=projects_msg,
@@ -323,7 +323,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   mloc_result <- unlist(lapply(mloc_checks, FUN=any, na.rm = TRUE))
-  mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr))
+  mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr, n=1))
   mloc_t_row[2] <- mloc_ml_t
   mloc_t_row[3] <- mloc_dup_t
 
@@ -413,7 +413,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
-  deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr))
+  deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr, n=1))
   deploy_t_row[2] <- deploy_d_t
   deploy_t_row[3] <- deploy_dups_t
   deploy_t_row[4] <- deploy_out_t
@@ -463,7 +463,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   results_result <- unlist(lapply(results_checks, FUN=any, na.rm = TRUE))
-  results_t_row <- unlist(lapply(results_checks, FUN=odeqcdr:::tstr))
+  results_t_row <- unlist(lapply(results_checks, FUN=odeqcdr:::tstr, n=1))
   results_t_row[2] <- result_ml_t
 
   result_df <- data.frame(worksheet=rep("Results",length(results_msg)),
@@ -507,7 +507,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   prepost_result <- unlist(lapply(prepost_checks, FUN=any, na.rm = TRUE))
-  prepost_t_row <- unlist(lapply(prepost_checks, FUN=odeqcdr:::tstr))
+  prepost_t_row <- unlist(lapply(prepost_checks, FUN=odeqcdr:::tstr, n=1))
   prepost_t_row[2] <- prepost_eqid_t
 
   prepost_df <- data.frame(worksheet=rep("PrePost",length(prepost_msg)),
@@ -575,7 +575,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   )
 
   audit_result <- unlist(lapply(audit_checks, FUN=any, na.rm = TRUE))
-  audit_t_row <- unlist(lapply(audit_checks, FUN=odeqcdr:::tstr))
+  audit_t_row <- unlist(lapply(audit_checks, FUN=odeqcdr:::tstr, n=1))
   audit_t_row[2] <- audit_d_t
 
   audit_df <- data.frame(worksheet=rep("Audit_Data",length(audit_msg)),
