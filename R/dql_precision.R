@@ -43,6 +43,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
 
   # join results and deployments
   df.results <- results %>%
+    dplyr::mutate(row.in=dplyr::row_number()) %>%
     dplyr::rename(Result.datetime=datetime) %>%
     dplyr::left_join(deployment, by=c("Monitoring.Location.ID", "Equipment.ID",
                                          "Characteristic.Name")) %>%
@@ -119,12 +120,12 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
     dplyr::mutate(precDQL=dplyr::if_else(deployed, precDQL, "E"),
                   precDQL=dplyr::case_when(results_deploy %in% audits_deploy ~ precDQL,
                                    TRUE ~ "E")) %>%
-    dplyr::group_by(row.results) %>%
+    dplyr::group_by(row.in) %>%
     # if there are two audits for the same sample take the lowest precDQL
     dplyr::mutate(precDQL=max(precDQL, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    dplyr::distinct(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, row.results, precDQL) %>%
-    dplyr::arrange(row.results) %>%
+    dplyr::distinct(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, row.in, precDQL) %>%
+    dplyr::arrange(row.in) %>%
     as.data.frame()
 
   return(df.results.grade$precDQL)
