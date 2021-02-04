@@ -355,7 +355,7 @@ compareDF::create_output_table(differences, output_type = "xlsx", file_name = pa
 
 
 #Set DOsat grades to grades for DO concentration
-df7.results <- odeqcdr::DOsat_DQLs(df6.results)
+df7.results <- odeqcdr::dql_dos(df6.results)
 
 
 #Drop results outside deployment periods
