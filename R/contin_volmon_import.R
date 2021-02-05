@@ -69,6 +69,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   }
 
 
+  template_sheets <- readxl::excel_sheets(file)
+
+  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1", "Introduction" )
+
+  template_sheets <-setdiff(template_sheets, sheet_exclude)
+
+
 
   # Organizational Details -----------------------------------------------------
   print("Begin org import")
@@ -232,84 +239,56 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # 8	Sample Media
   # 9	Sample Media Subdivision
 
-
   print("Begin deployment import")
-  #Get logger parameters
-  template_sheets <- readxl::excel_sheets(file)
 
-  sheet_exclude <- c("SiteMasterInfo","FieldAuditResults", "PrePostResults", "LoggerID", "Sheet1", "Introduction" )
+ #Bring in audit data
+  audit_col_types <- c('text', 'text', 'text', 'text', 'text', 'text', 'date', 'date', 'numeric', 'numeric','numeric',
+                       'text', "text")
 
-  template_sheets <-setdiff(template_sheets, sheet_exclude)
-
-  param_list <- list()
-
-
-  deply_col_types <- rep(c('date', 'date', 'numeric'), times = c(1,1,30))
-
-  for(i in 1:length(template_sheets)){
-
-    #get list of parameters
-    parameters <- readxl::read_excel(file, sheet = template_sheets[i],
-                                     range = "A5:AF5")
-    #parameters <- dplyr::select(parameters, -dplyr::contains('DQL'), -dplyr::contains('DQL'))
+  audit_col_names <- c("Equipment.ID", 'Monitoring.Location.ID',  'Characteristic.Name', 'Result.Unit', 'Reference.ID',
+                       'AuditType', 'Activity.Start.Date', 'Activity.Start.Time', 'Result.Value', 'logger.value', 'DIFF', 'DQL', 'Result.Comment')
 
 
-    param_read <- readxl::read_excel(file, sheet = template_sheets[i],
-                                     range = cellranger::cell_cols("A:AF"),
-                                     col_types = deply_col_types)
 
-    colnames(param_read) <- names(parameters)
-    param_read <- param_read[-c(1:5), ]
-    param_read <- dplyr::select(param_read, -dplyr::contains('DQL'), -dplyr::contains('...'))
+  # audit_col_names <- c("Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
+  #                      "Activity.Start.Date", "Activity.Start.Time", "Activity.End.Date", "Activity.End.Time",
+  #                      "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
+  #                      "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
+  #                      "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type", "Result.Status.ID",
+  #                      "Result.Measure.Qualifier", "Result.Comment")
 
-    param_read <- dplyr::mutate(param_read, Equipment.ID = template_sheets[i],
-                                Deployment.Start.Date = min(DATE, na.rm = TRUE),
-                                Deployment.End.Date = max(DATE, na.rm = TRUE))
+  audit_import <- readxl::read_excel(file, sheet = "FieldAuditResults",range = cellranger::cell_cols("A:M"),
+                                     col_types = audit_col_types)
+  colnames(audit_import) <- audit_col_names
 
-    param_read <- head(param_read, 1)
-
-    # param_read <- dplyr::filter(param_read, DATE == min(DATE, na.rm = TRUE) |
-    #                               DATE == max(DATE, na.rm = TRUE)  )
-    param_read <- dplyr::select(param_read, -DATE, -TIME)
+  # remove rows with all NAs
+  audit_import <- audit_import[rowSums(is.na(audit_import)) != ncol(audit_import), ]
 
 
-    param_read <- tidyr::pivot_longer(param_read, cols = c(1:(length(param_read)-3)), names_to = "Characteristic.Name",
-                                      values_drop_na = TRUE)
+  audit_import <- dplyr::mutate(audit_import, Characteristic.Name = param_transform(Characteristic.Name)) %>%
+    dplyr::group_by(Equipment.ID, Monitoring.Location.ID, Characteristic.Name) %>%
+    dplyr::summarise(Deployment.Start.Date = min(Activity.Start.Date),
+                     Deployment.End.Date = max(Activity.Start.Date))
 
-    # param_read <- dplyr::rename(param_read, "Temperature, water" = 'TEMP_r',
-    #                             "Dissolved oxygen (DO)" = 'DO_r',
-    #                             "Dissolved oxygen saturation" = "DOs_r",
-    #                             "pH" = "PH_r",
-    #                             "Turbidity" = "TURB_r",
-    #                             "Conductivity" = "COND_r",
-    #                             "Flow" = "Q_r")
-    # param_read <- tidyr::pivot_longer(param_read, cols = c("Temperature, water", "Dissolved oxygen (DO)",
-    #                                                        "Dissolved oxygen saturation", "pH",
-    #                                                        "Turbidity", "Conductivity", "Flow"), names_to = "Characteristic.Name",
-    #                                   values_drop_na = TRUE)
-    param_read <- dplyr::select(param_read, -value)
 
-    param_read <- dplyr::mutate(param_read, Characteristic.Name = param_transform(Characteristic.Name)
-    )
 
-    param_list[[i]] <- param_read
-  }
-
-  params <- dplyr::bind_rows(param_list)
-
+  #Bring in masterinfo
   deployment_col_types <- c('text', 'text', 'text', 'text', 'numeric', 'numeric', 'text', 'numeric')
 
   deployment_col_names <- c("Equipment.ID", "Monitoring.Location.ID", "Site_ID" , "Station_Description", "Decimal_Latitude",
                             "Decimal_Longitude", "LAT_LONG_SOURCE", "Sample.Depth")
 
-  deployment_import <- readxl::read_excel(file, sheet = "SiteMasterInfo",
+  deployment_info_import <- readxl::read_excel(file, sheet = "SiteMasterInfo",
                                           range = "A7:H10000", col_types = deployment_col_types, col_names = FALSE)
 
-  colnames(deployment_import) <- deployment_col_names
-
+  colnames(deployment_info_import) <- deployment_col_names
   # remove rows with all NAs
-  deployment_import <- deployment_import[rowSums(is.na(deployment_import)) != ncol(deployment_import), ]
-  deployment_import <- dplyr::left_join(deployment_import, params, by = "Equipment.ID")
+  deployment_info_import <- deployment_info_import[rowSums(is.na(deployment_info_import)) != ncol(deployment_info_import), ]
+
+
+  deployment_import <- audit_import %>%
+    left_join(deployment_info_import, by = c("Equipment.ID", "Monitoring.Location.ID"))
+
   deployment_import <- dplyr::mutate(deployment_import,
                                      Sample.Depth.Unit = "m",
                                      Sample.Media = 'Water',
@@ -323,11 +302,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   if(append_ordeq == TRUE){
 
     deployment_import <- dplyr::mutate(deployment_import,
-                                  Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
-                                                                  paste0(Monitoring.Location.ID, "-ORDEQ"),
-                                                                  Monitoring.Location.ID))
+                                       Monitoring.Location.ID = ifelse(!stringr::str_detect(Monitoring.Location.ID, "ORDEQ"),
+                                                                       paste0(Monitoring.Location.ID, "-ORDEQ"),
+                                                                       Monitoring.Location.ID))
 
   }
+
+
 
 
   # Import Results -------------------------------------------------------------------
@@ -593,8 +574,8 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
 
   audit_import$Project.ID <- project
-  audit_import$Alternate.Project.ID.1 <- NA
-  audit_import$Alternate.Project.ID.2 <- NA
+  audit_import$Alternate.Project.ID.1 <- NA_character_
+  audit_import$Alternate.Project.ID.2 <- NA_character_
   audit_import$Activity.End.Date <- audit_import$Activity.Start.Date
   audit_import$Activity.End.Time <- audit_import$Activity.Start.Time
   audit_import$Activity.Start.End.Time.Zone <- timezone
@@ -610,11 +591,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
   #Some of this probably needs to be edited.
   audit_import$Sample.Collection.Method <-"Grab"
-  audit_import$Result.Analytical.Method.ID <- NA
-  audit_import$Result.Analytical.Method.Context <- NA
-  audit_import$Result.Value.Type <- NA
+  audit_import$Result.Analytical.Method.ID <- NA_character_
+  audit_import$Result.Analytical.Method.Context <- NA_character_
+  audit_import$Result.Value.Type <- NA_character_
   audit_import$Result.Status.ID <- "Accepted"
-  audit_import$Result.Measure.Qualifier <- NA
+  audit_import$Result.Measure.Qualifier <- NA_character_
+  audit_import$precDQL <- NA_character_
+  audit_import$rDQL <- NA_character_
 
   audit_import <- dplyr::select(audit_import,
                                 "Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
@@ -622,7 +605,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                 "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
                                 "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
                                 "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type",
-                                "Result.Status.ID", "Result.Measure.Qualifier", "Result.Comment")
+                                "Result.Status.ID", "Result.Measure.Qualifier", "Result.Comment", "precDQL", "rDQL")
 
 
   audit_import <- dplyr::mutate_if(audit_import, is.logical, as.character)

@@ -1,3 +1,6 @@
+#Volmon example Version 0.1.0
+
+
 library(dplyr)
 library(lutz)
 library(odeqcdr)
@@ -36,7 +39,7 @@ changelog <-  'Siuslaw_WC_2018_Continuous_Temp_changelog'
 
 #- Import the Data -------------------------------------------------------------
 
-df0 <-contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
+df0 <-odeqcdr::contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
 
 df0.projects <- df0[["Projects"]]
 
@@ -254,6 +257,7 @@ df3.results$precDQL <- odeqcdr::dql_precision(audits=df3.audits, results=df3.res
 df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment,
                                          audits_only = TRUE)
 
+
 #- Final DQL -------------------------------------------------------------------
 
 # Set up final grade column to be verified using shiny app and further review
@@ -296,7 +300,7 @@ df5.results.anom.stats <- df5.results %>%
 
 #Note- Anomaly check does not work for DO, so this manually sets anomaly to FALSE.
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE) %>%
-  mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
+  dplyr::mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
 
 
 #- Output for further review using Shiny Tool ----------------------------------
@@ -318,26 +322,28 @@ odeqcdr::launch_shiny()
 #######################################################################################################################
 #######################################################################################################################
 
-#df.results.final <- df4.results #%>%
-  # update_DQL(rows = c(1:6), "C", "test Comment 1") %>%
-  # update_DQL(rows = c(3:6), "D", "test Comment 2") %>%
-  # update_DQL(c(60, 65,67), "E")
+#df5.results <- df4.results %>%
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1") %>%
+  # odeqcdr::dql_update(rows = c(3:6), "D", "test Comment 2") %>%
+  # odeqcdr::dql_update(c(60, 65,67), "E")
+
+
+#df4.audits.dql <- df3.audits.dql %>%
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1")
+
+#######################################################################################################################
+
+# If no edits are required:
+#df5.results <- df4.results
+#df4.audits.dql <- df3.audits.dql
 
 #######################################################################################################################
 #######################################################################################################################
 
 #Once that is done update status IDs
 # Set status IDs
-df.results.final <- df.results.final %>%
-  dplyr::mutate(Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
-                                                  rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
-                                                  TRUE ~ Result.Status.ID),
-                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                  TRUE ~ Result.Status.ID),
-                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
-                Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
-                                                  TRUE ~ Result.Status.ID))
-
+df6.results <- odeqcdr::status_update(df5.results)
+df.audits.final <- odeqcdr::status_update(df4.audits.dql)
 
 #Output changelog
 
@@ -349,7 +355,12 @@ compareDF::create_output_table(differences, output_type = "xlsx", file_name = pa
 
 
 #Set DOsat grades to grades for DO concentration
-df.results.final <- odeqcdr::DOsat_DQLs(df.results.final)
+df7.results <- odeqcdr::dql_dos(df6.results)
+
+
+#Drop results outside deployment periods
+df.results.final <- dplyr::filter(df7.results, deployed)
+
 # Generate Summary Stats -------------------------------------------------------
 
 df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
@@ -372,16 +383,24 @@ df.results.final <- df.results.final %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
+df2.deployment <- odeqcdr::update_deploy(deploy = df1.deployment)
+
+# Fill in the project ID
+df2.deployment$Project.ID <- df0.projects$Project.ID
+
+
 # Save R global environment just in case.
 save.image(paste0(output_dir, "/Renv.RData"))
 
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
-                       projects=df1.projects,
+                       projects=df0.projects,
                        mloc=df1.mloc,
-                       deployment=df1.deployment,
+                       deployment=df2.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df2.audits,
-                       sumstats=df.sumstats)
+                       audits=df.audits.final,
+                       sumstats=df.sumstats,
+                       ver=3)
+

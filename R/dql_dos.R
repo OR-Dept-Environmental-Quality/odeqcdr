@@ -9,7 +9,7 @@
 #'@return Dataframe of all results with final grade.
 
 
-DOsat_DQLs <- function(df = results){
+dql_dos <- function(df = results){
 
 
 if(!"Dissolved oxygen saturation" %in% df$Characteristic.Name){

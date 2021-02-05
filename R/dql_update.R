@@ -19,6 +19,9 @@ if(!DQL %in% c("A", 'B', 'C', 'D', 'E', 'F')){
   stop("Invalid DQL. Please update using valid DQL")
 }
 
+#Look to see if we are dealing with results dataframe or audits dataframe
+  if("row.results" %in% names(df)){
+
 
   df2 <- df %>%
     dplyr::mutate(rDQL = dplyr::case_when(row.results %in% rows ~ DQL,
@@ -26,9 +29,28 @@ if(!DQL %in% c("A", 'B', 'C', 'D', 'E', 'F')){
                   Result.Comment = dplyr::case_when(row.results %in% rows & is.na(Result.Comment) ~ comment,
                                                     row.results %in% rows & !is.na(Result.Comment) & !is.na(comment) ~ paste(Result.Comment, ";", comment),
                                                     TRUE ~ Result.Comment
-                                                    )) %>%
+                                                    ))
 
 
   return(df2)
+
+  } else if("row.audits" %in% names(df)){ #if audits dataframe
+
+    df2 <- df %>%
+      dplyr::mutate(rDQL = dplyr::case_when(row.audits %in% rows ~ DQL,
+                                            TRUE ~ rDQL),
+                    Result.Comment = dplyr::case_when(row.audits %in% rows & is.na(Result.Comment) ~ comment,
+                                                      row.audits %in% rows & !is.na(Result.Comment) & !is.na(comment) ~ paste(Result.Comment, ";", comment),
+                                                      TRUE ~ Result.Comment
+                    ))
+
+    return(df2)
+
+
+  } else {
+    stop("Invalid colnames. row.results or row.audit not found.")
+  }
+
+
 
 }
