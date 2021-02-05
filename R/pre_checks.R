@@ -44,8 +44,8 @@
 #' 17.	Value in column Longitude is outside of Oregon
 #' 18.	Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
 #' 19.	Value in column County.Name is NA but value in column State.Code=='OR'
-#' 20.	Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information
-#' 21.	Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information
+#' 20.	Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information
+#' 21.	Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information
 #' 22.	Missing value in column Reachcode
 #' 23.	Missing value in column Measure
 #' 24.	Missing value in column LLID
@@ -54,16 +54,17 @@
 #' Deployment worksheet checks:
 #' 1.	Deployment worksheet is empty
 #' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment.
-#' 3. There is more than one row of the same deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'. Make them unique or expand deployment start and end dates.
-#' 4. More than 50% of results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' were sampled outside of the deployment period.
-#' 5.	Missing value in column Equipment.ID
-#' 6.	Invalid value in column Characteristic.Name
-#' 7.	Missing value in column Deployment.Start.Date
-#' 8.	Missing value in column Deployment.End.Date
-#' 9.	Missing value in column Sample.Depth
-#' 10.	Invalid value in column Sample.Depth.Unit
-#' 11.	Invalid value in column Sample.Media
-#' 12.	Invalid value in column Sample.Sub.Media
+#' 3. Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' not in Results.
+#' 4. There is more than one row of the same deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'. Make them unique or expand deployment start and end dates.
+#' 5. More than 50% of results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' were sampled outside of the deployment period.
+#' 6.	Missing value in column Equipment.ID
+#' 7.	Invalid value in column Characteristic.Name
+#' 8.	Missing value in column Deployment.Start.Date
+#' 9.	Missing value in column Deployment.End.Date
+#' 10.	Missing value in column Sample.Depth
+#' 11.	Invalid value in column Sample.Depth.Unit
+#' 12.	Invalid value in column Sample.Media
+#' 13.	Invalid value in column Sample.Sub.Media
 #'
 #' Results worksheet checks:
 #' 1.	Results worksheet is empty
@@ -287,8 +288,8 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
                 "Value in column Longitude is outside of Oregon",
                 "Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'",
                 "Value in column County.Name is NA but value in column State.Code=='OR'",
-                "Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information",
-                "Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information",
+                "Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information",
+                "Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information",
                 "Missing value in column Reachcode",
                 "Missing value in column Measure",
                 "Missing value in column LLID",
@@ -335,15 +336,26 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   #- Deployment-----------------------------------------------------------------
 
   deploy_d_check <- any(!results_deploy %in% deploy_deploy)
+  deploy_r_check <- any(!deploy_deploy %in% results_deploy)
 
   if(deploy_d_check) {
     deploy_d_missing <- results_deploy[!results_deploy %in% deploy_deploy]
 
-    deploy_d_msg <- "Deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results and not in Deployment. Missing deployments listed in TRUE_row."
+    deploy_d_msg <- "Deployments in Results and not in Deployment. Missing deployments listed in TRUE_row."
     deploy_d_t <-paste0(deploy_d_missing, collapse = ", ")
   } else {
     deploy_d_msg <- "Deployments in Results and not in Deployment."
     deploy_d_t <- NA
+  }
+
+  if(deploy_r_check) {
+    deploy_r_missing <- deploy_deploy[!deploy_deploy %in% results_deploy]
+
+    deploy_r_msg <- "Deployments not in Results. Missing deployments listed in TRUE_row."
+    deploy_r_t <-paste0(deploy_r_missing, collapse = ", ")
+  } else {
+    deploy_r_msg <- "Deployments not in Results."
+    deploy_r_t <- NA
   }
 
   # Check if there are duplicate deployments
@@ -359,7 +371,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
     deploy_dups_msg <- "There is more than one row of the same deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]. Make them unique or expand deployment start and end dates. TRUE deployments listed in TRUE_row."
     deploy_dups_t <- paste0(deploy_dups_check, collapse = ", ")
   } else {
-    deploy_dups_msg <- "There is more than one row of the same deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]."
+    deploy_dups_msg <- "There is more than one row of the same deployment."
     deploy_dups_t <- NA
   }
 
@@ -379,13 +391,14 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
     deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
     deploy_out_t <- paste0(deploy_out_check, collapse = ", ")
   } else {
-    deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period."
+    deploy_out_msg <- "More than 50% of results from a deployment were sampled outside of the deployment period."
     deploy_out_t <- NA
   }
 
 
   deploy_msg <- c("Worksheet is empty",
                   deploy_d_msg,
+                  deploy_r_msg,
                   deploy_dups_msg,
                   deploy_out_msg,
                   "Missing value in column Equipment.ID",
@@ -400,6 +413,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
 
   deploy_checks <- list((nrow(deployment_import) <= 0),
                         deploy_d_check,
+                        deploy_r_check,
                         length(deploy_dups_check) > 0,
                         length(deploy_out_check) > 0,
                         is.na(deployment_import$Equipment.ID),
@@ -415,8 +429,9 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
   deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr, n=1))
   deploy_t_row[2] <- deploy_d_t
-  deploy_t_row[3] <- deploy_dups_t
-  deploy_t_row[4] <- deploy_out_t
+  deploy_t_row[3] <- deploy_r_t
+  deploy_t_row[4] <- deploy_dups_t
+  deploy_t_row[5] <- deploy_out_t
 
   deploy_df <- data.frame(worksheet=rep("Deployment",length(deploy_msg)),
                           check=deploy_msg,

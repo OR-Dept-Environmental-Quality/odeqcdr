@@ -88,8 +88,8 @@ Monitoring Locations worksheet checks:
 \item Value in column Longitude is outside of Oregon
 \item Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
 \item Value in column County.Name is NA but value in column State.Code=='OR'
-\item Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information
-\item Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information
+\item Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information
+\item Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information
 \item Missing value in column Reachcode
 \item Missing value in column Measure
 \item Missing value in column LLID
@@ -100,6 +100,7 @@ Deployment worksheet checks:
 \enumerate{
 \item Deployment worksheet is empty
 \item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' in Results and not in Deployment.
+\item Deployments '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' not in Results.
 \item There is more than one row of the same deployment '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]'. Make them unique or expand deployment start and end dates.
 \item More than 50\% of results from a deployment '[Monitoring.Location.ID - Equipment.ID - Characteristic.Name]' were sampled outside of the deployment period.
 \item Missing value in column Equipment.ID
