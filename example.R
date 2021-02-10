@@ -128,6 +128,18 @@ df1.audits <- df1.audits %>%
 df1.results[df1.results$tz_wrong, c("row.results")]
 df1.audits[df1.audits$tz_wrong, c("row.audits")]
 
+df1.results$datetime <- odeqcdr::dt_combine(df=df1.results,
+                                            date_col = "Activity.Start.Date",
+                                            time_col = "Activity.Start.Time",
+                                            time_val = NULL,
+                                            tz_col = "tz_name")
+
+df1.audits$datetime <- odeqcdr::dt_combine(df=df1.audits,
+                                            date_col = "Activity.Start.Date",
+                                            time_col = "Activity.Start.Time",
+                                            time_val = NULL,
+                                            tz_col = "tz_name")
+
 # check and correct for DST ----------------------------------------------------
 # dst_check() checks that date and time conform to changes between
 # Daylight Time and Standard Time. The output is an updated PoSIXct datetime.

@@ -67,9 +67,9 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
     stop(print(paste("char_col",char_col,"is not a column in df.")))
   }
 
-   if(!equip_col %in% names(df)) {
-     stop(print(paste("equip_col",equip_col,"is not a column in df.")))
-   }
+  if(!equip_col %in% names(df)) {
+    stop(print(paste("equip_col",equip_col,"is not a column in df.")))
+  }
 
   if(!date_col %in% names(df)) {
     stop(print(paste("date_col",date_col,"is not a column in df.")))
@@ -109,42 +109,45 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
 
     return(df$datetime_tz)
 
-    } else {
+  } else {
 
-      df2 <- select(df, -!!tz_col) %>%
-        cbind(lutz::tz_offset(df$datetime_tz)) %>%
-        dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
-        tidyr::fill(utc_offset_h, .direction="up") %>%
-        tidyr::fill(is_dst, .direction="up") %>%
-        dplyr::ungroup()
+    df2 <- select(df, -!!tz_col) %>%
+      cbind(lutz::tz_offset(df$datetime_tz)) %>%
+      dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col)) %>%
+      tidyr::fill(utc_offset_h, .direction="up") %>%
+      tidyr::fill(is_dst, .direction="up") %>%
+      dplyr::ungroup()
 
-      df3 <- df2 %>%
+    df3 <- df2 %>%
+      dplyr::filter(is.na(datetime_tz)) %>%
+      dplyr::select(!!mloc_col, !!char_col, !!equip_col, is_dst) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(hours_added=dplyr::if_else(is_dst,1,-1))
+
+    df4 <- df2 %>%
+      dplyr::left_join(df3) %>%
+      dplyr::mutate(hours_added=tidyr::replace_na(hours_added, 0),
+                    datetime_tz_fix=datetime_utc+lubridate::dhours(hours_added)) %>%
+      dplyr::group_by(tz_name) %>%
+      dplyr::mutate(datetime_tz_fix=lubridate::force_tz(time=datetime_tz_fix, tzone=unique(tz_name), roll = FALSE)) %>%
+      dplyr::ungroup()
+
+    if(any(is.na(df2$datetime_tz))) {
+      print("DST break. Time change correction made for the following stations and periods:")
+
+      df5 <- df4 %>%
         dplyr::filter(is.na(datetime_tz)) %>%
-        dplyr::select(!!mloc_col, !!char_col, !!equip_col, is_dst) %>%
-        dplyr::distinct() %>%
-        dplyr::mutate(hours_added=dplyr::if_else(is_dst,1,-1))
+        dplyr::select(!!mloc_col, !!char_col, !!equip_col, datetime_utc, is_dst) %>%
+        dplyr::mutate(hours_added=dplyr::if_else(is_dst,1,-1)) %>%
+        dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col, hours_added, is_dst)) %>%
+        dplyr::summarize(start_datetime_fix=min(datetime_utc),
+                         end_datetime_fix=max(datetime_utc),
+                         n_fixed=n()) %>%
+        as.data.frame()
+      print(df5)
+    }
 
-      df4 <- df2 %>%
-        dplyr::left_join(df3) %>%
-        dplyr::mutate(hours_added=tidyr::replace_na(hours_added, 0),
-                      datetime_utc_fix=datetime_utc+lubridate::dhours(hours_added))
-
-      if(any(is.na(df2$datetime_tz))) {
-        print("DST break. Time change correction made for the following stations and periods:")
-
-        df5 <- df4 %>%
-          dplyr::filter(is.na(datetime_tz)) %>%
-          dplyr::select(!!mloc_col, !!char_col, !!equip_col, datetime_utc, is_dst) %>%
-          dplyr::mutate(hours_added=dplyr::if_else(is_dst,1,-1)) %>%
-          dplyr::group_by_at(dplyr::vars(mloc_col, char_col, equip_col, hours_added, is_dst)) %>%
-          dplyr::summarize(start_datetime_fix=min(datetime_utc),
-                           end_datetime_fix=max(datetime_utc),
-                           n_fixed=n()) %>%
-          as.data.frame()
-        print(df5)
-      }
-
-      return(df4$datetime_utc_fix)
+    return(df4$datetime_tz_fix)
 
   }
 
