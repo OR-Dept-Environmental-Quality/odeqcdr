@@ -1,6 +1,6 @@
 #' Export continuous result information from to template xlsx file.
 #'
-#' Export monitoring results into Oregon DEQ's continuous data submission template xlsx file format v2.03.
+#' Export monitoring results into the most recent version of Oregon DEQ's continuous data submission template xlsx file format.
 #' This function will export a list with each element holding a data frame of the information for each spreadsheet in the template.
 #' The cell colors and quality control elements from the actual template are not included in the output xlsx.
 #'
@@ -15,112 +15,27 @@
 #' @param prepost data frame holding PrePost
 #' @param audits data frame holding Audit_Data
 #' @param sumstats Optional data frame holding the AWQMS summary statistics generated using [odeqcdr::sumstats]. Default is NULL.
-#' @seealso [openxlsx]
+#' @param equipment Optional data frame holding equipment Info. Only used for version 3 template. Default is NULL.
+#' @param ver numeric version of the template. Valid values are ver=2 (the default) or ver=3.
+#' @seealso [openxlsx], [contin_export_v2], [contin_export_v3]
 #' @export
 
-contin_export <- function(file, org, projects, mloc, deployment, results, prepost, audits, sumstats=NULL) {
+contin_export <- function(file, org, projects, mloc, deployment, results, prepost, audits, sumstats=NULL, equipment=NULL, ver=2) {
 
-  # remove period from column names
-  names(projects) <- gsub("\\."," ", names(projects))
-  names(mloc) <- gsub("\\."," ", names(mloc))
-  names(deployment) <- gsub("\\."," ", names(deployment))
-  names(results) <- gsub("\\."," ", names(results))
-  names(prepost) <- gsub("\\."," ", names(prepost))
-  names(audits) <- gsub("\\."," ", names(audits))
-
-  #filter and arrange by column names in template
-  projects <- projects[, odeqcdr::cols_projects()]
-  mloc <- mloc[, odeqcdr::cols_mloc()]
-  deployment <- deployment[, odeqcdr::cols_deploy()]
-
-  if ("rDQL" %in% names(results)) {
-    results <- results[, odeqcdr::cols_results()]
-  } else {
-    # exclude "accDQL" "precDQL" "rDQL"
-    results <- results[, odeqcdr::cols_results()[1:9]]
+  if(ver==2) {
+    export <- odeqcdr::contin_export_v2(file=file, org=org, projects=projects,
+                                        mloc=mloc, deployment=deployment,
+                                        results=results, prepost=prepost,
+                                        audits=audits, sumstats=sumstats)
   }
 
-  prepost <- prepost[, odeqcdr::cols_prepost()]
-  audits <- audits[,odeqcdr::cols_audit()]
-
-  if(is.null(sumstats)) {
-    xlsx_list <- list(org, projects, mloc, deployment, results, prepost, audits)
-    names(xlsx_list) <- c("Organization Details",
-                          "Projects",
-                          "Monitoring_Locations",
-                          "Deployment",
-                          "Results",
-                          "PrePost",
-                          "Audit_Data")
-
-    openxlsx::write.xlsx(xlsx_list,
-                         file=file,
-                         colWidths="auto",
-                         firstActiveRow=c(5,2,2,2,2,2,2),
-                         firstRow=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE),
-                         rowNames=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE), borders="rows",
-                         startCol=c(2,1,1,1,1,1,1), startRow=c(5,1,1,1,1,1,1),
-                         headerStyle=openxlsx::createStyle(fgFill = "#000000", halign = "LEFT", textDecoration = "Bold",
-                                                           wrapText = TRUE, border = "Bottom", fontColour = "white",
-                                                           fontName = "Arial", fontSize = 10))
-
-  } else {
-
-    xlsx_list <- list(org, projects, mloc, deployment, results, prepost, audits, sumstats)
-    names(xlsx_list) <- c("Organization Details",
-                          "Projects",
-                          "Monitoring_Locations",
-                          "Deployment",
-                          "Results",
-                          "PrePost",
-                          "Audit_Data",
-                          "AWQMS_Sum_Stats")
-
-    openxlsx::write.xlsx(xlsx_list,
-                         file=file,
-                         colWidths="auto",
-                         firstActiveRow=c(5,2,2,2,2,2,2,2),
-                         firstRow=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE),
-                         rowNames=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE), borders="rows",
-                         startCol=c(2,1,1,1,1,1,1,1), startRow=c(5,1,1,1,1,1,1,1),
-                         headerStyle=openxlsx::createStyle(fgFill = "#000000", halign = "LEFT", textDecoration = "Bold",
-                                                           wrapText = TRUE, border = "Bottom", fontColour = "white",
-                                                           fontName = "Arial", fontSize = 10))
-  }
-
-  wb <- openxlsx::loadWorkbook(file=file, isUnzipped = FALSE)
-
-  openxlsx::modifyBaseFont(wb, fontSize = 10, fontName = "Arial")
-
-  for (sheet_name in names(xlsx_list[2:length(xlsx_list)])) {
-
-    openxlsx::setColWidths(wb, sheet=sheet_name, cols=c(1:ncol(xlsx_list[[sheet_name]])), widths = "auto")
-
-    openxlsx::addStyle(wb, sheet=sheet_name,
-                       rows=c(1:nrow(xlsx_list[[sheet_name]])+1),
-                       cols=c(1:ncol(xlsx_list[[sheet_name]])),
-                       stack=TRUE, gridExpand = TRUE,
-                       style=openxlsx::createStyle(valign = "top", fontName = "Arial", fontSize = 10))
+  if(ver==3) {
+    export <- odeqcdr::contin_export_v3(file=file, org=org, projects=projects,
+                                        mloc=mloc, deployment=deployment,
+                                        results=results, prepost=prepost,
+                                        audits=audits, sumstats=sumstats,
+                                        equipment=equipment)
 
   }
-
-  # Format dates and times
-  date_format <- openxlsx::createStyle(numFmt = "yyyy/mm/dd")
-  time_format <- openxlsx::createStyle(numFmt = "hh:mm")
-  openxlsx::addStyle(wb,  sheet="Deployment", style = date_format, rows = 2:(nrow(deployment)+1), cols = c(4:5), stack=TRUE, gridExpand = TRUE)
-  openxlsx::addStyle(wb,  sheet="Results", style = date_format, rows = 2:(nrow(results)+1), cols = 2, stack=TRUE, gridExpand = TRUE)
-  openxlsx::addStyle(wb,  sheet="Results", style = time_format, rows = 2:(nrow(results)+1), cols = 3, stack=TRUE, gridExpand = TRUE)
-  openxlsx::addStyle(wb,  sheet="Audit_Data", style = date_format, rows = 2:(nrow(audits)+1), cols = c(5, 7), stack=TRUE, gridExpand = TRUE)
-  openxlsx::addStyle(wb,  sheet="Audit_Data", style = time_format, rows = 2:(nrow(audits)+1), cols = c(6, 8), stack=TRUE, gridExpand = TRUE)
-
-  openxlsx::setColWidths(wb, sheet="Organization Details", cols=c(2:3), widths = c(20,100))
-
-  openxlsx::addStyle(wb, sheet="Organization Details", rows=c(6:19), cols=c(2:3), stack=TRUE, gridExpand = TRUE,
-                     style=openxlsx::createStyle(wrapText = TRUE, valign = "top", fontName = "Arial", fontSize = 9))
-
-  openxlsx::addStyle(wb, sheet="Organization Details", rows=c(6:19), cols=2, stack=TRUE,
-                     style=openxlsx::createStyle(textDecoration="bold", fontName = "Arial", fontSize = 9))
-
-  openxlsx::saveWorkbook(wb, file=file, overwrite = TRUE)
 
 }

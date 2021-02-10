@@ -5,29 +5,178 @@
 #' missing values in required columns, invalid domain values, and flags potential errors.
 #' If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 #'
+#' Complete list of checks
+#'
+#' Organizational Details worksheet checks:
+#' 1.	Missing Organization Name
+#' 2.	Missing Address
+#' 3.	Missing Phone Number
+#' 4.	Missing Email
+#' 5.	Missing response to Type(s) of Data Submitted
+#' 6.	Missing response to Prior DEQ Data Submission
+#'
+#'    Project worksheet checks:
+#' 1.	Project worksheet is empty
+#' 2.	Missing value in column Project.IDs
+#' 3.	Missing value in column Project.Name
+#' 4.	Missing value in column Project.Description
+#' 5.	Missing value in column Approved.QAPP.Indicator
+#' 6.	Value in column QAPP.Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'
+#'
+#' Monitoring Locations worksheet checks:
+#' 1.	Monitoring Locations worksheet is empty
+#' 2.	Monitoring Location ID in results and not in Monitoring_Locations
+#' 3.	Value in column Monitoring.Location.ID has been entered more than once.
+#' 4.	Value in column Monitoring.Location.ID is > 22 characters
+#' 5.	Value in column in Monitoring.Location.ID has an invalid character:
+#' ` ~ ! @ # $ % ^ & * ( ) \[ \{ \] \} \ | ; ' " < > / ? \[space\].
+#' 6.	Missing value in column Monitoring.Location.Name
+#' 7.	Invalid value in column Monitoring.Location.Type
+#' 8.	Missing value in column Latitude
+#' 9.	Missing value in column Longitude
+#' 10.	Invalid value in column Horizontal.Datum
+#' 11.	Invalid value in column Coordinate.Collection.Method
+#' 12.	Invalid value in column Tribal.Land
+#' 13.	Invalid value in column County.Name
+#' 14.	Invalid value in column State.Code
+#' 15.	Invalid value in column HUC.8.Code
+#' 16.	Value in column Latitude is outside of Oregon
+#' 17.	Value in column Longitude is outside of Oregon
+#' 18.	Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
+#' 19.	Value in column County.Name is NA but value in column State.Code=='OR'
+#' 20.	Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information
+#' 21.	Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information
+#' 22.	Missing value in column Reachcode
+#' 23.	Missing value in column Measure
+#' 24.	Missing value in column LLID
+#' 25.	Missing value in column River.Mile
+#'
+#' Deployment worksheet checks:
+#' 1.	Deployment worksheet is empty
+#' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment.
+#' 3. Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' not in Results.
+#' 4. There is more than one row of the same deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'. Make them unique or expand deployment start and end dates.
+#' 5. More than 50% of results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' were sampled outside of the deployment period.
+#' 6.	Missing value in column Equipment.ID
+#' 7.	Invalid value in column Characteristic.Name
+#' 8.	Missing value in column Deployment.Start.Date
+#' 9.	Missing value in column Deployment.End.Date
+#' 10.	Missing value in column Sample.Depth
+#' 11.	Invalid value in column Sample.Depth.Unit
+#' 12.	Invalid value in column Sample.Media
+#' 13.	Invalid value in column Sample.Sub.Media
+#'
+#' Results worksheet checks:
+#' 1.	Results worksheet is empty
+#' 2.	Monitoring Location ID in Monitoring_Locations and not in Results
+#' 3.	Missing value in column Activity.Start.Date
+#' 4.	Missing value in column Activity.Start.Time
+#' 5.	Invalid value in column Activity.Start.End.Time.Zone
+#' 6.	Missing value in column Equipment.ID
+#' 7.	Invalid value in column Characteristic.Name
+#' 8.	Missing value in column Result.Value
+#' 9.	Invalid value in column Result.Unit
+#' 10.	Invalid value in column Result.Status.ID
+#'
+#' PrePost worksheet checks:
+#' 1.	PrePost worksheet is empty
+#' 2.	Missing PrePost Results for '\[Equipment.ID - Characteristic.Name\]' that are in Results worksheet.
+#' 3.	Invalid value in column Characteristic.Name
+#' 4.	Missing value in column Equipment.Result.Value
+#' 5.	Invalid value in column Equipment.Result.Unit
+#' 6.	Missing value in column Reference.Result.Value
+#' 7.	Invalid value in column Reference.Result.Unit
+#' 8.	Missing value in column Reference.ID
+#'
+#' Audit Data worksheet checks:
+#' 1.	Audit Data worksheet is empty
+#' 2.	Audits missing for some deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'.
+#' 3.	Missing value in column Project.ID
+#' 4.	Missing value in column Activity.Start.Date
+#' 5.	Missing value in column Activity.Start.Time
+#' 6.	Missing value in column Activity.End.Date
+#' 7.	Missing value in column Activity.End.Time
+#' 8.	Invalid value in column Activity.Start.End.Time.Zone
+#' 9.	Invalid value in column Activity.Type
+#' 10.	Missing value in column Activity.ID
+#' 11.	Missing value in column Equipment.ID
+#' 12.	Invalid value in column Sample.Collection.Method
+#' 13.	Invalid value in column Characteristic.Name
+#' 14.	Missing value in column Result.Value
+#' 15.	Invalid value in column Result.Unit
+#' 16.	Invalid value in column Result.Analytical.Method.ID
+#' 17.	Invalid value in column Result.Analytical.Method.Context
+#' 18.	Invalid value in column Result.Value.Type
+#' 19.	Invalid value in column Result.Status.ID
+#' 20.	Invalid value in column Result.Measure.Qualifier
+#'
 #' @param template_list A continuous data list object with each list holding
 #' a different worksheet from the xlsx data template. Use [odeqcdr::contin_import()] to make the list.
+#' Default is NULL. If NULL all individual worksheet data frames must be supplied instead.
+#' @param org data frame holding Organization Details. Default is NULL.
+#' @param projects data frame with Projects. Default is NULL.
+#' @param mloc data frame holding Monitoring_Locations. Default is NULL.
+#' @param deployment data frame holding Deployment. Default is NULL.
+#' @param results data frame holding Results. Default is NULL.
+#' @param prepost data frame holding PrePost. Default is NULL.
+#' @param audits data frame holding Audit_Data. Default is NULL.
+#' @param audits Dataframe of audits. Default is NULL.
 #' @export
 #' @return data frame of the check and check result.
 
-pre_checks <- function(template_list) {
+pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, deployment=NULL, results=NULL, prepost=NULL, audits=NULL) {
 
   # Test
   #template_list=df0
 
-  org_import <- template_list[["Organization_Details"]]
-  projects_import <- template_list[["Projects"]]
-  locations_import <- template_list[["Monitoring_Locations"]]
-  deployment_import <- template_list[["Deployment"]]
-  results_import <- template_list[["Results"]]
-  prepost_import <- template_list[["PrePost"]]
-  audit_import <- template_list[["Audit_Data"]]
+  if(all(is.null(template_list),
+         is.null(org),
+         is.null(projects),
+         is.null(mloc),
+         is.null(deployment),
+         is.null(results),
+         is.null(prepost),
+         is.null(audits))) {
+    stop("All arguments are NULL. Either template_list or all of org, projects, mloc, deployment, results, prepost, and audits must have data.")
+  }
+
+  if(!is.null(template_list)) {
+
+    org_import <- template_list[["Organization_Details"]]
+    projects_import <- template_list[["Projects"]]
+    locations_import <- template_list[["Monitoring_Locations"]]
+    deployment_import <- template_list[["Deployment"]]
+    results_import <- template_list[["Results"]]
+    prepost_import <- template_list[["PrePost"]]
+    audit_import <- template_list[["Audit_Data"]]
+
+  } else {
+
+    if(any(is.null(org),
+           is.null(projects),
+           is.null(mloc),
+           is.null(deployment),
+           is.null(results),
+           is.null(prepost),
+           is.null(audits))) {
+      stop("NULL argument/s. All of org, projects, mloc, deployment, results, prepost, and audits must have data.")
+    }
+
+    org_import <- org
+    projects_import <- projects
+    mloc_import <- mloc
+    deployment_import <- deployment
+    results_import <- results
+    prepost_import <- prepost
+    audit_import <- audits
+
+  }
 
   mlocid_locations <- unique(locations_import$Monitoring.Location.ID)
   mlocid_results <- unique(results_import$Monitoring.Location.ID)
 
-  eqiupid_char_results <- unique(paste(results_import$Equipment.ID, results_import$Characteristic.Name))
-  eqiupid_char_prepost <- unique(paste(prepost_import$Equipment.ID, prepost_import$Characteristic.Name))
+  eqiupid_char_results <- unique(paste0("[",results_import$Equipment.ID," - ",results_import$Characteristic.Name,"]"))
+  eqiupid_char_prepost <- unique(paste0("[",prepost_import$Equipment.ID," - ",prepost_import$Characteristic.Name,"]"))
 
   audits_deploy <- unique(paste0("[",audit_import$Monitoring.Location.ID," - ",audit_import$Equipment.ID," - ",audit_import$Characteristic.Name,"]"))
   results_deploy <- unique(paste0("[",results_import$Monitoring.Location.ID," - ",results_import$Equipment.ID," - ", results_import$Characteristic.Name,"]"))
@@ -65,18 +214,18 @@ pre_checks <- function(template_list) {
                     "Missing value in column Project.Name",
                     "Missing value in column Project.Description",
                     "Missing value in column Approved.QAPP.Indicator",
-                    "Value in column Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'")
+                    "Value in column QAPP.Approval.Agency.Name is NA but value in column Approved.QAPP.Indicator = 'Yes'")
 
   projects_checks <- list((nrow(projects_import) <= 0),
                           is.na(projects_import$Project.ID),
                           is.na(projects_import$Project.Name),
                           is.na(projects_import$Project.Description),
                           is.na(projects_import$Approved.QAPP.Indicator),
-                          !projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name)
+                          projects_import$Approved.QAPP.Indicator=="Yes" & is.na(projects_import$QAPP.Approval.Agency.Name)
   )
 
   projects_result <- unlist(lapply(projects_checks, FUN=any, na.rm = TRUE))
-  projects_t_row <- unlist(lapply(projects_checks, FUN=odeqcdr:::tstr))
+  projects_t_row <- unlist(lapply(projects_checks, FUN=odeqcdr:::tstr, n=1))
 
   projects_df <- data.frame(worksheet=rep("Projects",length(projects_msg)),
                             check=projects_msg,
@@ -103,8 +252,26 @@ pre_checks <- function(template_list) {
     mloc_ml_t <- NA
   }
 
+  # Check for Monitoring.Location.IDs that have been entered more than once
+  mloc_dup <- dplyr::count(locations_import, Monitoring.Location.ID) %>%
+    dplyr::filter(n > 1) %>%
+    dplyr::pull(Monitoring.Location.ID)
+
+  mloc_dup_check <- length(mloc_dup) > 0
+
+  if(mloc_dup_check) {
+
+    mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once. IDs with more than one entry listed in TRUE_row."
+    mloc_dup_t <- paste0(mloc_dup, collapse = ", ")
+
+  } else {
+    mloc_dup_msg <- "Value in column Monitoring.Location.ID has been entered more than once."
+    mloc_dup_t <- NA
+  }
+
   mloc_msg <- c("Worksheet is empty",
                 mloc_ml_msg,
+                mloc_dup_msg,
                 "Value in column Monitoring.Location.ID is > 22 characters",
                 'Value in column in Monitoring.Location.ID has an invalid character: ` ~ ! @ # $ % ^ & * ( ) [ { ] } \ | ; \' \" < > / ? [space]',
                 "Missing value in column Monitoring.Location.Name",
@@ -121,8 +288,8 @@ pre_checks <- function(template_list) {
                 "Value in column Longitude is outside of Oregon",
                 "Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'",
                 "Value in column County.Name is NA but value in column State.Code=='OR'",
-                "Missing value in column Alternatve.Context.1 because column Alternate.ID.1 has information",
-                "Missing value in column Alternatve.Context.2 because column Alternate.ID.2 has information",
+                "Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information",
+                "Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information",
                 "Missing value in column Reachcode",
                 "Missing value in column Measure",
                 "Missing value in column LLID",
@@ -131,6 +298,7 @@ pre_checks <- function(template_list) {
 
   mloc_checks <- list((nrow(locations_import) <= 0),
                       mloc_ml_check,
+                      mloc_dup_check,
                       nchar(locations_import$Monitoring.Location.ID) > 22,
                       grepl(pattern=invalid_chars, x=locations_import$Monitoring.Location.ID),
                       is.na(locations_import$Monitoring.Location.Name),
@@ -156,8 +324,9 @@ pre_checks <- function(template_list) {
   )
 
   mloc_result <- unlist(lapply(mloc_checks, FUN=any, na.rm = TRUE))
-  mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr))
+  mloc_t_row <- unlist(lapply(mloc_checks, FUN=odeqcdr:::tstr, n=1))
   mloc_t_row[2] <- mloc_ml_t
+  mloc_t_row[3] <- mloc_dup_t
 
   mloc_df <- data.frame(worksheet=rep("Monitoring_Locations", length(mloc_msg)),
                         check=mloc_msg,
@@ -166,20 +335,72 @@ pre_checks <- function(template_list) {
 
   #- Deployment-----------------------------------------------------------------
 
-  deploy_d_check <- any(!deploy_deploy %in% results_deploy)
+  deploy_d_check <- any(!results_deploy %in% deploy_deploy)
+  deploy_r_check <- any(!deploy_deploy %in% results_deploy)
 
   if(deploy_d_check) {
-    deploy_d_missing <- deploy_deploy[!deploy_deploy %in% results_deploy]
+    deploy_d_missing <- results_deploy[!results_deploy %in% deploy_deploy]
 
-    deploy_d_msg <- "Deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results and not in Deployment. Missing deployments listed in TRUE_row."
+    deploy_d_msg <- "Deployments in Results and not in Deployment. Missing deployments listed in TRUE_row."
     deploy_d_t <-paste0(deploy_d_missing, collapse = ", ")
   } else {
     deploy_d_msg <- "Deployments in Results and not in Deployment."
     deploy_d_t <- NA
   }
 
+  if(deploy_r_check) {
+    deploy_r_missing <- deploy_deploy[!deploy_deploy %in% results_deploy]
+
+    deploy_r_msg <- "Deployments not in Results. Missing deployments listed in TRUE_row."
+    deploy_r_t <-paste0(deploy_r_missing, collapse = ", ")
+  } else {
+    deploy_r_msg <- "Deployments not in Results."
+    deploy_r_t <- NA
+  }
+
+  # Check if there are duplicate deployments
+  deploy_dups_check <- deployment_import %>%
+    dplyr::mutate(deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]")) %>%
+    dplyr::group_by(deploy) %>%
+    dplyr::summarise(n=dplyr::n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(n > 1) %>%
+    dplyr::pull(deploy)
+
+  if(length(deploy_dups_check) > 0) {
+    deploy_dups_msg <- "There is more than one row of the same deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]. Make them unique or expand deployment start and end dates. TRUE deployments listed in TRUE_row."
+    deploy_dups_t <- paste0(deploy_dups_check, collapse = ", ")
+  } else {
+    deploy_dups_msg <- "There is more than one row of the same deployment."
+    deploy_dups_t <- NA
+  }
+
+  # check if 25% or more of the results were sampled outside of the deployment period.
+  deploy_out_check <- results_import %>%
+    dplyr::left_join(deployment_import) %>%
+    dplyr::mutate(deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
+                  in.deploy=dplyr::if_else(Activity.Start.Date >= Deployment.Start.Date & Activity.Start.Date <= Deployment.End.Date, 1, 0),
+                  out.deploy=dplyr::if_else(Activity.Start.Date < Deployment.Start.Date | Activity.Start.Date > Deployment.End.Date, 1, 0)) %>%
+    dplyr::group_by(deploy) %>%
+    dplyr::summarise(in.deploy=sum(in.deploy, na.rm = TRUE),
+                     out.deploy=sum(out.deploy, na.rm = TRUE)) %>%
+    dplyr::filter(out.deploy/(out.deploy+in.deploy) > 0.50) %>%
+    dplyr::pull(deploy)
+
+  if(length(deploy_out_check) > 0) {
+    deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
+    deploy_out_t <- paste0(deploy_out_check, collapse = ", ")
+  } else {
+    deploy_out_msg <- "More than 50% of results from a deployment were sampled outside of the deployment period."
+    deploy_out_t <- NA
+  }
+
+
   deploy_msg <- c("Worksheet is empty",
                   deploy_d_msg,
+                  deploy_r_msg,
+                  deploy_dups_msg,
+                  deploy_out_msg,
                   "Missing value in column Equipment.ID",
                   "Invalid value in column Characteristic.Name",
                   "Missing value in column Deployment.Start.Date",
@@ -192,6 +413,9 @@ pre_checks <- function(template_list) {
 
   deploy_checks <- list((nrow(deployment_import) <= 0),
                         deploy_d_check,
+                        deploy_r_check,
+                        length(deploy_dups_check) > 0,
+                        length(deploy_out_check) > 0,
                         is.na(deployment_import$Equipment.ID),
                         !valid_values_check(col="Characteristic.Name", vals=deployment_import$Characteristic.Name),
                         is.na(deployment_import$Deployment.Start.Date),
@@ -203,8 +427,11 @@ pre_checks <- function(template_list) {
   )
 
   deploy_result <- unlist(lapply(deploy_checks, FUN=any, na.rm = TRUE))
-  deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr))
+  deploy_t_row <- unlist(lapply(deploy_checks, FUN=odeqcdr:::tstr, n=1))
   deploy_t_row[2] <- deploy_d_t
+  deploy_t_row[3] <- deploy_r_t
+  deploy_t_row[4] <- deploy_dups_t
+  deploy_t_row[5] <- deploy_out_t
 
   deploy_df <- data.frame(worksheet=rep("Deployment",length(deploy_msg)),
                           check=deploy_msg,
@@ -251,7 +478,7 @@ pre_checks <- function(template_list) {
   )
 
   results_result <- unlist(lapply(results_checks, FUN=any, na.rm = TRUE))
-  results_t_row <- unlist(lapply(results_checks, FUN=odeqcdr:::tstr))
+  results_t_row <- unlist(lapply(results_checks, FUN=odeqcdr:::tstr, n=1))
   results_t_row[2] <- result_ml_t
 
   result_df <- data.frame(worksheet=rep("Results",length(results_msg)),
@@ -261,12 +488,12 @@ pre_checks <- function(template_list) {
 
   #- PrePost--------------------------------------------------------------------
 
-  prepost_eqid_check <- any(!eqiupid_char_prepost %in% eqiupid_char_results)
+  prepost_eqid_check <- any(!eqiupid_char_results %in% eqiupid_char_prepost)
 
   if(prepost_eqid_check) {
-    prepost_eqid_missing <- eqiupid_char_prepost[!eqiupid_char_prepost %in% eqiupid_char_results]
+    prepost_eqid_missing <- eqiupid_char_results[!eqiupid_char_results %in% eqiupid_char_prepost]
 
-    prepost_eqid_msg <- "Missing PrePost Results for Equipment IDs that are in Results worksheet. Missing IDs listed in TRUE_row"
+    prepost_eqid_msg <- "Missing PrePost Results for some [Equipment.ID - Characteristic.Name] that are in Results worksheet. Missing PrePosts results are listed in TRUE_row"
     prepost_eqid_t <- paste0(prepost_eqid_missing, collapse = ", ")
   } else {
     prepost_eqid_msg <- paste0("Missing PrePost Results for Equipment IDs that are in Results worksheet.")
@@ -295,7 +522,7 @@ pre_checks <- function(template_list) {
   )
 
   prepost_result <- unlist(lapply(prepost_checks, FUN=any, na.rm = TRUE))
-  prepost_t_row <- unlist(lapply(prepost_checks, FUN=odeqcdr:::tstr))
+  prepost_t_row <- unlist(lapply(prepost_checks, FUN=odeqcdr:::tstr, n=1))
   prepost_t_row[2] <- prepost_eqid_t
 
   prepost_df <- data.frame(worksheet=rep("PrePost",length(prepost_msg)),
@@ -305,16 +532,16 @@ pre_checks <- function(template_list) {
 
   #- Audit Data-----------------------------------------------------------------
 
-  audit_d_check <- any(!audits_deploy %in% results_deploy)
+  audit_d_check <- any(!deploy_deploy %in% audits_deploy)
 
   if(audit_d_check) {
-    audit_d_missing <- audits_deploy[!audits_deploy %in% results_deploy]
+    audit_d_missing <- deploy_deploy[!deploy_deploy %in% audits_deploy]
 
-    audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet. Missing audits for deployments listed in TRUE_row."
+    audit_d_msg <- "Audits missing for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name]. Deployments with missing audits listed in TRUE_row."
     audit_d_t <- paste0(audit_d_missing, collapse = ", ")
 
   } else {
-    audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] in Results worksheet")
+    audit_d_msg <- paste0("Audits missing for some for some deployments [Monitoring.Location.ID - Equipment.ID - Characteristic.Name].")
     audit_d_t <- NA
   }
 
@@ -363,7 +590,7 @@ pre_checks <- function(template_list) {
   )
 
   audit_result <- unlist(lapply(audit_checks, FUN=any, na.rm = TRUE))
-  audit_t_row <- unlist(lapply(audit_checks, FUN=odeqcdr:::tstr))
+  audit_t_row <- unlist(lapply(audit_checks, FUN=odeqcdr:::tstr, n=1))
   audit_t_row[2] <- audit_d_t
 
   audit_df <- data.frame(worksheet=rep("Audit_Data",length(audit_msg)),

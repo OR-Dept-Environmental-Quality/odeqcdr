@@ -1,32 +1,53 @@
+#Volmon example Version 0.1.0
+
+
 library(dplyr)
 library(lutz)
 library(odeqcdr)
 library(writexl)
+library(magrittr)
 
-setwd("E://GitHub/odeqcdr/test_templates")
 
-xlsx_input <- "ContinuousDataTemplate_csv_example.xlsx"
 
-xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
-shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
-xlsx_output <- "ContinuousDataTemplate_csv_example_output.xlsx"
+# Setup -----------------------------------------------------------------------------------------------------------
 
-output_dir <-"E:/GitHub/odeqcdr/test_templates"
+#Analyst Name
+analyst <- "Travis Pritchard"
+
+#Set directory where files come from
+input_dir <- ("//deqlab1/Vol_Data/Siuslaw/2018/SWC_2018_Cont_Data_Sub")
+
+#Directory where files are saved to- SHould be a voldata folder
+output_dir <-"//deqlab1/Vol_Data/Siuslaw/2018/SWC_2018_Cont_Data_Sub/R"
+
+#Volmon template file
+xlsx_input <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+
+#precheck file name
+xlsx_pre_check_output <- "Siuslaw_WC_2018_Continuous_Temp_PRECHECK.xlsx"
+
+# Filename for Data to load into shiny
+shiny_output <- "Siuslaw_WC_2018_Continuous_Temp_SHINY_CDR.Rdata"
+
+#Script output
+xlsx_output <- "Siuslaw_WC_2018_Continuous_Temp_export.xlsx"
+
+#changelog output
+changelog <-  'Siuslaw_WC_2018_Continuous_Temp_changelog'
+
+
 
 #- Import the Data -------------------------------------------------------------
 
-# Just get the data that is in the xlsx template
-df0 <- odeqcdr::contin_import(file=xlsx_input,
-                              sheets=c("Organization Details", "Projects",
-                                       "Monitoring_Locations", "Deployment",
-                                       "PrePost", "Audit_Data"))
+df0 <-odeqcdr::contin_volmon_import(file=paste0(input_dir,"/",xlsx_input))
 
-# Extract each worksheet
 df0.projects <- df0[["Projects"]]
 
 df0.org <- df0[["Organization_Details"]]
 
 df0.mloc <- df0[["Monitoring_Locations"]]
+
+df0.results <- df0[["Results"]]
 
 df0.audits <- df0[["Audit_Data"]]
 
@@ -34,58 +55,18 @@ df0.deployment <- df0[["Deployment"]]
 
 df0.prepost <- df0[["PrePost"]]
 
-# Import 'results' that are in csv
-df0.results <- odeqcdr::contin_results_csv()
+#- Sort Results and Audits -----------------------------------------------------
 
-# Put results data in the list with the other worksheets
-df0[["Results"]] <- df0.results
+df0.results <- df0.results %>%
+  dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                 Activity.Start.Date, Activity.Start.Time)
 
-# ------------------------------------------------------------------------------
-# Code below filters the worksheets to only the relevant info that
-# are in the imported results. This will make review a bit easier if the csv files
-# are being imported in batches.
-
-# Get a vector of the deployments in results
-result_deploys <- df0.results %>%
-  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-  dplyr::pull(deployment) %>%
-  unique()
-
-# Get a vector of the equipment IDs and chars in results
-result_eqiupid_char <- df0.results %>%
-  dplyr::mutate(eqiupid_char=paste(Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-  dplyr::pull(eqiupid_char) %>%
-  unique()
-
-# Filter to just the Deployments in Results
-df0.deployment <- df0.deployment %>%
-  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-  dplyr::filter(deployment %in% result_deploys) %>%
-  dplyr::select(-deployment)
-
-# Filter to just the MLocs in Results
-df0.mloc <- df0.mloc %>%
-  dplyr::filter(Monitoring.Location.ID %in% unique(df0.results$Monitoring.Location.ID))
-
-# Filter to just to relevant audits
 df0.audits <- df0.audits %>%
-  dplyr::mutate(deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-  dplyr::filter(deployment %in% result_deploys) %>%
-  dplyr::select(-deployment)
+  dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
+                 Activity.Start.Date, Activity.Start.Time)
 
-# Filter to just to relevant PrePost
-df0.prepost <- df0.prepost %>%
-  dplyr::mutate(eqiupid_char=paste(Equipment.ID, Characteristic.Name, sep = " - ")) %>%
-  dplyr::filter(eqiupid_char %in% result_eqiupid_char) %>%
-  dplyr::select(-eqiupid_char)
-
-# Put the updated dataframes back in the list
-df0[["Monitoring_Locations"]] <- df0.mloc
-df0[["Deployment"]] <- df0.deployment
+df0[["Results"]] <- df0.results
 df0[["Audit_Data"]] <- df0.audits
-df0[["PrePost"]] <- df0.prepost
-
-rm(result_deploys, result_eqiupid_char)
 
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
@@ -108,23 +89,16 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
 
 #- Set Project ID --------------------------------------------------------------
 
-df1.projects <- df1.projects %>%
-  dplyr::mutate(Project.ID="TMDL Data Submission",
-                Project.Name="TMDL Data Submission",
-                Project.Description="Data submitted to DEQ to support TMDL development or TMDL implementation")
-
-df1.audits <- df1.audits %>%
-  dplyr::mutate(Alternate.Project.ID.2=Alternate.Project.ID.1,
-                Alternate.Project.ID.1=Project.ID)
-
+ df1.projects <- df0.projects
 #- Review Monitoring Location Info----------------------------------------------
-df1.mloc <- odeqcdr::launch_map(mloc=df0.mloc)
+
+ odeqcdr::launch_map(mloc=df0.mloc)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
-# df0.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
+# df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
 
 # Make sure there are no duplicate entries.
-df1.mloc <- dplyr::distinct(df1.mloc)
+df1.mloc <- dplyr::distinct(df0.mloc)
 
 # Save R global environment just in case.
 save.image(paste0(output_dir, "/Renv.RData"))
@@ -235,6 +209,7 @@ df2.audits <- odeqcdr::dt_parts(df=df1.audits,
                                 date_col="Activity.End.Date",
                                 time_col="Activity.End.Time")
 
+
 #- Convert Units ---------------------------------------------------------------
 # This converts the result value and changes the Unit column.
 # This is needed for grading and anomaly checking
@@ -282,6 +257,7 @@ df3.results$precDQL <- odeqcdr::dql_precision(audits=df3.audits, results=df3.res
 df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment,
                                          audits_only = TRUE)
 
+
 #- Final DQL -------------------------------------------------------------------
 
 # Set up final grade column to be verified using shiny app and further review
@@ -321,7 +297,11 @@ df5.results.anom.stats <- df5.results %>%
   dplyr::left_join(odeqcdr::anomaly_stats) %>%
   dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, dplyr::contains("daily"))
 
-df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
+
+#Note- Anomaly check does not work for DO, so this manually sets anomaly to FALSE.
+df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE) %>%
+  dplyr::mutate(Anomaly = ifelse(is.na(Anomaly), FALSE, Anomaly))
+
 
 #- Output for further review using Shiny Tool ----------------------------------
 
@@ -330,40 +310,56 @@ shiny_list <-list(Deployment=df1.deployment,
                   Audit_Stats=df3.audits.dql,
                   Results_Anom=df5.results.anom)
 
-save(shiny_list, file=shiny_output)
+save(shiny_list, file=paste0(output_dir, "/", shiny_output))
 
 # Launch Shiny app for further review.
 odeqcdr::launch_shiny()
 
 #- Make DQL and Status edits based on Shiny Review------------------------------
-# Edits can also be made in the xlsx. Just skip this step.
 # Updates Result Status ID also
+# This section should be structured like this:
 
-# Results Worksheet edits
-reject.rows <- c(NA)
-A.rows <- c(NA)
-B.rows <- c(NA)
-C.rows <- c(NA)
-D.rows <- c(NA)
-E.rows <- c(NA)
-F.rows <- c(NA)
+#######################################################################################################################
+#######################################################################################################################
 
-df.results.final <- df4.results %>%
-  dplyr::mutate(rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
-                                      row.results %in% B.rows ~ "B",
-                                      row.results %in% C.rows ~ "C",
-                                      row.results %in% D.rows ~ "D",
-                                      row.results %in% E.rows ~ "E",
-                                      row.results %in% F.rows ~ "F",
-                                      TRUE ~ rDQL),
-                Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
-                                                  rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
-                                                  TRUE ~ Result.Status.ID),
-                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                  TRUE ~ Result.Status.ID),
-                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
-                Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
-                                                  TRUE ~ Result.Status.ID))
+#df5.results <- df4.results %>%
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1") %>%
+  # odeqcdr::dql_update(rows = c(3:6), "D", "test Comment 2") %>%
+  # odeqcdr::dql_update(c(60, 65,67), "E")
+
+
+#df4.audits.dql <- df3.audits.dql %>%
+  # odeqcdr::dql_update(rows = c(1:6), "C", "test Comment 1")
+
+#######################################################################################################################
+
+# If no edits are required:
+#df5.results <- df4.results
+#df4.audits.dql <- df3.audits.dql
+
+#######################################################################################################################
+#######################################################################################################################
+
+#Once that is done update status IDs
+# Set status IDs
+df6.results <- odeqcdr::status_update(df5.results)
+df.audits.final <- odeqcdr::status_update(df4.audits.dql)
+
+#Output changelog
+
+#Calualte difference in the dataframes
+differences <- compareDF::compare_df(df.results.final, df4.results, group_col = 'row.results')
+
+#output this file into excel
+compareDF::create_output_table(differences, output_type = "xlsx", file_name = paste0(output_dir,"/", changelog,"_", analyst, ".xlsx"))
+
+
+#Set DOsat grades to grades for DO concentration
+df7.results <- odeqcdr::dql_dos(df6.results)
+
+
+#Drop results outside deployment periods
+df.results.final <- dplyr::filter(df7.results, deployed)
 
 # Generate Summary Stats -------------------------------------------------------
 
@@ -387,16 +383,24 @@ df.results.final <- df.results.final %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
+df2.deployment <- odeqcdr::update_deploy(deploy = df1.deployment)
+
+# Fill in the project ID
+df2.deployment$Project.ID <- df0.projects$Project.ID
+
+
 # Save R global environment just in case.
 save.image(paste0(output_dir, "/Renv.RData"))
 
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
-                       projects=df1.projects,
+                       projects=df0.projects,
                        mloc=df1.mloc,
-                       deployment=df1.deployment,
+                       deployment=df2.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df3.audits.dql,
-                       sumstats=df.sumstats)
+                       audits=df.audits.final,
+                       sumstats=df.sumstats,
+                       ver=3)
+

@@ -37,7 +37,7 @@ valid_values <- function(col=NULL) {
                                     "MST",
                                     "MDT",
                                     "America/Los_Angeles",
-                                    "America/Boise", NA)
+                                    "America/Boise")
 
   Result.Unit <- c("cfm", "cfs", "MGD", "deg C", "deg F", "umho/cm", "ft", "in", "m",
                    "ug/l", "mg/l", "ppth", "%", "FTU", "NTU", "SU", "pH Units", "%saturatn",
@@ -56,13 +56,30 @@ valid_values <- function(col=NULL) {
                    "mg/m2-hr", "ml/l", "mS/cm", "ng/g", "ng/kg", "ng/l", "None",
                    "Normal", "nu", "ppb", "ppm", "ppt", "per m", "% CaCO3", "PSS", "PSU",
                    "mmHg", "S/m", "AU", "BU", "FBU", "FNMU", "FNRU", "FNU", "FAU", "JTU",
-                   "NTMU", "NTRU")
+                   "NTMU", "NTRU", "RFU")
 
   Result.Status.ID <- c("Accepted",
                         "Final",
                         "Preliminary",
                         "Rejected",
                         "Validated")
+
+  #- Organizational Details ----------------------------------------------------
+
+  org_key <- c("ORGANIZATION NAME",
+               "DESCRIPTION OF ORGANIZATION",
+               "ADDRESS (INCLUDE MAILING IF DIFFERENT FROM PHYSICAL)",
+               "PHONE",
+               "FAX",
+               "EMAIL",
+               "WEB ADDRESS",
+               "CONTACT PERSON (INCLUDE ADDRESS/PHONE/EMAIL IF DIFFERENT FROM ORGANIZATION)",
+               "TYPE(S) OF DATA (e.g. water quality, macroinvertebrate, pebble, etc.)",
+               "319 Grant? If so, Years funded",
+               "Have you submitted data to DEQ before (Yes/No)? If you are unsure say No.",
+               "EPA/USGS ORGANIZATION ID, USERNAME &  PASSWORD",
+               "DATE ORG ID/U/P ISSUED:",
+               "OTHER PEOPLE WORKING WITH THIS PROJECT THAT HAVE THE USERNAME & PASSWORD:")
 
   #- Projects ------------------------------------------------------------------
 
@@ -90,12 +107,22 @@ valid_values <- function(col=NULL) {
 
   Tribal.Land <- c("Yes", "No")
 
+  # Includes counties from OR, and border counties from WA, ID, NV, and CA
   County.Name <- c("BAKER", "BENTON", "CLACKAMAS", "CLATSOP", "COLUMBIA", "COOS",
                    "CROOK", "CURRY", "DESCHUTES", "DOUGLAS", "GILLIAM", "GRANT",
                    "HARNEY", "HOOD RIVER", "JACKSON", "JEFFERSON", "JOSEPHINE",
                    "KLAMATH", "LAKE", "LANE", "LINCOLN", "LINN", "MALHEUR", "MARION",
                    "MORROW", "MULTNOMAH", "POLK", "SHERMAN", "TILLAMOOK", "UMATILLA",
-                   "UNION", "WALLOWA", "WASCO", "WASHINGTON", "WHEELER", "YAMHILL", NA)
+                   "UNION", "WALLOWA", "WASCO", "WASHINGTON", "WHEELER", "YAMHILL",
+
+                   "ASOTIN", "CLARK", "COWLITZ", "GARFIELD", "KLICKITAT", "SKAMANIA",
+                   "PACIFIC", "WAHKIAKUM", "WALLA WALLA",
+
+                   "ADAMS", "CANYON", "IDAHO", "NEZ PERCE", "OWYHEE", "PAYETTE",
+
+                   "HUMBOLDT", "WASHOE",
+
+                   "DEL NORTE", "MODOC", "SISKIYOU", NA)
 
   State.Code <- c("OR",
                   "WA",
@@ -123,6 +150,12 @@ valid_values <- function(col=NULL) {
                   "17120007", "18010201", "17050119", "17070104", "17100203",
                   "17090008", NA)
 
+  #- Equipment -----------------------------------------------------------------
+
+  Equipment.Type <- c("Probe/Sensor", "Water Bottle", "Water Sampler", "D-Net")
+
+  Quality.Assurance.Plan <- c("Yes", "No", NA)
+
   #- Deployment ----------------------------------------------------------------
 
   Sample.Depth.Unit <- Result.Unit
@@ -141,6 +174,10 @@ valid_values <- function(col=NULL) {
                         "Sludge", "Snowmelt", "Soil Gas", "Stack Gases",
                         "Stormwater", "Subsurface Soil/Sediment", "Surface Soil/Sediment",
                         "Surface Water", NA)
+
+  Media <- Sample.Media
+
+  Media.Subdivision <- Monitoring.Location.Type
 
   #- PrePost -------------------------------------------------------------------
 
@@ -168,7 +205,7 @@ valid_values <- function(col=NULL) {
                      "Sample-Routine Resample")
 
   Sample.Collection.Method <- c("Composite",
-                                "Continuous Summar",
+                                "Continuous Summary",
                                 "Field Meter",
                                 "Grab",
                                 "Staff Gage")
@@ -204,12 +241,13 @@ valid_values <- function(col=NULL) {
                                 "R",
                                 "SUS", NA)
 
-  # Add everying to a list
+  # Add everything to a list
   val_list <-list(Characteristic.Name=Characteristic.Name,
                   Activity.Start.End.Time.Zone=Activity.Start.End.Time.Zone,
                   Result.Unit=Result.Unit,
                   Result.Status.ID=Result.Status.ID,
                   Monitoring.Location.Type= Monitoring.Location.Type,
+                  org_key=org_key,
                   Approved.QAPP.Indicator=Approved.QAPP.Indicator,
                   Project.Attachment.Type=Project.Attachment.Type,
                   Horizontal.Datum=Horizontal.Datum,
@@ -219,6 +257,10 @@ valid_values <- function(col=NULL) {
                   County.Name=County.Name,
                   State.Code=State.Code,
                   HUC.8.Code=HUC.8.Code,
+                  Equipment.Type=Equipment.Type,
+                  Quality.Assurance.Plan=Quality.Assurance.Plan,
+                  Media=Media,
+                  Media.Subdivision=Media.Subdivision,
                   Sample.Depth.Unit=Sample.Depth.Unit,
                   Sample.Media=Sample.Media,
                   Sample.Sub.Media=Sample.Sub.Media,

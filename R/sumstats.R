@@ -27,7 +27,8 @@ sumstats <-function(results, deployment, project_id) {
                   Activity.Start.Date = as.Date(Activity.Start.Date)) %>%
     dplyr::left_join(deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                    "Characteristic.Name", "Sample.Depth", "Sample.Depth.Unit")],
-                     by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name"))
+                     by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
+    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime)
 
 
   # get unique list of characteristics to run for loop through
@@ -51,7 +52,7 @@ sumstats <-function(results, deployment, project_id) {
     # Filter so table only contains single characteristic
     results_data_char <- results_data %>%
       dplyr::filter(Characteristic.Name == char) %>%
-      # generare unique hour field for hourly values and stats
+      # generate unique hour field for hourly values and stats
       dplyr::mutate(hr =  format(datetime, "%Y-%j-%H"))
 
     # Simplify to hourly values and Stats
@@ -106,7 +107,7 @@ sumstats <-function(results, deployment, project_id) {
                         startdate30 = as.Date(date) -30)
 
         # 7 day loop
-        # Loops throough each row in the monitoring location dataset
+        # Loops through each row in the monitoring location dataset
         # And pulls out records that are within the preceding 7 day window
         # If there are at least 6 values, then calculate 7 day min and mean
         # Assigns data back to daydat_station
@@ -133,7 +134,7 @@ sumstats <-function(results, deployment, project_id) {
         } #end of 7day loop
         close(pb)
         # 30 day loop
-        # Loops throough each row in the monitoring location dataset
+        # Loops through each row in the monitoring location dataset
         # And pulls out records that are within the preceding 30 day window
         # If there are at least 29 values, then calculate 30 day mean
         # Assigns data back to daydat_station
@@ -217,7 +218,7 @@ sumstats <-function(results, deployment, project_id) {
   sumstat <- dplyr::bind_rows(sumstatlist)
 
   #Pivot summary statistics from wide format into long format
-  #rename summary statistcs to match AWQMS Import COnfiguration
+  #rename summary statistics to match AWQMS Import COnfiguration
   sumstat_long <- sumstat %>%
     dplyr::rename("Daily Maximum" = dyMax,
                   "Daily Minimum" = dyMin,
@@ -238,7 +239,7 @@ sumstats <-function(results, deployment, project_id) {
       values_to = "Result",
       values_drop_na = TRUE
     ) %>%
-    dplyr::arrange(Monitoring.Location.ID, date)
+    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, charID, date)
 
 
   # Audit Data ---------------------------------------------------------
@@ -285,6 +286,7 @@ sumstats <-function(results, deployment, project_id) {
                   ActivityType = "FMC",
                   Result.Analytical.Method.ID = dplyr::case_when(charID == "Temperature, water" ~ "170.1",
                                                                  charID == "Conductivity" ~ "120.1",
+                                                                 charID == "Dissolved oxygen (DO)" ~ "NFM 6.2.1-LUM",
                                                                  charID == "Dissolved oxygen saturation" ~ "NFM 6.2.1-LUM",
                                                                  charID == "pH" ~ "150.1",
                                                                  charID == "Turbidity" ~ "180.1",

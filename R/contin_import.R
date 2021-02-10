@@ -20,7 +20,7 @@
 #'
 #' @param file The path and file name to template xlsx file.
 #' @param sheets Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
-#' Accetable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".
+#' Acceptable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".
 #' @seealso [readxl::read_excel()]
 #' @export
 #' @return list of each continuous template data
@@ -177,16 +177,20 @@ contin_import <- function(file,
   # 8	Result Unit
   # 9	Result Status ID
   # 10 Result Comment (ADDED)
+  # 11 accDQL (ADDED)
+  # 12 precDQL (ADDED)
+  # 13 rDQL (ADDED)
 
   if("Results" %in% sheets) {
 
-    results_col_types <- c('text', 'date', 'date', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text')
+    results_col_types <- c('text', 'date', 'date', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text', 'text', 'text', 'text')
 
     results_col_names <- c("Monitoring.Location.ID", "Activity.Start.Date", "Activity.Start.Time", "Activity.Start.End.Time.Zone",
-                           "Equipment.ID", "Characteristic.Name", "Result.Value", "Result.Unit", "Result.Status.ID", "Result.Comment")
+                           "Equipment.ID", "Characteristic.Name", "Result.Value", "Result.Unit", "Result.Status.ID", "Result.Comment",
+                           "accDQL", "precDQL", "rDQL")
 
     # read results tab of submitted file
-    results_import <- readxl::read_excel(file, sheet = "Results", range = cellranger::cell_cols(1:10), col_types = results_col_types)
+    results_import <- readxl::read_excel(file, sheet = "Results", range = cellranger::cell_cols(1:13), col_types = results_col_types)
     colnames(results_import) <- results_col_names
 
     # remove rows with all NAs
@@ -243,20 +247,22 @@ contin_import <- function(file,
   # 20	Result Status ID
   # 21	Result Measure Qualifier
   # 22	Result Comment
+  # 23  precDQL (ADDED)
+  # 24  rDQL (ADDED)
 
   if("Audit_Data" %in% sheets) {
     audit_col_types <- c('text', 'text', 'text', 'text', 'date', 'date', 'date', 'date', 'text', 'text',
                          'text', 'text', 'text', 'text', 'numeric', 'text', 'text', 'text', 'text', 'text',
-                         'text', 'text')
+                         'text', 'text', 'text', 'text')
 
     audit_col_names <- c("Project.ID", "Alternate.Project.ID.1", "Alternate.Project.ID.2", "Monitoring.Location.ID",
                          "Activity.Start.Date", "Activity.Start.Time", "Activity.End.Date", "Activity.End.Time",
                          "Activity.Start.End.Time.Zone", "Activity.Type", "Activity.ID", "Equipment.ID",
                          "Sample.Collection.Method", "Characteristic.Name", "Result.Value", "Result.Unit",
                          "Result.Analytical.Method.ID", "Result.Analytical.Method.Context", "Result.Value.Type", "Result.Status.ID",
-                         "Result.Measure.Qualifier", "Result.Comment")
+                         "Result.Measure.Qualifier", "Result.Comment", "precDQL", "rDQL")
 
-    audit_import <- readxl::read_excel(file, sheet = "Audit_Data", col_types = audit_col_types)
+    audit_import <- readxl::read_excel(file, sheet = "Audit_Data", range = cellranger::cell_cols(1:24), col_types = audit_col_types)
     colnames(audit_import) <- audit_col_names
 
     # remove rows with all NAs

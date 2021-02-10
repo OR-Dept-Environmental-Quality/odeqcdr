@@ -4,10 +4,12 @@
 \alias{launch_map}
 \title{Launch a web map in a browser to review and edit monitoring location information}
 \usage{
-launch_map(mloc)
+launch_map(mloc, px_ht = 470)
 }
 \arguments{
 \item{mloc}{Data frame of the monitoring location data generated using \code{\link[=contin_import]{contin_import()}}.}
+
+\item{px_ht}{Height of the map in pixels. Default is 470 which fits on most standard laptop screens. The minimum height is 300 pixels.}
 }
 \value{
 Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.

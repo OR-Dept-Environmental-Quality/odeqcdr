@@ -3,15 +3,14 @@ library(lutz)
 library(odeqcdr)
 library(writexl)
 
-setwd("E://GitHub/odeqcdr/test_templates")
-#setwd("/Users/rmichie/GitHub/odeqcdr/test_templates")
+setwd("C:/workspace/Data_Solicitation/examples")
 
 xlsx_input <- "ContinuousDataTemplate_example.xlsx"
-#xlsx_input <- "ContinuousDataTemplate_example_no_audits_prepost.xlsx"
 
-output_dir <-"E:/GitHub/odeqcdr/test_templates"
-#output_dir <-"/Users/rmichie/GitHub/odeqcdr/test_templates"
+output_dir <-"C:/workspace/Data_Solicitation/examples"
 
+xlsx_pre_check_output <- "ContinuousDataTemplate_example_PRECHECK.xlsx"
+shiny_output <- "ContinuousDataTemplate_example_SHINY_CDR.Rdata"
 xlsx_output <- "ContinuousDataTemplate_example_output.xlsx"
 
 #- Import the Data -------------------------------------------------------------
@@ -32,13 +31,12 @@ df0.deployment <- df0[["Deployment"]]
 
 df0.prepost <- df0[["PrePost"]]
 
-
 #- Completeness Pre checks -----------------------------------------------------
 # A TRUE result means something is missing
 checks_df <- odeqcdr::pre_checks(template_list = df0)
 
 # Save pre check results to xlsx
-writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", gsub(".xlsx","",xlsx_output),"_PRE_CHECKS.xlsx"),
+writexl::write_xlsx(checks_df, path=paste0(output_dir, "/", xlsx_pre_check_output),
                     format_headers=TRUE)
 
 #- Row numbers for indexing ----------------------------------------------------
@@ -68,18 +66,14 @@ df1.audits <- df1.audits %>%
 
 df1.mloc <- odeqcdr::launch_map(mloc=df0.mloc)
 
-# Save to xlsx
-odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
-                       org=df0.org,
-                       projects=df1.projects,
-                       mloc=df1.mloc,
-                       deployment=df0.deployment,
-                       results=df0.results,
-                       prepost=df0.prepost,
-                       audits=df1.audits)
-
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 # df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
+
+# Make sure there are no duplicate entries.
+df1.mloc <- dplyr::distinct(df1.mloc)
+
+# Save R global environment just in case.
+save.image(paste0(output_dir, "/Renv.RData"))
 
 #- Update Monitoring Location ID Name-------------------------------------------
 
@@ -103,6 +97,7 @@ df1.audits$Monitoring.Location.ID <- odeqcdr::inchars(x=df1.audits$Monitoring.Lo
 
 df.tz <- df1.mloc %>%
   dplyr::select(Monitoring.Location.ID, Latitude, Longitude) %>%
+  dplyr::distinct() %>%
   dplyr::mutate(tz_name=lutz::tz_lookup_coords(lat=Latitude,lon=Longitude, method="accurate", warn=FALSE)) %>%
   dplyr::select(-Latitude, -Longitude)
 
@@ -110,15 +105,27 @@ df1.deployment <- merge(df1.deployment, df.tz, by="Monitoring.Location.ID")
 df1.results <- merge(df1.results, df.tz, by="Monitoring.Location.ID")
 df1.audits <- merge(df1.audits, df.tz, by="Monitoring.Location.ID")
 
+# Add a timezone if one is missing, The code will correct in dst_check if it's wrong.
+# Flag timezones that are wrong.
 df1.results <- df1.results %>%
-  dplyr::mutate(tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
+  dplyr::mutate(Activity.Start.End.Time.Zone=dplyr::case_when(tz_name=="America/Los_Angeles" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~ "PDT",
+                                                              tz_name=="America/Boise" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~  "MDT",
+                                                              TRUE ~ Activity.Start.End.Time.Zone),
+                tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
                                             Activity.Start.End.Time.Zone %in% c("PDT", "PST") ~ FALSE,
                                           tz_name=="America/Boise" &
                                             Activity.Start.End.Time.Zone %in% c("MDT", "MST") ~ FALSE,
                                           TRUE ~ TRUE))
 
 df1.audits <- df1.audits %>%
-  dplyr::mutate(tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
+  dplyr::mutate(Activity.Start.End.Time.Zone=dplyr::case_when(tz_name=="America/Los_Angeles" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~ "PDT",
+                                                              tz_name=="America/Boise" &
+                                                                is.na(Activity.Start.End.Time.Zone) ~  "MDT",
+                                                              TRUE ~ Activity.Start.End.Time.Zone),
+                tz_wrong=dplyr::case_when(tz_name=="America/Los_Angeles" &
                                             Activity.Start.End.Time.Zone %in% c("PDT", "PST") ~ FALSE,
                                           tz_name=="America/Boise" &
                                             Activity.Start.End.Time.Zone %in% c("MDT", "MST") ~ FALSE,
@@ -186,7 +193,6 @@ df2.audits <- odeqcdr::dt_parts(df=df1.audits,
                                 date_col="Activity.End.Date",
                                 time_col="Activity.End.Time")
 
-
 #- Convert Units ---------------------------------------------------------------
 # This converts the result value and changes the Unit column.
 # This is needed for grading and anomaly checking
@@ -233,29 +239,29 @@ df3.results$accDQL <- odeqcdr::dql_accuracy(prepost=df3.prepost, results=df3.res
 df3.results$precDQL <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment)
 df3.audits.dql <- odeqcdr::dql_precision(audits=df3.audits, results=df3.results, deployment=df1.deployment,
                                          audits_only = TRUE)
-
 #- Final DQL -------------------------------------------------------------------
 
 # Set up final grade column to be verified using shiny app and further review
 # Update the rDQL when the submitted result status == "Rejected"
+# Automatically set Result.Status.ID = "Rejected" when results are outside of deployment period
 df4.results <- df3.results %>%
   dplyr::left_join(df1.deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                      "Characteristic.Name", "Deployment.Start.Date",
                                      "Deployment.End.Date")],
                    by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
-  dplyr::mutate(date=as.Date(datetime),
-                deployed=dplyr::if_else(date >= as.Date(Deployment.Start.Date) &
-                                          date <= as.Date(Deployment.End.Date), TRUE, FALSE),
+  dplyr::mutate(deployed=dplyr::if_else(datetime >= Deployment.Start.Date &
+                                          datetime <= Deployment.End.Date, TRUE, FALSE),
+                Result.Status.ID=dplyr::case_when(!deployed ~ "Rejected",
+                                                  TRUE ~ Result.Status.ID),
                 rDQL=dplyr::case_when(precDQL == 'C' | accDQL== 'C' ~ 'C',
                                       precDQL == 'B' | accDQL== 'B' ~ 'B',
                                       precDQL == 'A' & accDQL== 'A' ~ 'A',
                                       precDQL == 'E' & accDQL== 'E' ~ 'E',
                                       TRUE ~ 'B'),
                 rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL)) %>%
-  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date, -date) %>%
+  dplyr::select(-Deployment.Start.Date, -Deployment.End.Date) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
-
 
 #- Anomalies -------------------------------------------------------------------
 # Flag potential anomalies
@@ -274,7 +280,6 @@ df5.results.anom.stats <- df5.results %>%
 
 df5.results.anom <- odeqcdr::anomaly_check(results=df5.results, deployment=df1.deployment, return_df=TRUE)
 
-
 #- Output for further review using Shiny Tool ----------------------------------
 
 # list to export to Shiny
@@ -282,17 +287,17 @@ shiny_list <-list(Deployment=df1.deployment,
                   Audit_Stats=df3.audits.dql,
                   Results_Anom=df5.results.anom)
 
-save(shiny_list, file=paste0(gsub(".xlsx","",xlsx_output),"_CDR.Rdata"))
+save(shiny_list, file=shiny_output)
 
 # Launch Shiny app for further review.
 odeqcdr::launch_shiny()
 
 #- Make DQL and Status edits based on Shiny Review------------------------------
 # Edits can also be made in the xlsx. Just skip this step.
+# Updates Result Status ID also
 
 # Results Worksheet edits
 reject.rows <- c(NA)
-final.rows <- c(NA)
 A.rows <- c(NA)
 B.rows <- c(NA)
 C.rows <- c(NA)
@@ -301,21 +306,25 @@ E.rows <- c(NA)
 F.rows <- c(NA)
 
 df.results.final <- df4.results %>%
-  dplyr::mutate(Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
-                                                row.results %in% final.rows ~ "Final",
-                                                TRUE ~ Result.Status.ID),
-                rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
+  dplyr::mutate(rDQL=dplyr::case_when(row.results %in% A.rows ~ "A",
                                       row.results %in% B.rows ~ "B",
                                       row.results %in% C.rows ~ "C",
                                       row.results %in% D.rows ~ "D",
                                       row.results %in% E.rows ~ "E",
                                       row.results %in% F.rows ~ "F",
-                                      TRUE ~ rDQL))
+                                      TRUE ~ rDQL),
+                Result.Status.ID=dplyr::case_when(rDQL %in% c("C", "D") ~ "Rejected",
+                                                  rDQL %in% c("A", "B", "E", "F") ~ Result.Status.ID,
+                                                  TRUE ~ Result.Status.ID),
+                Result.Status.ID=dplyr::case_when(row.results %in% reject.rows ~ "Rejected",
+                                                  TRUE ~ Result.Status.ID),
+                rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
+                Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
+                                                  TRUE ~ Result.Status.ID))
 
 # Generate Summary Stats -------------------------------------------------------
 
 df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
-
 
 #- Output updated data back to xlsx template -----------------------------------
 
@@ -334,6 +343,9 @@ df.results.final <- df.results.final %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
 
+# Save R global environment just in case.
+save.image(paste0(output_dir, "/Renv.RData"))
+
 # Export
 odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        org=df0.org,
@@ -342,5 +354,6 @@ odeqcdr::contin_export(file=paste0(output_dir, "/", xlsx_output),
                        deployment=df1.deployment,
                        results=df.results.final,
                        prepost=df0.prepost,
-                       audits=df2.audits,
+                       audits=df3.audits.dql,
                        sumstats=df.sumstats)
+

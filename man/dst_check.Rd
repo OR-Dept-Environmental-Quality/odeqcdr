@@ -11,7 +11,8 @@ dst_check(
   equip_col = "Equipment.ID",
   date_col = "Activity.Start.Date",
   time_col = "Activity.Start.Time",
-  tz_col = "Activity.Start.End.Time.Zone"
+  tz_col = "Activity.Start.End.Time.Zone",
+  base_offset = NULL
 )
 }
 \arguments{
@@ -28,18 +29,53 @@ dst_check(
 \item{time_col}{Column name in df holding the POSIXct time values. Default is "Activity.Start.Time".}
 
 \item{tz_col}{Column name in df holding the timezone string values. Default is tz_col ="Activity.Start.End.Time.Zone".}
+
+\item{base_offset}{The numeric offset from UTC representing the "correct time". Using Pacific Standard Time the base_offset=-8. For
+Pacific Daylight Time the base_offset=-7. The Default is NULL and the time at the offset at the beginning
+of the deployment period is considered the correct time.}
 }
 \value{
 Vector of corrected datetime in POSISXct.
 }
 \description{
 This function will evaluate if an hour was added or subtracted correctly to account
-for the switch from daylight time to standard time and vice versa.
-For example in 2020, the switch from standard time to daylight time occurred
+for the switch from daylight time to standard time and vice versa. The check can only
+be used on timeseries occurring on or after the start of standard time on October 27, 1985 at 2:01 AM.
+}
+\details{
+The dst check fails and time is adjusted when either of the two conditions occur:
+\enumerate{
+\item When there are results recorded between 2:00 AM and 2:59 AM when daylight savings begins.
+As an example, in 2020 the switch from standard time to daylight time (+1 hour) occurred
 on March 8, 2020 at 2:00 AM. In a time series where samples are collected
-every 30 minutes there should be no results recorded from 2:00 AM until 2:59 AM
-on March 8. If there are results recorded during this period it’s likely an adjustment
-for daylight savings was not made. This function attempts to find these occurrences and
-adds or subtracts an hour to all datetime values during the entire daylight savings
-or standard time period. A manual review of the results is recommend.
+every 30 minutes there should be no results recorded from 2:00 AM until 2:59 AM.
+If there are results recorded during this period it’s likely an adjustment
+to daylight savings time was not made.
+\item When there is only one timestamp recorded for any results between 1:00 AM and 1:59 AM
+after the transition back to standard time (-1 hour). As an example, in 2020 the switch from daylight savings
+back to standard time occurred on November 1, 2020 at 2:00 AM resulting in a repeat of time
+between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it is likely
+the adjustment to standard time was not made.
+}
+
+When one of the conditions are detected, the time at the beginning
+of the deployment period is considered the correct time and the appropriate UTC offset is applied
+for daylight savings from that point forward. Use 'base_offset' if a specific
+offset from UTC is desired instead. For example if the time stamp were all recorded using Pacific Standard Time the base_offset=-8. For
+Pacific Daylight Time the base_offset=-7. The default is to use the offset at the time of deployment, base_offset=NULL.
+
+The dst check evaluates
+each deployment [Monitoring.Location.ID, Characteristic.Name, Equipment.ID]
+and any adjustments are made only to an individual deployment. A manual review of the results
+is recommend.
+
+Daylight Savings in Oregon since 1986
+
+1986 - 2006:
+Daylight savings time began by adding on hour (+1) on the first Sunday in April at 2:00 AM.
+Daylight savings time ended by subtracting an hour (-1) on the last Sunday in October at 2:00 AM.
+
+2007 - Current:
+Daylight savings time begins by adding an hour (+1) on the second Sunday in March at 2:00 AM.
+Daylight savings time ends by subtracting an hour (-1) on the first Sunday in November at 2:00 AM.
 }

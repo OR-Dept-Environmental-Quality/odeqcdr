@@ -21,8 +21,8 @@
 
 dql_accuracy <- function(prepost, results, prepost_only=FALSE) {
 
-  #results=df.results
-  #prepost=df.prepost
+  #results=df3.results
+  #prepost=df3.prepost
 
   conqc <- odeqcdr::conqc
 
@@ -65,10 +65,14 @@ dql_accuracy <- function(prepost, results, prepost_only=FALSE) {
                                            TRUE ~ DQL_acc)) %>%
     # Take lowest DQL for multiple checks
     dplyr::summarize(DQL_acc=max(DQL_acc, na.rm = TRUE), .groups="keep") %>%
-    dplyr::ungroup() %>%
-    dplyr::right_join(results, by = c("Equipment.ID", "Characteristic.Name")) %>%
+    dplyr::ungroup()
+
+  df.results.grade.results <- results %>%
+    dplyr::left_join(df.results.grade, by = c("Equipment.ID", "Characteristic.Name")) %>%
+    dplyr::mutate(DQL_acc=dplyr::case_when(is.na(DQL_acc) ~ 'E',
+                                           TRUE ~ DQL_acc)) %>%
     as.data.frame()
 
-  return(df.results.grade$DQL_acc)
+  return(df.results.grade.results$DQL_acc)
 
 }

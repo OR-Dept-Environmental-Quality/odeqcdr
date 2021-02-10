@@ -7,9 +7,9 @@
 anomaly_check(results, deployment, return_df = FALSE)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using odeqcdr::import_contin().}
+\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
 
-\item{deployment}{Data frame of the deployment data generated using odeqcdr::import_contin().}
+\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
 
 \item{return_df}{Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.}
 }
@@ -21,12 +21,24 @@ A result is flagged as an anomaly (Anomaly = TRUE) when when there is a datetime
 the daily summary statistics derived from the results fall outside the monthly 10th or 90th percentile
 of the daily mean, 10th percentile of the daily minimum, or the 90 percentile of the
 daily maximum for streams of the same strahler stream order; or any stream size
-if the strahler stream order is not known. If a result is flagged as an anomaly it
-should be closely reviewed.  The 10th and 90th percentiles were calculated from all
-available continuous temperature summary statistics in DEQ’s AWQMS database collected
-between January 1, 1990 and December 31, 2019 with a "Final" or "Accepted" result status.
+if the strahler stream order is not known. Currently these checks are only relevant
+for river temperature. If a result is flagged as an anomaly it should be closely reviewed.
 }
 \details{
+The 10th and 90th percentiles were calculated from all
+available continuous temperature summary statistics in DEQ’s AWQMS database collected
+between January 1, 1990 and December 31, 2019 with a "Final" or "Accepted" result status.
+
 The typical range for different characteristics are contained in odeqcdr::anomaly_stats
 data by month and stream order.
+
+A datetine shift is evaluated by checking that the daily maximum water temperature
+occurs between 13:00 and 19:00. If the daily maximum falls outside this hour range the function
+flags all temperature results on that day as an anomaly where dt_shift=TRUE.
+See \code{\link[=dt_shift]{dt_shift()}} to run this check without all the other anomaly checks.
+A datetime shift may indicate an issue with the time not being adjusted to the correct time zone
+(i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
+
+Also calculated for each deployment is the absolute change from one result value to the next along the timseries. The change
+is normalized per hour. The output value is saved to the column 'delta_per_hour'.
 }
