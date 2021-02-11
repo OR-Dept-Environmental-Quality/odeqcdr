@@ -24,12 +24,13 @@ contin_export_v3 <- function(file, org, projects, mloc, deployment, results, pre
   if(is.null(equipment)) {
     # Make the "Equipment" worksheet from the deployment dataframe
     equipment <- deployment %>%
+      dplyr::left_join(projects) %>%
       dplyr::mutate(Equipment.Type="Probe/Sensor",
                     Equipment.Name=Equipment.ID,
                     Model.Number=as.character(NA),
                     Serial.Number=as.character(NA),
                     Comments=as.character(NA),
-                    Quality.Assurance.Plan=as.character(NA),
+                    Quality.Assurance.Plan=Approved.QAPP.Indicator,
                     Continuous.Monitoring="Yes")
   }
 
