@@ -12,7 +12,8 @@ dst_check(
   date_col = "Activity.Start.Date",
   time_col = "Activity.Start.Time",
   tz_col = "Activity.Start.End.Time.Zone",
-  base_offset = NULL
+  base_offset = NULL,
+  awqms_bug = TRUE
 )
 }
 \arguments{
@@ -33,6 +34,12 @@ dst_check(
 \item{base_offset}{The numeric offset from UTC representing the "correct time". Using Pacific Standard Time the base_offset=-8. For
 Pacific Daylight Time the base_offset=-7. The Default is NULL and the time at the offset at the beginning
 of the deployment period is considered the correct time.}
+
+\item{awqms_bug}{Due to a bug in AWQMS, results with the exact same Monitoring.Location.ID, Equipment.ID,
+Characteristic.Name, Start.Date, Start.Time, and Result.Unit but different Time Zone values are not allowed, even if
+they occur during the transition from daylight time to standard time. By setting awqms_bug=TRUE (the default) one second
+is added to the repeat POSIXct time values that fall between 1:00 AM and 1:59 AM right after the switch to standard time.
+This is here as a work around until the AWQMS bug is fixed.}
 }
 \value{
 Vector of corrected datetime in POSISXct.
@@ -49,7 +56,7 @@ The dst check fails and time is adjusted when either of the two conditions occur
 As an example, in 2020 the switch from standard time to daylight time (+1 hour) occurred
 on March 8, 2020 at 2:00 AM. In a time series where samples are collected
 every 30 minutes there should be no results recorded from 2:00 AM until 2:59 AM.
-If there are results recorded during this period it’s likely an adjustment
+If there are results recorded during this period it's likely an adjustment
 to daylight savings time was not made.
 \item When there is only one timestamp recorded for any results between 1:00 AM and 1:59 AM
 after the transition back to standard time (-1 hour). As an example, in 2020 the switch from daylight savings
