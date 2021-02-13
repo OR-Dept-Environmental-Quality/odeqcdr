@@ -282,20 +282,19 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
     # the template is the first one chronologically and hence in daylight time.
 
     df3 <- df2 %>%
-      dplyr::mutate(Activity.Start.Date.str=format(Activity.Start.Date, format = "%Y-%m-%d"),
-                    Activity.Start.Time.str=format(Activity.Start.Time, format = "%H:%M:%S")) %>%
-      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, Activity.Start.Date.str, Activity.Start.Time.str) %>%
-      dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, Activity.Start.Date.str, Activity.Start.Time.str, row) %>%
+      dplyr::mutate(date_utc_str=format(datetime_utc, format = "%Y-%m-%d"),
+                    time_utc_str=format(datetime_utc, format = "%H:%M:%S")) %>%
+      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_utc_str, time_utc_str) %>%
+      dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_utc_str, time_utc_str, row) %>%
       dplyr::mutate(dst.pass=dplyr::row_number()) %>% # orders the duplicate results
       dplyr::ungroup()%>%
       dplyr::mutate(date=format(datetime_utc, "%Y-%m-%d")) %>%
       dplyr::left_join(df.dst) %>%
       dplyr::mutate(dst_pass1=datetime_utc >= start & datetime_utc <= stop & shift == -1 & !is_dst & dst.pass==1 & dplyr::lead(dst.pass)==2,
-                    dst_pass2=datetime_utc >= start & datetime_utc <= stop & shift == -1 & !is_dst & dst.pass==2,
                     utc_offset_h=dplyr::case_when(dst_pass1 ~ utc_offset_h + 1,
                                                   TRUE ~ utc_offset_h),
                     is_dst=dplyr::if_else(dst_pass1, TRUE, is_dst)) %>%
-      dplyr::select(dplyr::all_of(names(df2)), dst_pass1, dst_pass2) %>%
+      dplyr::select(dplyr::all_of(names(df2)), dst_pass1) %>%
       dplyr::arrange(row)
 
     df.fail <- rbind(df.start.dst, df.end.dst) %>%
@@ -305,28 +304,29 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
 
     if(is.null(base_offset)) {
 
-      # get offset at deployment convert to true UTC, and re-adjust to local timezone
-      df.fix <- df3 %>%
+      # get offset at deployment
+      df.deployoffset <- df3 %>%
         dplyr::group_by_at(dplyr::all_of(c(mloc_col, char_col, equip_col))) %>%
         dplyr::filter(min(datetime_utc)==datetime_utc) %>%
-        dplyr::select(!!mloc_col, !!char_col, !!equip_col, deploy_offset=utc_offset_h) %>%
-        dplyr::right_join(df3) %>%
+        dplyr::select(!!mloc_col, !!char_col, !!equip_col, deploy_offset=utc_offset_h)
+
+      # convert to true UTC and re-adjust to local timezone
+      df.fix <- df3 %>%
+        dplyr::left_join(df.deployoffset) %>%
         dplyr::left_join(df.fail) %>%
         dplyr::mutate(dst_fail=dplyr::if_else(is.na(dst_fail), FALSE, dst_fail),
-                      datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc+(-1*lubridate::dhours(utc_offset_h))),
-                      datetime_utc_fix=dplyr::if_else(awqms_bug & dst_pass2, datetime_utc_fix + lubridate::dseconds(1), datetime_utc_fix)) %>%
+                      datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc+(-1*lubridate::dhours(utc_offset_h)))) %>%
         dplyr::group_by(tz_name) %>%
         dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name))) %>%
         dplyr::arrange(row)
 
     } else {
 
-      # Use the set UTC offset, convert to true UTC, and re-adjust to local timezone
+      # Use the set UTC offset, convert to true UTC and re-adjust to local timezone
       df.fix <- df3 %>%
         dplyr::mutate(deploy_offset=base_offset) %>%
         dplyr::left_join(df.fail) %>%
-        dplyr::mutate(datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc),
-                      datetime_utc_fix=dplyr::if_else(awqms_bug & dst_pass2, datetime_utc_fix + lubridate::dseconds(1), datetime_utc_fix)) %>%
+        dplyr::mutate(datetime_utc_fix=dplyr::if_else(dst_fail, datetime_utc+(-1*lubridate::dhours(deploy_offset)), datetime_utc)) %>%
         dplyr::group_by(tz_name) %>%
         dplyr::mutate(datetime_tz_fix=lubridate::with_tz(time=datetime_utc_fix, tzone=unique(tz_name))) %>%
         dplyr::arrange(row)
@@ -336,6 +336,38 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
     if(any(df.fix$dst_fail)) {
       print("Time change correction made for the following deployments:")
       print(df.fail)
+
+    }
+
+    if(awqms_bug) {
+
+      # Deal with AWQMS bug
+      df.fix <- df.fix %>%
+        dplyr::mutate(date_str=format(datetime_tz_fix, format = "%Y-%m-%d"),
+                      time_str=format(datetime_tz_fix, format = "%H:%M:%S")) %>%
+        dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_str, time_str) %>%
+        dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_str, time_str, row) %>%
+        dplyr::mutate(dst.pass=dplyr::row_number()) %>% # orders the duplicate results
+        dplyr::ungroup()%>%
+        dplyr::mutate(date=format(datetime_tz_fix, "%Y-%m-%d")) %>%
+        dplyr::left_join(df.dst) %>%
+        dplyr::mutate(is_dst=lubridate::dst(datetime_tz_fix),
+                      dst_pass2=lubridate::hour(datetime_tz_fix) == 1 & shift == -1 & !is_dst & dst.pass==2,
+                      datetime_tz_fix=dplyr::if_else(dst_pass2, datetime_tz_fix + lubridate::dseconds(1), datetime_tz_fix)) %>%
+        dplyr::arrange(row)
+
+      if(any(df.fix$dst_pass2)) {
+
+        df.awqms_bug <- df.fix %>%
+          dplyr::filter(dst_pass2) %>%
+          dplyr::mutate(datetime=format(datetime_tz_fix, format = "%Y-%m-%d %H:%M:%S %Z")) %>%
+          dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime, row) %>%
+          as.data.frame()
+
+        warning(message("AWQMS bug! One second added to the following results:\n\n",
+                        paste0(capture.output(df.awqms_bug), collapse = "\n")))
+      }
+
     }
 
     return(df.fix$datetime_tz_fix)
