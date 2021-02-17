@@ -259,7 +259,7 @@ launch_map <- function(mloc, px_ht=470){
             primaryAreaUnit = "sqmeters",
             activeColor = "#3D535D",
             completedColor = "#7D4479") %>%
-          leaflet::hideGroup(c("LLID Streams","Hydrography","Oregon Imagery"))
+          leaflet::hideGroup(c("LLID Streams","Hydrography"))
 
         map
 
