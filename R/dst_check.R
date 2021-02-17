@@ -220,9 +220,9 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
       dplyr::mutate(dst_eval=dplyr::if_else(min(datetime_utc, na.rm = TRUE) >= as.POSIXct("1985/10/27 02:01:00", tz="UTC"), TRUE, FALSE)) %>%
       dplyr::ungroup()
 
-    # Data frame of dates when DST time shift occurred during the period of data.
-    df.dst <- data.frame(date=seq(lubridate::ymd(format(min(df2$datetime_utc, na.rm = TRUE), "%Y-%m-%d")),
-                                  lubridate::ymd(format(max(df2$datetime_utc, na.rm = TRUE), "%Y-%m-%d")),
+    # Data frame of dates when DST time shift occurred during the period of data. Add two days for buffer.
+    df.dst <- data.frame(date=seq(lubridate::ymd(format(min(df2$datetime_utc - lubridate::ddays(2), na.rm = TRUE), "%Y-%m-%d")),
+                                  lubridate::ymd(format(max(df2$datetime_utc + lubridate::ddays(2), na.rm = TRUE), "%Y-%m-%d")),
                                   by = '1 day')) %>%
       dplyr::mutate(year=lubridate::year(date),
                     month=lubridate::month(date),
@@ -347,7 +347,7 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
                       time_str=format(datetime_tz_fix, format = "%H:%M:%S")) %>%
         dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_str, time_str) %>%
         dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, date_str, time_str, row) %>%
-        dplyr::mutate(dst.pass=dplyr::row_number()) %>% # orders the duplicate results
+        dplyr::mutate(dst.pass=dplyr::n()) %>% # of duplicates
         dplyr::ungroup()%>%
         dplyr::mutate(date=format(datetime_tz_fix, "%Y-%m-%d")) %>%
         dplyr::left_join(df.dst) %>%
@@ -364,7 +364,7 @@ dst_check <- function(df, mloc_col="Monitoring.Location.ID", char_col="Character
           dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime, row) %>%
           as.data.frame()
 
-        warning(message("AWQMS bug! One second added to the following results:\n\n",
+        warning(message("AWQMS bug bites again! One second added to the following results:\n\n",
                         paste0(capture.output(df.awqms_bug), collapse = "\n")))
       }
 
