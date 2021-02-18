@@ -348,7 +348,7 @@ df.audits.final <- odeqcdr::status_update(df4.audits.dql)
 #Output changelog
 
 #Calualte difference in the dataframes
-differences <- compareDF::compare_df(df.results.final, df4.results, group_col = 'row.results')
+differences <- compareDF::compare_df(df6.results, df4.results, group_col = 'row.results')
 
 #output this file into excel
 compareDF::create_output_table(differences, output_type = "xlsx", file_name = paste0(output_dir,"/", changelog,"_", analyst, ".xlsx"))
