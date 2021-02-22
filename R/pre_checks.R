@@ -56,7 +56,7 @@
 #' 2.	Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' in Results and not in Deployment.
 #' 3. Deployments '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' not in Results.
 #' 4. There is more than one row of the same deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]'. Make them unique or expand deployment start and end dates.
-#' 5. More than 50% of results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' were sampled outside of the deployment period.
+#' 5. There are results from a deployment '\[Monitoring.Location.ID - Equipment.ID - Characteristic.Name\]' sampled outside of the deployment period.
 #' 6.	Missing value in column Equipment.ID
 #' 7.	Invalid value in column Characteristic.Name
 #' 8.	Missing value in column Deployment.Start.Date
@@ -375,23 +375,20 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
     deploy_dups_t <- NA
   }
 
-  # check if 25% or more of the results were sampled outside of the deployment period.
+  # check if any of the results were sampled outside of the deployment period.
   deploy_out_check <- results_import %>%
     dplyr::left_join(deployment_import) %>%
     dplyr::mutate(deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
-                  in.deploy=dplyr::if_else(Activity.Start.Date >= Deployment.Start.Date & Activity.Start.Date <= Deployment.End.Date, 1, 0),
-                  out.deploy=dplyr::if_else(Activity.Start.Date < Deployment.Start.Date | Activity.Start.Date > Deployment.End.Date, 1, 0)) %>%
+                  out.deploy=dplyr::if_else(Activity.Start.Date < Deployment.Start.Date | Activity.Start.Date > Deployment.End.Date, TRUE, FALSE)) %>%
     dplyr::group_by(deploy) %>%
-    dplyr::summarise(in.deploy=sum(in.deploy, na.rm = TRUE),
-                     out.deploy=sum(out.deploy, na.rm = TRUE)) %>%
-    dplyr::filter(out.deploy/(out.deploy+in.deploy) > 0.50) %>%
+    dplyr::filter(out.deploy) %>%
     dplyr::pull(deploy)
 
   if(length(deploy_out_check) > 0) {
-    deploy_out_msg <- "More than 50% of results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] were sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
+    deploy_out_msg <- "There are results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
     deploy_out_t <- paste0(deploy_out_check, collapse = ", ")
   } else {
-    deploy_out_msg <- "More than 50% of results from a deployment were sampled outside of the deployment period."
+    deploy_out_msg <- "There are results from a deployment sampled outside of the deployment period."
     deploy_out_t <- NA
   }
 
