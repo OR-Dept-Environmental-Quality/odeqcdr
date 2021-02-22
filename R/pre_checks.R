@@ -379,13 +379,19 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
   deploy_out_check <- results_import %>%
     dplyr::left_join(deployment_import) %>%
     dplyr::mutate(deploy=paste0("[",Monitoring.Location.ID," - ",Equipment.ID," - ", Characteristic.Name,"]"),
+                  Deployment.End.Date = Deployment.End.Date + lubridate::dhours(23) + lubridate::dminutes(59),
                   out.deploy=dplyr::if_else(Activity.Start.Date < Deployment.Start.Date | Activity.Start.Date > Deployment.End.Date, TRUE, FALSE)) %>%
     dplyr::group_by(deploy) %>%
+    dplyr::mutate(date.min = format(min(Activity.Start.Date, na.rm = TRUE), "%Y-%m-%d"),
+                  date.max = format(max(Activity.Start.Date, na.rm = TRUE), "%Y-%m-%d")) %>%
+    dplyr::ungroup() %>%
     dplyr::filter(out.deploy) %>%
+    dplyr::distinct(deploy, date.min, date.max) %>%
+    dplyr:: distinct(deploy = paste0(deploy," ",date.min," - ",date.max)) %>%
     dplyr::pull(deploy)
 
   if(length(deploy_out_check) > 0) {
-    deploy_out_msg <- "There are results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] sampled outside of the deployment period. TRUE deployments listed in TRUE_row."
+    deploy_out_msg <- "There are results from a deployment [Monitoring.Location.ID - Equipment.ID - Characteristic.Name] sampled outside of the deployment period. TRUE deployments listed in TRUE_row with result date range."
     deploy_out_t <- paste0(deploy_out_check, collapse = ", ")
   } else {
     deploy_out_msg <- "There are results from a deployment sampled outside of the deployment period."
