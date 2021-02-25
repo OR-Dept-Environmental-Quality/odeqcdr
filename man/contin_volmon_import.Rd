@@ -17,6 +17,8 @@ contin_volmon_import(
 \item{project}{Optional variable identifying project. ODEQ volmon's program (ODEQVolMonWQProgram) is the default}
 
 \item{timezone}{Optionalvariable setting time zone. Defaults to "PDT"}
+
+\item{append_ordeq}{Optional boolean to append "-ORDEQ" to monitoring locations. Default is TRUE.}
 }
 \value{
 list of each continuous template data

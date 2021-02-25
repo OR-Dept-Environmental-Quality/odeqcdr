@@ -23,6 +23,7 @@
 #' @param file The path and file name to template xlsx file.
 #' @param project Optional variable identifying project. ODEQ volmon's program (ODEQVolMonWQProgram) is the default
 #' @param timezone Optionalvariable setting time zone. Defaults to "PDT"
+#' @param append_ordeq Optional boolean to append "-ORDEQ" to monitoring locations. Default is TRUE.
 #' @seealso [readxl::read_excel()], [odeqcdr::contin_import()]
 #' @export
 #' @return list of each continuous template data
