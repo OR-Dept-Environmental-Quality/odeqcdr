@@ -80,10 +80,10 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
   if(audits_only) {
 
     df.audits.grab.dql2 <- df.audits.grab.dql %>%
-      dplyr::select(Result.datetime, diff.minutes, Audit.Result.Value, diff.Result, precDQL, rDQL, row.audits)
+      dplyr::select(Result.datetime, diff.minutes, Result.Value, Audit.Result.Value, diff.Result, precDQL, rDQL, row.audits)
 
     df.audits.return <- audits %>%
-      dplyr::select(-precDQL, -rDQL) %>%
+      dplyr::select(-precDQL, -rDQL, -Result.Value) %>%
       dplyr::left_join(df.audits.grab.dql2, by=c("row.audits")) %>%
       as.data.frame()
 
