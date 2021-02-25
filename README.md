@@ -1,12 +1,12 @@
 # odeqcdr
  ODEQ Continuous Data Review
 
-A R package that provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's Continuous Water Quality Data Template v2.03.
+A R package that provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's continuous water quality data templates.
 
 ## Install
 
 ```R
-devtools::install_github('DEQrmichie/odeqcdr', host = 'https://api.github.com', 
+devtools::install_github('OR-Dept-Environmental-Quality/odeqcdr', host = 'https://api.github.com', 
                          dependencies= TRUE, force = TRUE, upgrade='never')
 ```
 
