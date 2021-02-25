@@ -188,6 +188,7 @@ launch_shiny <- function(){
         }
 
         if("datetime" %in% names(df)) {
+          # rename result datetime
 
           df <- dplyr::rename(df, Result.datetime=datetime)
         }
