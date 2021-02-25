@@ -101,9 +101,9 @@ df.tz <- df1.mloc %>%
   dplyr::mutate(tz_name=lutz::tz_lookup_coords(lat=Latitude,lon=Longitude, method="accurate", warn=FALSE)) %>%
   dplyr::select(-Latitude, -Longitude)
 
-df1.deployment <- merge(df1.deployment, df.tz, by="Monitoring.Location.ID")
-df1.results <- merge(df1.results, df.tz, by="Monitoring.Location.ID")
-df1.audits <- merge(df1.audits, df.tz, by="Monitoring.Location.ID")
+df1.deployment <- dplyr::left_join(df1.deployment, df.tz, by="Monitoring.Location.ID")
+df1.results <- dplyr::left_join(df1.results, df.tz, by="Monitoring.Location.ID")
+df1.audits <- dplyr::left_join(df1.audits, df.tz, by="Monitoring.Location.ID")
 
 # Add a timezone if one is missing, The code will correct in dst_check if it's wrong.
 # Flag timezones that are wrong.
@@ -286,6 +286,17 @@ odeqcdr::launch_shiny()
 
 # Results Worksheet edits
 reject.rows <- c(NA)
+remove.rows <- c(NA)
+
+comment1 <- as.character(NA)
+comment1.rows <- c(NA)
+
+comment2 <- as.character(NA)
+comment2.rows <- c(NA)
+
+comment3 <- as.character(NA)
+comment3.rows <- c(NA)
+
 A.rows <- c(NA)
 B.rows <- c(NA)
 C.rows <- c(NA)
@@ -308,7 +319,14 @@ df.results.final <- df4.results %>%
                                                   TRUE ~ Result.Status.ID),
                 rDQL=dplyr::if_else(Result.Status.ID == "Rejected","C",rDQL),
                 Result.Status.ID=dplyr::case_when(Result.Status.ID %in% c("Preliminary", "Accepted", "Validated", "Final") ~ "Final",
-                                                  TRUE ~ Result.Status.ID))
+                                                  TRUE ~ Result.Status.ID),
+                Result.Comment=dplyr::case_when(row.results %in% comment1.rows ~ comment1,
+                                                row.results %in% comment2.rows ~ comment2,
+                                                row.results %in% comment3.rows ~ comment3,
+                                                TRUE ~ Result.Comment)) %>%
+  dplyr::filter(deployed) %>%
+  dplyr::filter(!row.results %in% remove.rows)
+
 
 # Generate Summary Stats -------------------------------------------------------
 
@@ -319,6 +337,8 @@ df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deploy
 # First set the result units back to the original
 # This only converts deg C -> deg F and mg/l -> ug/l
 # Add others as needed. Only needed for Results worksheet.
+# Round results to 3 decimals.
+
 df.results.final <- df.results.final %>%
   dplyr::left_join(df1.results.units, by="row.results") %>%
   dplyr::mutate(Result.Value=dplyr::case_when(Result.Unit.orig=="deg F" ~ (Result.Value * (9 / 5)) + 32,
@@ -326,7 +346,8 @@ df.results.final <- df.results.final %>%
                                               TRUE ~ Result.Value),
                 Result.Unit=dplyr::case_when(Result.Unit.orig=="deg F" ~ "deg F",
                                              Result.Unit.orig=="ug/l" ~ "ug/l",
-                                             TRUE ~ Result.Unit)) %>%
+                                             TRUE ~ Result.Unit),
+                Result.Value=round(Result.Value, digits = 3)) %>%
   dplyr::select(-Result.Unit.orig) %>%
   dplyr::arrange(row.results) %>%
   as.data.frame()
