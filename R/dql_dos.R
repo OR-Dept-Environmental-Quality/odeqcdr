@@ -15,7 +15,7 @@ dql_dos <- function(df = results){
 if(!"Dissolved oxygen saturation" %in% df$Characteristic.Name){
 
   print("No DOs results. Returning dataframe.")
-  return(results)
+  return(df)
 } else {
 
 DOs_DQLs <- df %>%
