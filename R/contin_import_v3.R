@@ -21,13 +21,13 @@
 #'
 #' @param file The path and file name to template xlsx file.
 #' @param sheets Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
-#' Acceptable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "New_Equipment", "Results", "PrePost", and "Audit_Data".
+#' Acceptable values include "Organization_Details", "Projects", "Monitoring_Locations", "Deployment", "New_Equipment", "Results", "PrePost", and "Audit_Data".
 #' @seealso [readxl::read_excel()]
 #' @export
 #' @return list of each continuous template data
 
 contin_import_v3 <- function(file,
-                          sheets=c("Organization Details", "Projects", "Monitoring_Locations", "Deployment", "New_Equipment", "Results", "PrePost", "Audit_Data")) {
+                          sheets=c("Organization_Details", "Projects", "Monitoring_Locations", "Deployment", "New_Equipment", "Results", "PrePost", "Audit_Data")) {
 
   #library(readxl)
   #file <- "E:/GitHub/ContinuousDataReviewR/ContinuousTemplate_example.xlsx"

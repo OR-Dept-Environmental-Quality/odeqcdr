@@ -6,7 +6,7 @@
 \usage{
 contin_import(
   file,
-  sheets = c("Organization Details", "Projects", "Monitoring_Locations", "Deployment",
+  sheets = c("Organization_Details", "Projects", "Monitoring_Locations", "Deployment",
     "New_Equipment", "Results", "PrePost", "Audit_Data"),
   ver = 2,
   project = "ODEQVolMonWQProgram",

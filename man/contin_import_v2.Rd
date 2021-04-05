@@ -6,7 +6,7 @@
 \usage{
 contin_import_v2(
   file,
-  sheets = c("Organization Details", "Projects", "Monitoring_Locations", "Deployment",
+  sheets = c("Organization_Details", "Projects", "Monitoring_Locations", "Deployment",
     "Results", "PrePost", "Audit_Data")
 )
 }
@@ -14,7 +14,7 @@ contin_import_v2(
 \item{file}{The path and file name to template xlsx file.}
 
 \item{sheets}{Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
-Acceptable values include "Organization Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".}
+Acceptable values include "Organization_Details", "Projects", "Monitoring_Locations", "Deployment", "Results", "PrePost", and "Audit_Data".}
 }
 \value{
 list of each continuous template data
