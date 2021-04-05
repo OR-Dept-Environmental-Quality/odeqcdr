@@ -68,7 +68,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
                   precDQL=dplyr::case_when(diff.Result < prec_A & diff.minutes <=30 ~ "A",
                                             diff.Result < prec_B & diff.minutes <=30  ~ "B",
                                             diff.Result >= prec_B & diff.minutes <=30 ~ "C",
-                                            diff.minutes >30 ~ "E",
+                                            diff.minutes > 30 ~ "E",
                                             TRUE ~ "E")
                   ) %>%
     dplyr::ungroup() %>%
@@ -97,7 +97,7 @@ dql_precision <- function(audits, results, deployment, audits_only=FALSE) {
     unique()
 
   df.results.grade <- df.audits.grab.dql %>%
-    dplyr::filter(!Audit.Result.Status.ID=="Rejected") %>%
+    dplyr::filter(!Audit.Result.Status.ID=="Rejected" | diff.minutes > 30) %>%
     dplyr::select(Monitoring.Location.ID, Equipment.ID, Characteristic.Name,
                   Result.Value, Result.Unit, Result.datetime, DQL_prec=precDQL) %>%
     dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, Result.datetime) %>%
