@@ -8,12 +8,12 @@
 
 sumstats_DQL <-function(results, deployment, project_id) {
 
-  # Tests
-  load('test data/raw_testdtaa.Rdata')
-  results=df.results.final
-  deployment=df1.deployment
-  project_id=df0.projects$Project.ID
-  rm(df.results.final,df1.deployment, df0.projects)
+  # # Tests
+  # load('test data/raw_testdtaa.Rdata')
+  # results=df.results.final
+  # deployment=df1.deployment
+  # project_id=df0.projects$Project.ID
+  # rm(df.results.final,df1.deployment, df0.projects)
 
   # convert F to C, filter out rejected data, and create datetime column
   results_data <- results  %>%
@@ -430,7 +430,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
                   cmnt,
                   ActivityType,
                   Monitoring.Location.ID,
-                  QualifierAbbr,
+                  DQL,
                   SmplColMthd,
                   SmplColEquip,
                   SmplDepth,
