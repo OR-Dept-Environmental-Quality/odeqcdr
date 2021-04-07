@@ -143,13 +143,13 @@ sumstats_DQL <-function(results, deployment, project_id) {
             dplyr::filter(date <= end7 & date >= start7) %>%
             dplyr::filter(hrNday >= 22)
 
-          ma.mean7 <- case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMean),
+          ma.mean7 <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMean),
                                 nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ mean(station_7day$dyMean),
                                 max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ mean(station_7day$dyMean[station_7day$dyDQL %in% c("A", "B")]),
                                 nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~  mean(station_7day$dyMean),
                                 TRUE ~ NA_real_
                                 )
-          ma.mean7_DQL <- case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ "A",
+          ma.mean7_DQL <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ "A",
                                     nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ "B",
                                     max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ "B",
                                     nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~ "E",
@@ -157,7 +157,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
           )
 
 
-          ma.min7 <-  case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMin),
+          ma.min7 <-  dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMin),
                                 nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ mean(station_7day$dyMin),
                                 max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ mean(station_7day$dyMin[station_7day$dyDQL %in% c("A", "B")]),
                                 nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~  mean(station_7day$dyMin),
@@ -193,14 +193,14 @@ sumstats_DQL <-function(results, deployment, project_id) {
             dplyr::filter(date <= end30 & date >= start30) %>%
             dplyr::filter(hrNday >= 22)
 
-          ma.mean30 <-  case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~ mean(station_30day$dyMean),
+          ma.mean30 <-  dplyr::case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~ mean(station_30day$dyMean),
                                   nrow(subset(station_30day, dyDQL %in% c("A", 'B'))) >= 29 ~ mean(station_30day$dyMean),
                                   max(station_30day$dyDQL == 'E') & nrow(subset(station_30day, dyDQL %in% c("A", "B"))) >= 29  ~ mean(station_30day$dyMean[station_30day$dyDQL %in% c("A", "B")]),
                                   nrow(subset(station_30day, dyDQL %in% c("A", "B", "E"))) >= 29 ~  mean(station_30day$dyMean),
                                   TRUE ~ NA_real_
           )
 
-          ma.mean30_DQL <- case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~"A",
+          ma.mean30_DQL <- dplyr::case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~"A",
                                      nrow(subset(station_30day, dyDQL %in% c("A", 'B'))) >= 29 ~ "B",
                                      max(station_30day$dyDQL == 'E') & nrow(subset(station_30day, dyDQL %in% c("A", "B"))) >= 29  ~ "B",
                                      nrow(subset(station_30day, dyDQL %in% c("A", "B", "E"))) >= 29 ~ "E",
@@ -260,17 +260,17 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
 
           station_7day <- filter(daydat_station,
-                                 between(date, daydat_station[[l,'date']] - days(6), daydat_station[l,'date']))
+                                 dplyr::between(date, daydat_station[[l,'date']] - lubridate::days(6), daydat_station[l,'date']))
 
 
-          daydat_station[l,"ma.max7"] <- case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ mean(station_7day$dyMax),
+          daydat_station[l,"ma.max7"] <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ mean(station_7day$dyMax),
                                                    nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ mean(station_7day$dyMax),
                                                    max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ mean(station_7day$dyMax[station_7day$dyDQL %in% c("A", "B")]),
                                                    nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~  mean(station_7day$dyMax),
                                                    TRUE ~ NA_real_)
 
 
-          daydat_station[l, "ma.max7_DQL"] <-  case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ "A",
+          daydat_station[l, "ma.max7_DQL"] <-  dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ "A",
                                                          nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ "B",
                                                          max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ "B",
                                                          nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~ "E",
@@ -285,7 +285,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
       # Combine list to single dataframe
       sum_stats <- dplyr::bind_rows(monloc_temp_list) %>%
-        arrange(Monitoring.Location.ID, Equipment.ID, date)
+        dplyr::arrange(Monitoring.Location.ID, Equipment.ID, date)
 
 
 
