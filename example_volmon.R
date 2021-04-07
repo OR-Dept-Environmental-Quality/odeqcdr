@@ -363,7 +363,7 @@ df.results.final <- dplyr::filter(df7.results, deployed)
 
 # Generate Summary Stats -------------------------------------------------------
 
-df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
+df.sumstats <- odeqcdr::sumstats_DQL(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
 
 
 #- Output updated data back to xlsx template -----------------------------------
