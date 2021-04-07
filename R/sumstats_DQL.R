@@ -38,10 +38,11 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
   #create list for getting data out of loop
   monloc_do_list <- list()
+  monloc_temp_list <- list()
   sumstatlist <- list()
 
   # For loop for summary statistics -----------------------------------------
-
+  start_time <- Sys.time()
   # Loop goes through each characteristic and generates summary stats
   # After loop, data gets pushed in to single table
   for (i in 1:length(unique_characteritics)){
@@ -233,22 +234,61 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
     if (results_data_char$Characteristic.Name[1] == 'Temperature, water' ) {
 
-      # Temperature is much easier to calculate, since it needs a complete 7 day record to calculate the 7day moving average
-      # This can happen with a simple grouping
-      sum_stats <- daydat %>%
-        dplyr::arrange(Monitoring.Location.ID, date) %>%
-        dplyr::group_by(Monitoring.Location.ID) %>%
-        dplyr::mutate(startdate7 = dplyr::lag(date, 6, order_by = date),
-                      macmt = paste(dplyr::lag(ResultStatusID, 6),
-                                    dplyr::lag(ResultStatusID, 5),
-                                    dplyr::lag(ResultStatusID, 4),
-                                    dplyr::lag(ResultStatusID, 3),
-                                    dplyr::lag(ResultStatusID, 2),
-                                    dplyr::lag(ResultStatusID, 1)),
-                      # flag out which result gets a moving average calculated
-                      calc7ma = ifelse(startdate7 == (as.Date(date) - 6) & (!grepl("Rejected",macmt )), 1, 0 ))%>%
-        dplyr::mutate(ma.max7 = ifelse(calc7ma == 1 , round(zoo::rollmean(x = dyMax, 7, align = "right", fill = NA),2) , NA )) %>%
-        dplyr::select(-startdate7, -calc7ma, -macmt )
+
+
+      #monitoring location loop
+      for(j in 1:length(unique(daydat$Monitoring.Location.ID))){
+        print(paste("Station", j, "of", length(unique(daydat$Monitoring.Location.ID))))
+
+        station <- unique(daydat$Monitoring.Location.ID)[j]
+
+        #Filter dataset to only look at 1 monitoring location at a time
+        daydat_station <- daydat %>%
+          dplyr::filter(Monitoring.Location.ID == station)
+
+        # 7 day loop
+        # Loops through each row in the monitoring location dataset
+        # And pulls out records that are within the preceding 7 day window
+        # If there are at least 6 values, then calculate 7 day min and mean
+        # Assigns data back to daydat_station
+        print("Begin 7 day moving averages")
+
+
+
+        pb <- txtProgressBar(min = 0, max = nrow(daydat_station), style = 3)
+        for (l in seq_len(nrow(daydat_station))){
+
+
+          station_7day <- filter(daydat_station,
+                                 between(date, daydat_station[[l,'date']] - days(6), daydat_station[l,'date']))
+
+
+          daydat_station[l,"ma.max7"] <- case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ mean(station_7day$dyMax),
+                                                   nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ mean(station_7day$dyMax),
+                                                   max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ mean(station_7day$dyMax[station_7day$dyDQL %in% c("A", "B")]),
+                                                   nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~  mean(station_7day$dyMax),
+                                                   TRUE ~ NA_real_)
+
+
+          daydat_station[l, "ma.max7_DQL"] <-  case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ "A",
+                                                         nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ "B",
+                                                         max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ "B",
+                                                         nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~ "E",
+                                                         TRUE ~ NA_character_)
+          setTxtProgressBar(pb, l)
+
+        } #end of 7day loop
+        close(pb)
+
+        monloc_temp_list[[j]] <- daydat_station
+      } # end of monitoring location for loop
+
+      # Combine list to single dataframe
+      sum_stats <- dplyr::bind_rows(monloc_temp_list) %>%
+        arrange(Monitoring.Location.ID, Equipment.ID, date)
+
+
+
 
     } #end of temp if statement
 
@@ -270,7 +310,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
   } # end of characteristics for loop
 
-
+  Sys.time() - start_time
 
   # Bind list to dataframe
   sumstat <- dplyr::bind_rows(sumstatlist)
@@ -371,7 +411,13 @@ sumstats_DQL <-function(results, deployment, project_id) {
                   ActEndTimeZone = Activity.Start.End.Time.Zone,
                   AnaStartTimeZone = "",
                   AnaEndTimeZone = "",
-                  Result = round(Result, digits = 2)
+                  Result = round(Result, digits = 2),
+                  DQL = dplyr::case_when(StatisticalBasis %in% c("Daily Maximum", "Daily Minimum", "Daily Mean") ~ dyDQL,
+                                                   StatisticalBasis %in% c("7DMADMax") ~ ma.max7_DQL,
+                                                   StatisticalBasis %in% c("7DMADMin") ~ ma.min7_DQL,
+                                                   StatisticalBasis %in% c("7DMADMean") ~ ma.mean7_DQL,
+                                                   StatisticalBasis %in% c("30DMADMean") ~ ma.mean30_DQL,
+                                                   TRUE ~ NA_character_)
     ) %>%
     dplyr::select(charID,
                   Result,
@@ -384,6 +430,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
                   cmnt,
                   ActivityType,
                   Monitoring.Location.ID,
+                  QualifierAbbr,
                   SmplColMthd,
                   SmplColEquip,
                   SmplDepth,
