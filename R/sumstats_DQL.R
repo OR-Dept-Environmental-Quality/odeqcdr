@@ -23,7 +23,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
                   Result.Unit=dplyr::case_when(Result.Unit=="deg F" ~ "deg C",
                                                Result.Unit=="ug/l" ~ "mg/l",
                                                TRUE ~ Result.Unit)) %>%
-    dplyr::filter(Result.Status.ID != "Rejected" | rDQl != 'C') %>%
+    dplyr::filter(Result.Status.ID != "Rejected") %>%
     dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = 'UTC'),
                   datetime = lubridate::ymd_hms(paste(as.Date(Activity.Start.Date), time_char)),
                   Activity.Start.Date = as.Date(Activity.Start.Date)) %>%
