@@ -43,7 +43,7 @@
 #' 16.	Value in column Latitude is outside of Oregon
 #' 17.	Value in column Longitude is outside of Oregon
 #' 18.	Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'
-#' 19.	Value in column County.Name is NA but value in column State.Code=='OR'
+#' 19.	Value in column County.Name is NA but value in column State.Code = 'OR', 'WA', 'ID', 'CA', or 'NV'
 #' 20.	Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information
 #' 21.	Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information
 #' 22.	Missing value in column Reachcode
@@ -287,7 +287,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
                 "Value in column Latitude is outside of Oregon",
                 "Value in column Longitude is outside of Oregon",
                 "Value in column Source.Map.Scale is NA but column Coordinate.Collection.Method ='Interpolation-Map'",
-                "Value in column County.Name is NA but value in column State.Code=='OR'",
+                "Value in column County.Name is NA but value in column State.Code = 'OR', 'WA', 'ID', 'CA', or 'NV'",
                 "Missing value in column Alternate.Context.1 because column Alternate.ID.1 has information",
                 "Missing value in column Alternate.Context.2 because column Alternate.ID.2 has information",
                 "Missing value in column Reachcode",
@@ -314,7 +314,7 @@ pre_checks <- function(template_list=NULL, org=NULL, projects=NULL, mloc=NULL, d
                       (locations_import$Latitude < 41.8075 | locations_import$Latitude > 46.3586),
                       (locations_import$Longitude < -124.6155 | locations_import$Longitude > -116.3519),
                       (locations_import$Coordinate.Collection.Method=="Interpolation-Map" & is.na(locations_import$Source.Map.Scale)),
-                      !is.na(locations_import$County.Name) & !locations_import$State.Code=="OR",
+                      !is.na(locations_import$County.Name) & !locations_import$State.Code %in% c("OR","WA","ID","CA","NV"),
                       (!is.na(locations_import$Alternate.ID.1) & is.na(locations_import$Alternate.Context.1)),
                       (!is.na(locations_import$Alternate.ID.2) & is.na(locations_import$Alternate.Context.2)),
                       is.na(locations_import$Reachcode),
