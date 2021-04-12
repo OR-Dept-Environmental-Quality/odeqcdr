@@ -24,7 +24,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
                                                Result.Unit=="ug/l" ~ "mg/l",
                                                TRUE ~ Result.Unit)) %>%
     dplyr::filter(Result.Status.ID != "Rejected" | rDQL != 'C') %>%
-    dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = 'UTC'),
+    dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = lubridate::tz(Activity.Start.Time)),
                   datetime = lubridate::ymd_hms(paste(as.Date(Activity.Start.Date), time_char)),
                   Activity.Start.Date = as.Date(Activity.Start.Date)) %>%
     dplyr::left_join(deployment[,c("Monitoring.Location.ID", "Equipment.ID",
@@ -378,6 +378,7 @@ sumstats_DQL <-function(results, deployment, project_id) {
   #   dplyr::mutate(Equipment = as.character(Equipment)) %>%
   #   left_join(Audits_unique, by = c("Monitoring.Location.ID", "charID" = "Characteristic.Name") )
   AQWMS_sum_stat <- sumstat_long %>%
+    ungroup() %>%
     dplyr::mutate(RsltTimeBasis = dplyr::case_when(StatisticalBasis %in% c("7DMADMin", "7DMADMean", "7DMADMax") ~ "7 Day",
                                                    StatisticalBasis %in% c("30DMADMean") ~ "30 Day",
                                                    TRUE ~"1 Day"),
