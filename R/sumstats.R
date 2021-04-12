@@ -104,7 +104,7 @@ sumstats <-function(results, deployment, project_id) {
         daydat_station <- daydat %>%
           dplyr::filter(Monitoring.Location.ID == station) %>%
           dplyr::mutate(startdate7 = as.Date(date) - 6,
-                        startdate30 = as.Date(date) -30)
+                        startdate30 = as.Date(date) - 29)
 
         # 7 day loop
         # Loops through each row in the monitoring location dataset
