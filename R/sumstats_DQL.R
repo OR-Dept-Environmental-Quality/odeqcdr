@@ -25,8 +25,9 @@ sumstats_DQL <-function(results, deployment, project_id) {
                                                TRUE ~ Result.Unit)) %>%
     dplyr::filter(Result.Status.ID != "Rejected" | rDQL != 'C') %>%
     dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = lubridate::tz(Activity.Start.Time)),
-                  datetime = lubridate::ymd_hms(paste(as.Date(Activity.Start.Date), time_char)),
-                  Activity.Start.Date = as.Date(Activity.Start.Date)) %>%
+                  datetime =lubridate::ymd_hms(paste(as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time)), time_char)),
+                  Activity.Start.Date = as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time))
+                  ) %>%
     dplyr::left_join(deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                    "Characteristic.Name", "Sample.Depth", "Sample.Depth.Unit")],
                      by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
