@@ -170,6 +170,10 @@ sumstats_DQL <-function(results, deployment, project_id) {
           daydat_station[k,"ma.mean7_DQL"] <- ifelse(k >=7, ma.mean7_DQL, NA)
           daydat_station[k, "ma.min7"] <- ifelse(k >=7, ma.min7, NA)
           daydat_station[k, "ma.min7_DQL"] <- ifelse(k >=7, ma.mean7_DQL, NA)
+          daydat_station[k, "ana_startdate7"] <-  min(station_7day$dDTmin)
+          daydat_station[k, "ana_enddate7"] <-  max(station_7day$dDTmax)
+          daydat_station[k, "act_enddate7"] <-  max(station_7day$dDTmax)
+
 
 
           setTxtProgressBar(pb, k)
@@ -212,6 +216,10 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
           daydat_station[l,"ma.mean30"] <- ifelse(l >= 30, ma.mean30, NA)
           daydat_station[l,"ma.mean30_DQL"] <- ifelse(l >= 30, ma.mean30_DQL, NA)
+          daydat_station[l,"ana_startdate30"] <-  min(station_30day$dDTmin)
+          daydat_station[l,"ana_enddate30"] <-  max(station_30day$dDTmax)
+          daydat_station[l,"act_enddate30"] <-  max(station_30day$dDTmax)
+
 
           setTxtProgressBar(pb, l)
         } #end of 30day loop
@@ -275,6 +283,9 @@ sumstats_DQL <-function(results, deployment, project_id) {
                                                          max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ "B",
                                                          nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~ "E",
                                                          TRUE ~ NA_character_)
+          daydat_station[l, "ana_startdate7"] <-  min(station_7day$dDTmin)
+          daydat_station[l, "ana_enddate7"] <-  max(station_7day$dDTmax)
+          daydat_station[l, "act_enddate7"] <-  max(station_7day$dDTmax)
           setTxtProgressBar(pb, l)
 
         } #end of 7day loop
@@ -399,19 +410,27 @@ sumstats_DQL <-function(results, deployment, project_id) {
                   Equipment = Equipment.ID,
                   r_units = Result.Unit,
                   Project = project_id,
-                  AnaStartDate = "",
-                  AnaStartTime = "",
-                  AnaEndDate = "",
-                  AnaEndTime = "",
-                  ActStartDate = format(dDTmax, "%Y-%m-%d"),
-                  ActStartTime = format(dDTmax, "%H:%M"),
-                  ActEndDate = format(dDTmax, "%Y-%m-%d"),
-                  ActEndTime = format(dDTmax, "%H:%M"),
+                  AnaStartDate = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmin, format="%Y-%m-%d"),
+                                           RsltTimeBasis == "7 Day" ~ format(ana_startdate7, format="%Y-%m-%d"),
+                                           RsltTimeBasis == "30 Day" ~ format(ana_startdate30, format="%Y-%m-%d")),
+                  AnaStartTime = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmin, format="%H:%M:%S"),
+                                           RsltTimeBasis == "7 Day" ~ format(ana_startdate7, format="%H:%M:%S"),
+                                           RsltTimeBasis == "30 Day" ~ format(ana_startdate30, format="%H:%M:%S")),
+                  AnaEndDate = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmax, format="%Y-%m-%d"),
+                                         RsltTimeBasis == "7 Day" ~ format(ana_enddate7, format="%Y-%m-%d"),
+                                         RsltTimeBasis == "30 Day" ~ format(ana_enddate30, format="%Y-%m-%d")),
+                  AnaEndTime = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmax, format="%H:%M:%S"),
+                                         RsltTimeBasis == "7 Day" ~ format(ana_enddate7, format="%H:%M:%S"),
+                                         RsltTimeBasis == "30 Day" ~ format(ana_enddate30, format="%H:%M:%S")),
+                  ActStartDate = date,
+                  ActStartTime = "0:00",
+                  ActEndDate = AnaEndDate,
+                  ActEndTime = AnaEndTime,
                   RsltType = "Calculated",
                   ActStartTimeZone = Activity.Start.End.Time.Zone,
                   ActEndTimeZone = Activity.Start.End.Time.Zone,
-                  AnaStartTimeZone = "",
-                  AnaEndTimeZone = "",
+                  AnaStartTimeZone = Activity.Start.End.Time.Zone,
+                  AnaEndTimeZone = Activity.Start.End.Time.Zone,
                   Result = round(Result, digits = 2),
                   DQL = dplyr::case_when(StatisticalBasis %in% c("Daily Maximum", "Daily Minimum", "Daily Mean") ~ dyDQL,
                                                    StatisticalBasis %in% c("7DMADMax") ~ ma.max7_DQL,
