@@ -253,7 +253,8 @@ sumstats_DQL <-function(results, deployment, project_id) {
 
         #Filter dataset to only look at 1 monitoring location at a time
         daydat_station <- daydat %>%
-          dplyr::filter(Monitoring.Location.ID == station)
+          dplyr::filter(Monitoring.Location.ID == station)%>%
+          dplyr::filter(hrNday >= 22)
 
         # 7 day loop
         # Loops through each row in the monitoring location dataset
