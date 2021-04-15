@@ -1,17 +1,18 @@
-#' Generate AWQMS Summary Stats Upload File
+#' Generate AWQMS Summary Stats- with DQLs Upload File
 #'
-#' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
-#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()].
-#' @param project_id Unique Project ID from the projects data frame generated using  [odeqcdr::contin_import()]. Only accepts one project ID.
+#' @param results Data frame of the results data generated using [odeqcdr::contin_volmon_import()].
+#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_volmon_import()].
+#' @param project_id Unique Project ID from the projects data frame generated using  [odeqcdr::contin_volmon_import()]. Only accepts one project ID.
 #' @export
 #' @return returned data frame.
 
 sumstats <-function(results, deployment, project_id) {
 
-  # Tests
-  #results=df.results.final
-  #deployment=df1.deployment
-  #project_id=df0.projects$Project.ID
+  # Testing parameters
+  # results=df.results.final
+  # deployment=df1.deployment
+  # project_id=df0.projects$Project.ID
+
 
   # convert F to C, filter out rejected data, and create datetime column
   results_data <- results  %>%
@@ -21,10 +22,11 @@ sumstats <-function(results, deployment, project_id) {
                   Result.Unit=dplyr::case_when(Result.Unit=="deg F" ~ "deg C",
                                                Result.Unit=="ug/l" ~ "mg/l",
                                                TRUE ~ Result.Unit)) %>%
-    dplyr::filter(Result.Status.ID != "Rejected") %>%
-    dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = 'UTC'),
-                  datetime = lubridate::ymd_hms(paste(as.Date(Activity.Start.Date), time_char)),
-                  Activity.Start.Date = as.Date(Activity.Start.Date)) %>%
+    dplyr::filter(Result.Status.ID != "Rejected" | rDQL != 'C') %>%
+    dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = lubridate::tz(Activity.Start.Time)),
+                  datetime =lubridate::ymd_hms(paste(as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time)), time_char)),
+                  Activity.Start.Date = as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time))
+                  ) %>%
     dplyr::left_join(deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                    "Characteristic.Name", "Sample.Depth", "Sample.Depth.Unit")],
                      by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
@@ -36,10 +38,11 @@ sumstats <-function(results, deployment, project_id) {
 
   #create list for getting data out of loop
   monloc_do_list <- list()
+  monloc_temp_list <- list()
   sumstatlist <- list()
 
   # For loop for summary statistics -----------------------------------------
-
+  start_time <- Sys.time()
   # Loop goes through each characteristic and generates summary stats
   # After loop, data gets pushed in to single table
   for (i in 1:length(unique_characteritics)){
@@ -64,7 +67,8 @@ sumstats <-function(results, deployment, project_id) {
                        hrN = sum(!is.na(Result.Value)),
                        hrMean = mean(Result.Value, na.rm=TRUE),
                        hrMin = min(Result.Value, na.rm=TRUE),
-                       hrMax = max(Result.Value, na.rm=TRUE))
+                       hrMax = max(Result.Value, na.rm=TRUE),
+                       hrDQL  = max(rDQL, na.rm = TRUE))
 
 
     # For each date, how many hours have hrN > 0
@@ -78,17 +82,34 @@ sumstats <-function(results, deployment, project_id) {
                        dDTmax = max(hrDTmax),
                        hrNday = length(hrN),
                        dyN = sum(hrN),
-                       dyMean = mean(hrMean, na.rm=TRUE),
-                       dyMin = min(hrMin, na.rm=TRUE),
-                       dyMax = max(hrMax, na.rm=TRUE)) %>%
+                       dyMean = dplyr::case_when(length(hrNday[hrDQL %in% c('A', 'B')]) >= 22 ~ mean(hrMean[hrDQL %in% c('A', 'B')], na.rm=TRUE),
+                                                 length(hrNday[hrDQL %in% c('A', 'B', 'E')]) >= 22 ~  mean(hrMean[hrDQL %in% c('A', 'B', 'E')], na.rm=TRUE),
+                                                 TRUE ~ mean(hrMean, na.rm=TRUE)
+                                                 ),
+                       dyMin = dplyr::case_when(length(hrNday[hrDQL %in% c('A', 'B')]) >= 22 ~ min(hrMin[hrDQL %in% c('A', 'B')], na.rm=TRUE),
+                                                 length(hrNday[hrDQL %in% c('A', 'B', 'E')]) >= 22 ~  min(hrMin[hrDQL %in% c('A', 'B', 'E')], na.rm=TRUE),
+                                                 TRUE ~ min(hrMin, na.rm=TRUE)
+                       ),
+                       dyMax = dplyr::case_when(length(hrNday[hrDQL %in% c('A', 'B')]) >= 22 ~ max(hrMax[hrDQL %in% c('A', 'B')], na.rm=TRUE),
+                                                length(hrNday[hrDQL %in% c('A', 'B', 'E')]) >= 22 ~  max(hrMax[hrDQL %in% c('A', 'B', 'E')], na.rm=TRUE),
+                                                TRUE ~ max(hrMax, na.rm=TRUE)
+                       ),
+                       dyDQL = dplyr::case_when(length(hrNday[hrDQL == 'A']) >= 24 ~ 'A',
+                                                length(hrNday[hrDQL %in% c('A', 'B')]) >= 22 ~ 'B',
+                                                length(hrNday[hrDQL %in% c('A', 'B', 'E')]) >= 22 ~ 'E'
+                                                )) %>%
       dplyr::mutate(ResultStatusID = dplyr::if_else(hrNday >= 22, 'Final', "Rejected"),
                     cmnt = dplyr::case_when(hrNday >= 22 ~ "Generated by ORDEQ",
                                             hrNday <= 22 & hrNday >= 20 ~ paste0("Generated by ORDEQ; Estimated - ", as.character(hrNday), ' hrs with valid data in day'),
                                             TRUE ~ paste0("Generated by ORDEQ; Rejected - ", as.character(hrNday), ' hrs with valid data in day')),
                     ma.mean7 = as.numeric(""),
+                    ma.mean7_DQL = as.character(""),
                     ma.min7 = as.numeric(""),
+                    ma.min7_DQL = as.character(""),
                     ma.mean30 = as.numeric(""),
-                    ma.max7 = as.numeric(""))
+                    ma.mean30_DQL = as.character(""),
+                    ma.max7 = as.numeric(""),
+                    ma.max7_DQL = as.character(""))
 
 
     #Deal with DO Results
@@ -96,15 +117,18 @@ sumstats <-function(results, deployment, project_id) {
 
       #monitoring location loop
       for(j in 1:length(unique(daydat$Monitoring.Location.ID))){
-        print(paste("Station", j, "of", length(unique(daydat$Monitoring.Location.ID))))
 
-        station <- unique(daydat$Monitoring.Location.ID)[j]
+        equipment <- unique(daydat$Equipment.ID)[j]
+
+        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$Equipment.ID))))
 
         #Filter dataset to only look at 1 monitoring location at a time
         daydat_station <- daydat %>%
-          dplyr::filter(Monitoring.Location.ID == station) %>%
+          dplyr::filter(Equipment.ID == equipment)%>%
+          dplyr::filter(hrNday >= 22)%>%
           dplyr::mutate(startdate7 = as.Date(date) - 6,
-                        startdate30 = as.Date(date) -30)
+                        startdate30 = as.Date(date) - 29)
+
 
         # 7 day loop
         # Loops through each row in the monitoring location dataset
@@ -122,11 +146,37 @@ sumstats <-function(results, deployment, project_id) {
             dplyr::filter(date <= end7 & date >= start7) %>%
             dplyr::filter(hrNday >= 22)
 
-          ma.mean7 <- ifelse(length(unique(station_7day$date)) >= 6, mean(station_7day$dyMean), NA )
-          ma.min7 <- ifelse(length(unique(station_7day$date)) >= 6, mean(station_7day$dyMin), NA )
+          ma.mean7 <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMean),
+                                nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ mean(station_7day$dyMean),
+                                max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ mean(station_7day$dyMean[station_7day$dyDQL %in% c("A", "B")]),
+                                nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~  mean(station_7day$dyMean),
+                                TRUE ~ NA_real_
+                                )
+          ma.mean7_DQL <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ "A",
+                                    nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ "B",
+                                    max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ "B",
+                                    nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~ "E",
+                                    TRUE ~ NA_character_
+          )
+
+
+          ma.min7 <-  dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A"))) == 7 ~ mean(station_7day$dyMin),
+                                nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 ~ mean(station_7day$dyMin),
+                                max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  ~ mean(station_7day$dyMin[station_7day$dyDQL %in% c("A", "B")]),
+                                nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 ~  mean(station_7day$dyMin),
+                                TRUE ~ NA_real_
+          )
+
+
 
           daydat_station[k,"ma.mean7"] <- ifelse(k >=7, ma.mean7, NA)
+          daydat_station[k,"ma.mean7_DQL"] <- ifelse(k >=7, ma.mean7_DQL, NA)
           daydat_station[k, "ma.min7"] <- ifelse(k >=7, ma.min7, NA)
+          daydat_station[k, "ma.min7_DQL"] <- ifelse(k >=7, ma.mean7_DQL, NA)
+          daydat_station[k, "ana_startdate7"] <-  min(station_7day$dDTmin)
+          daydat_station[k, "ana_enddate7"] <-  max(station_7day$dDTmax)
+          daydat_station[k, "act_enddate7"] <-  max(station_7day$dDTmax)
+
 
 
           setTxtProgressBar(pb, k)
@@ -150,10 +200,30 @@ sumstats <-function(results, deployment, project_id) {
             dplyr::filter(date <= end30 & date >= start30) %>%
             dplyr::filter(hrNday >= 22)
 
-          ma.mean30 <- ifelse(length(unique(station_30day$date)) >= 29, mean(station_30day$dyMean), NA )
+          ma.mean30 <-  dplyr::case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~ mean(station_30day$dyMean),
+                                  nrow(subset(station_30day, dyDQL %in% c("A", 'B'))) >= 29 ~ mean(station_30day$dyMean),
+                                  max(station_30day$dyDQL == 'E') & nrow(subset(station_30day, dyDQL %in% c("A", "B"))) >= 29  ~ mean(station_30day$dyMean[station_30day$dyDQL %in% c("A", "B")]),
+                                  nrow(subset(station_30day, dyDQL %in% c("A", "B", "E"))) >= 29 ~  mean(station_30day$dyMean),
+                                  TRUE ~ NA_real_
+          )
+
+          ma.mean30_DQL <- dplyr::case_when(nrow(subset(station_30day, dyDQL %in% c("A"))) == 30 ~"A",
+                                     nrow(subset(station_30day, dyDQL %in% c("A", 'B'))) >= 29 ~ "B",
+                                     max(station_30day$dyDQL == 'E') & nrow(subset(station_30day, dyDQL %in% c("A", "B"))) >= 29  ~ "B",
+                                     nrow(subset(station_30day, dyDQL %in% c("A", "B", "E"))) >= 29 ~ "E",
+                                     TRUE ~ NA_character_
+          )
+
+
 
 
           daydat_station[l,"ma.mean30"] <- ifelse(l >= 30, ma.mean30, NA)
+          daydat_station[l,"ma.mean30_DQL"] <- ifelse(l >= 30, ma.mean30_DQL, NA)
+          daydat_station[l,"ana_startdate30"] <-  min(station_30day$dDTmin)
+          daydat_station[l,"ana_enddate30"] <-  max(station_30day$dDTmax)
+          daydat_station[l,"act_enddate30"] <-  max(station_30day$dDTmax)
+
+
           setTxtProgressBar(pb, l)
         } #end of 30day loop
 
@@ -175,22 +245,66 @@ sumstats <-function(results, deployment, project_id) {
 
     if (results_data_char$Characteristic.Name[1] == 'Temperature, water' ) {
 
-      # Temperature is much easier to calculate, since it needs a complete 7 day record to calculate the 7day moving average
-      # This can happen with a simple grouping
-      sum_stats <- daydat %>%
-        dplyr::arrange(Monitoring.Location.ID, date) %>%
-        dplyr::group_by(Monitoring.Location.ID) %>%
-        dplyr::mutate(startdate7 = dplyr::lag(date, 6, order_by = date),
-                      macmt = paste(dplyr::lag(ResultStatusID, 6),
-                                    dplyr::lag(ResultStatusID, 5),
-                                    dplyr::lag(ResultStatusID, 4),
-                                    dplyr::lag(ResultStatusID, 3),
-                                    dplyr::lag(ResultStatusID, 2),
-                                    dplyr::lag(ResultStatusID, 1)),
-                      # flag out which result gets a moving average calculated
-                      calc7ma = ifelse(startdate7 == (as.Date(date) - 6) & (!grepl("Rejected",macmt )), 1, 0 ))%>%
-        dplyr::mutate(ma.max7 = ifelse(calc7ma == 1 , round(zoo::rollmean(x = dyMax, 7, align = "right", fill = NA),2) , NA )) %>%
-        dplyr::select(-startdate7, -calc7ma, -macmt )
+
+
+      #monitoring location loop
+      for(j in 1:length(unique(daydat$Monitoring.Location.ID))){
+        equipment <- unique(daydat$Equipment.ID)[j]
+
+        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$Equipment.ID))))
+
+        #Filter dataset to only look at 1 monitoring location at a time
+        daydat_station <- daydat %>%
+          dplyr::filter(Equipment.ID == equipment)%>%
+          dplyr::filter(hrNday >= 22)
+
+
+        # 7 day loop
+        # Loops through each row in the monitoring location dataset
+        # And pulls out records that are within the preceding 7 day window
+        # If there are at least 6 values, then calculate 7 day min and mean
+        # Assigns data back to daydat_station
+        print("Begin 7 day moving averages")
+
+
+
+        pb <- txtProgressBar(min = 0, max = nrow(daydat_station), style = 3)
+        for (l in seq_len(nrow(daydat_station))){
+
+
+          station_7day <- filter(daydat_station,
+                                 dplyr::between(date, daydat_station[[l,'date']] - lubridate::days(6), daydat_station[l,'date']))
+
+
+          daydat_station[l,"ma.max7"] <- dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ mean(station_7day$dyMax),
+                                                   nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ mean(station_7day$dyMax),
+                                                   max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ mean(station_7day$dyMax[station_7day$dyDQL %in% c("A", "B")]),
+                                                   nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~  mean(station_7day$dyMax),
+                                                   TRUE ~ NA_real_)
+
+
+          daydat_station[l, "ma.max7_DQL"] <-  dplyr::case_when(nrow(subset(station_7day, dyDQL %in% c("A")))== 7 & l >=7  ~ "A",
+                                                         nrow(subset(station_7day, dyDQL %in% c("A", 'B'))) >= 6 & l >=7~ "B",
+                                                         max(station_7day$dyDQL == 'E') & nrow(subset(station_7day, dyDQL %in% c("A", "B"))) >= 6  & l >=7 ~ "B",
+                                                         nrow(subset(station_7day, dyDQL %in% c("A", "B", "E"))) >= 6 & l >=7~ "E",
+                                                         TRUE ~ NA_character_)
+          daydat_station[l, "ana_startdate7"] <-  min(station_7day$dDTmin)
+          daydat_station[l, "ana_enddate7"] <-  max(station_7day$dDTmax)
+          daydat_station[l, "act_enddate7"] <-  max(station_7day$dDTmax)
+          setTxtProgressBar(pb, l)
+
+        } #end of 7day loop
+        close(pb)
+
+        monloc_temp_list[[j]] <- daydat_station
+      } # end of monitoring location for loop
+
+      # Combine list to single dataframe
+      sum_stats <- dplyr::bind_rows(monloc_temp_list) %>%
+        dplyr::arrange(Monitoring.Location.ID, Equipment.ID, date)
+
+
+
 
     } #end of temp if statement
 
@@ -212,7 +326,7 @@ sumstats <-function(results, deployment, project_id) {
 
   } # end of characteristics for loop
 
-
+  Sys.time() - start_time
 
   # Bind list to dataframe
   sumstat <- dplyr::bind_rows(sumstatlist)
@@ -280,6 +394,7 @@ sumstats <-function(results, deployment, project_id) {
   #   dplyr::mutate(Equipment = as.character(Equipment)) %>%
   #   left_join(Audits_unique, by = c("Monitoring.Location.ID", "charID" = "Characteristic.Name") )
   AQWMS_sum_stat <- sumstat_long %>%
+    ungroup() %>%
     dplyr::mutate(RsltTimeBasis = dplyr::case_when(StatisticalBasis %in% c("7DMADMin", "7DMADMean", "7DMADMax") ~ "7 Day",
                                                    StatisticalBasis %in% c("30DMADMean") ~ "30 Day",
                                                    TRUE ~"1 Day"),
@@ -300,20 +415,34 @@ sumstats <-function(results, deployment, project_id) {
                   Equipment = Equipment.ID,
                   r_units = Result.Unit,
                   Project = project_id,
-                  AnaStartDate = "",
-                  AnaStartTime = "",
-                  AnaEndDate = "",
-                  AnaEndTime = "",
-                  ActStartDate = format(dDTmax, "%Y-%m-%d"),
-                  ActStartTime = format(dDTmax, "%H:%M"),
-                  ActEndDate = format(dDTmax, "%Y-%m-%d"),
-                  ActEndTime = format(dDTmax, "%H:%M"),
+                  AnaStartDate = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmin, format="%Y-%m-%d"),
+                                           RsltTimeBasis == "7 Day" ~ format(ana_startdate7, format="%Y-%m-%d"),
+                                           RsltTimeBasis == "30 Day" ~ format(ana_startdate30, format="%Y-%m-%d")),
+                  AnaStartTime = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmin, format="%H:%M:%S"),
+                                           RsltTimeBasis == "7 Day" ~ format(ana_startdate7, format="%H:%M:%S"),
+                                           RsltTimeBasis == "30 Day" ~ format(ana_startdate30, format="%H:%M:%S")),
+                  AnaEndDate = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmax, format="%Y-%m-%d"),
+                                         RsltTimeBasis == "7 Day" ~ format(ana_enddate7, format="%Y-%m-%d"),
+                                         RsltTimeBasis == "30 Day" ~ format(ana_enddate30, format="%Y-%m-%d")),
+                  AnaEndTime = case_when(RsltTimeBasis == "1 Day" ~ format(dDTmax, format="%H:%M:%S"),
+                                         RsltTimeBasis == "7 Day" ~ format(ana_enddate7, format="%H:%M:%S"),
+                                         RsltTimeBasis == "30 Day" ~ format(ana_enddate30, format="%H:%M:%S")),
+                  ActStartDate = date,
+                  ActStartTime = "0:00",
+                  ActEndDate = AnaEndDate,
+                  ActEndTime = AnaEndTime,
                   RsltType = "Calculated",
                   ActStartTimeZone = Activity.Start.End.Time.Zone,
                   ActEndTimeZone = Activity.Start.End.Time.Zone,
-                  AnaStartTimeZone = "",
-                  AnaEndTimeZone = "",
-                  Result = round(Result, digits = 2)
+                  AnaStartTimeZone = Activity.Start.End.Time.Zone,
+                  AnaEndTimeZone = Activity.Start.End.Time.Zone,
+                  Result = round(Result, digits = 2),
+                  DQL = dplyr::case_when(StatisticalBasis %in% c("Daily Maximum", "Daily Minimum", "Daily Mean") ~ dyDQL,
+                                                   StatisticalBasis %in% c("7DMADMax") ~ ma.max7_DQL,
+                                                   StatisticalBasis %in% c("7DMADMin") ~ ma.min7_DQL,
+                                                   StatisticalBasis %in% c("7DMADMean") ~ ma.mean7_DQL,
+                                                   StatisticalBasis %in% c("30DMADMean") ~ ma.mean30_DQL,
+                                                   TRUE ~ NA_character_)
     ) %>%
     dplyr::select(charID,
                   Result,
@@ -326,6 +455,7 @@ sumstats <-function(results, deployment, project_id) {
                   cmnt,
                   ActivityType,
                   Monitoring.Location.ID,
+                  DQL,
                   SmplColMthd,
                   SmplColEquip,
                   SmplDepth,
