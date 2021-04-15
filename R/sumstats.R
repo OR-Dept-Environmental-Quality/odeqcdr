@@ -1,8 +1,14 @@
-#' Generate AWQMS Summary Stats- with DQLs Upload File
+#' Generate AWQMS Summary Stats
 #'
-#' @param results Data frame of the results data generated using [odeqcdr::contin_volmon_import()].
-#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_volmon_import()].
-#' @param project_id Unique Project ID from the projects data frame generated using  [odeqcdr::contin_volmon_import()]. Only accepts one project ID.
+#' Calculates summary statistics and DQLs. Returns a data frame formatted for AWQMS upload.
+#' Summary statistics calculated include the Daily Maximum, Daily Minimum, Daily Mean,
+#' 7-day mean of the daily minimums (7DMADMin), 7-day mean of the daily mean (7DMADMean),
+#' 7-day mean of the daily maximums (7DMADMax),
+#' and the 30-day mean of the daily mean (30DMADMean). Rolling means are trailing means reported on the last day of the 7-day or 30-day period.
+#'
+#' @param results Data frame of the results data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
+#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
+#' @param project_id Unique Project ID from the projects data frame generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()]. Only accepts one project ID.
 #' @export
 #' @return returned data frame.
 

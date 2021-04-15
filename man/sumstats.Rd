@@ -2,20 +2,24 @@
 % Please edit documentation in R/sumstats.R
 \name{sumstats}
 \alias{sumstats}
-\title{Generate AWQMS Summary Stats- with DQLs Upload File}
+\title{Generate AWQMS Summary Stats}
 \usage{
 sumstats(results, deployment, project_id)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
 
-\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
+\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
 
-\item{project_id}{Unique Project ID from the projects data frame generated using  \code{\link[=contin_volmon_import]{contin_volmon_import()}}. Only accepts one project ID.}
+\item{project_id}{Unique Project ID from the projects data frame generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}. Only accepts one project ID.}
 }
 \value{
 returned data frame.
 }
 \description{
-Generate AWQMS Summary Stats- with DQLs Upload File
+Calculates summary statistics and DQLs. Returns a data frame formatted for AWQMS upload.
+Summary statistics calculated include the Daily Maximum, Daily Minimum, Daily Mean,
+7-day mean of the daily minimums (7DMADMin), 7-day mean of the daily mean (7DMADMean),
+7-day mean of the daily maximums (7DMADMax),
+and the 30-day mean of the daily mean (30DMADMean). Rolling means are trailing means reported on the last day of the 7-day or 30-day period.
 }
