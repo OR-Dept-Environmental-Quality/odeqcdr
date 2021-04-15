@@ -354,37 +354,6 @@ sumstats <-function(results, deployment, project_id) {
     ) %>%
     dplyr::arrange(Monitoring.Location.ID, Equipment.ID, charID, date)
 
-
-  # Audit Data ---------------------------------------------------------
-
-  #
-  # # get rid of extra blankfields
-  # Audits <- Audit_import %>%
-  #   dplyr::filter(!is.na(Project.ID))
-  #
-  # # table of methods unique to project, location, equipment, char, and method
-  # Audits_unique <- unique(Audits[c("Project.ID", "Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name", "Result.Analytical.Method.ID")])
-  #
-  #
-  #
-  # # Reformat Audit info
-  # matches Dan Brown's import configuration
-  # If template has Result.Qualifier as column, use that value, if not use blank.
-  # Audit_info <- Audits %>%
-  #   dplyr::mutate(Result.Qualifier = ifelse("Result.Qualifier" %in% colnames(Audits), Result.Qualifier, "" ),
-  #          Activity.Start.Time = as.character(strftime(Activity.Start.Time, format = "%H:%M:%S", tz = "UTC")),
-  #          Activity.End.Time = as.character(strftime(Activity.End.Time, format = "%H:%M:%S", tz = "UTC")) ) %>%
-  #   dplyr::select(Project.ID, Monitoring.Location.ID, Activity.Start.Date,
-  #          Activity.Start.Time, Activity.End.Date, Activity.End.Time,
-  #          Activity.Start.End.Time.Zone, Activity.Type,
-  #          Activity.ID..Column.Locked., Equipment.ID, Sample.Collection.Method,
-  #          Characteristic.Name, Result.Value, Result.Unit, Result.Analytical.Method.ID,
-  #          Result.Analytical.Method.Context, Result.Value.Type, Result.Status.ID,
-  #          Result.Qualifier, Result.Comment)
-
-  #Write excel file for AWQMS import
-  #write.xlsx(Audit_info, file = paste0(tools::file_path_sans_ext(filepath),"-Audits.xlsx") )
-
   # AWQMS summary stats -----------------------------------------------------
 
 
