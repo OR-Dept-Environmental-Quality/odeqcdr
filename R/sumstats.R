@@ -40,7 +40,8 @@ sumstats <-function(results, deployment, project_id) {
     dplyr::left_join(deployment[,c("Monitoring.Location.ID", "Equipment.ID",
                                    "Characteristic.Name", "Sample.Depth", "Sample.Depth.Unit")],
                      by=c("Monitoring.Location.ID", "Equipment.ID", "Characteristic.Name")) %>%
-    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime)
+    dplyr::arrange(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, datetime) %>%
+    dplyr::mutate(mloc_equip = paste0(Monitoring.Location.ID, ":", Equipment.ID))
 
 
   # get unique list of characteristics to run for loop through
@@ -70,7 +71,7 @@ sumstats <-function(results, deployment, project_id) {
 
     # Simplify to hourly values and Stats
     hrsum <- results_data_char %>%
-      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Sample.Depth, Sample.Depth.Unit, hr, Result.Unit, Activity.Start.End.Time.Zone) %>%
+      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Sample.Depth, Sample.Depth.Unit, hr, Result.Unit, Activity.Start.End.Time.Zone, mloc_equip) %>%
       dplyr::summarise(date = mean(Activity.Start.Date),
                        hrDTmin = min(datetime),
                        hrDTmax = max(datetime),
@@ -87,7 +88,7 @@ sumstats <-function(results, deployment, project_id) {
 
     # Summarise to daily statistics
     daydat <- hrdat %>%
-      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Sample.Depth, Sample.Depth.Unit, date, Result.Unit, Activity.Start.End.Time.Zone) %>%
+      dplyr::group_by(Monitoring.Location.ID, Equipment.ID, Sample.Depth, Sample.Depth.Unit, date, Result.Unit, Activity.Start.End.Time.Zone, mloc_equip) %>%
       dplyr::summarise(dDTmin = min(hrDTmin),
                        dDTmax = max(hrDTmax),
                        hrNday = length(hrN),
@@ -126,15 +127,15 @@ sumstats <-function(results, deployment, project_id) {
     if (results_data_char$Characteristic.Name[1] == "Dissolved oxygen (DO)") {
 
       #monitoring location loop
-      for(j in 1:length(unique(daydat$Monitoring.Location.ID))){
+      for(j in 1:length(unique(daydat$mloc_equip))){
 
-        equipment <- unique(daydat$Equipment.ID)[j]
+        equipment <- unique(daydat$mloc_equip)[j]
 
-        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$Equipment.ID))))
+        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$mloc_equip))))
 
         #Filter dataset to only look at 1 monitoring location at a time
         daydat_station <- daydat %>%
-          dplyr::filter(Equipment.ID == equipment)%>%
+          dplyr::filter(mloc_equip == equipment)%>%
           dplyr::filter(hrNday >= 22)%>%
           dplyr::mutate(startdate7 = as.Date(date) - 6,
                         startdate30 = as.Date(date) - 29)
@@ -257,14 +258,14 @@ sumstats <-function(results, deployment, project_id) {
 
 
       #monitoring location loop
-      for(j in 1:length(unique(daydat$Monitoring.Location.ID))){
-        equipment <- unique(daydat$Equipment.ID)[j]
+      for(j in 1:length(unique(daydat$mloc_equip))){
+        equipment <- unique(daydat$mloc_equip)[j]
 
-        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$Equipment.ID))))
+        print(paste("Equipment ID:",equipment, "-", j, "of", length(unique(daydat$mloc_equip))))
 
         #Filter dataset to only look at 1 monitoring location at a time
         daydat_station <- daydat %>%
-          dplyr::filter(Equipment.ID == equipment)%>%
+          dplyr::filter(mloc_equip == equipment)%>%
           dplyr::filter(hrNday >= 22)
 
 
