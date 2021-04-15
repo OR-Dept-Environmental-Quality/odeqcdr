@@ -2,20 +2,20 @@
 % Please edit documentation in R/sumstats.R
 \name{sumstats}
 \alias{sumstats}
-\title{Generate AWQMS Summary Stats Upload File}
+\title{Generate AWQMS Summary Stats- with DQLs Upload File}
 \usage{
 sumstats(results, deployment, project_id)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
 
-\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
 
-\item{project_id}{Unique Project ID from the projects data frame generated using  \code{\link[=contin_import]{contin_import()}}. Only accepts one project ID.}
+\item{project_id}{Unique Project ID from the projects data frame generated using  \code{\link[=contin_volmon_import]{contin_volmon_import()}}. Only accepts one project ID.}
 }
 \value{
 returned data frame.
 }
 \description{
-Generate AWQMS Summary Stats Upload File
+Generate AWQMS Summary Stats- with DQLs Upload File
 }
