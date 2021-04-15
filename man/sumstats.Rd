@@ -2,7 +2,7 @@
 % Please edit documentation in R/sumstats.R
 \name{sumstats}
 \alias{sumstats}
-\title{Generate AWQMS Summary Stats}
+\title{Generate AWQMS Summary Statistics}
 \usage{
 sumstats(results, deployment, project_id)
 }
@@ -18,8 +18,14 @@ returned data frame.
 }
 \description{
 Calculates summary statistics and DQLs. Returns a data frame formatted for AWQMS upload.
-Summary statistics calculated include the Daily Maximum, Daily Minimum, Daily Mean,
-7-day mean of the daily minimums (7DMADMin), 7-day mean of the daily mean (7DMADMean),
-7-day mean of the daily maximums (7DMADMax),
-and the 30-day mean of the daily mean (30DMADMean). Rolling means are trailing means reported on the last day of the 7-day or 30-day period.
+}
+\details{
+Summary statistics calculated include:
+\itemize{
+\item Temperature, water: Daily Maximum, Daily Minimum, Daily Mean, and 7-day mean of the daily maximums (7DMADMax);
+\item Dissolved oxygen (DO): Daily Maximum, Daily Minimum, Daily Mean, 7-day mean of the daily minimums (7DMADMin), 7-day mean of the daily mean (7DMADMean), and 30-day mean of the daily mean (30DMADMean);
+\item All others: Daily Maximum, Daily Minimum, and Daily Mean
+}
+
+Rolling means are trailing means reported on the last day of the 7-day or 30-day period.
 }
