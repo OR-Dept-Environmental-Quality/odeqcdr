@@ -301,10 +301,19 @@ sumstats <-function(results, deployment, project_id) {
           daydat_station[l, "ana_startdate7"] <-  min(station_7day$dDTmin)
           daydat_station[l, "ana_enddate7"] <-  max(station_7day$dDTmax)
           daydat_station[l, "act_enddate7"] <-  max(station_7day$dDTmax)
+
+          daydat_station[l,"ma.mean30"] <- NA_real_
+          daydat_station[l,"ma.mean30_DQL"] <- NA_character_
+          daydat_station[l,"ana_startdate30"] <- NA_real_
+          daydat_station[l,"ana_enddate30"] <- NA_real_
+          daydat_station[l,"act_enddate30"] <- NA_real_
+
           setTxtProgressBar(pb, l)
 
         } #end of 7day loop
         close(pb)
+
+
 
         monloc_temp_list[[j]] <- daydat_station
       } # end of monitoring location for loop
