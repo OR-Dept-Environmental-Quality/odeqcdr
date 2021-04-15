@@ -129,7 +129,6 @@ sumstats <-function(results, deployment, project_id) {
           dplyr::mutate(startdate7 = as.Date(date) - 6,
                         startdate30 = as.Date(date) - 29)
 
-
         # 7 day loop
         # Loops through each row in the monitoring location dataset
         # And pulls out records that are within the preceding 7 day window
