@@ -302,11 +302,7 @@ sumstats <-function(results, deployment, project_id) {
           daydat_station[l, "ana_enddate7"] <-  max(station_7day$dDTmax)
           daydat_station[l, "act_enddate7"] <-  max(station_7day$dDTmax)
 
-          daydat_station[l,"ma.mean30"] <- NA_real_
-          daydat_station[l,"ma.mean30_DQL"] <- NA_character_
-          daydat_station[l,"ana_startdate30"] <- NA_real_
-          daydat_station[l,"ana_enddate30"] <- NA_real_
-          daydat_station[l,"act_enddate30"] <- NA_real_
+
 
           setTxtProgressBar(pb, l)
 
@@ -373,6 +369,15 @@ sumstats <-function(results, deployment, project_id) {
       values_drop_na = TRUE
     ) %>%
     dplyr::arrange(Monitoring.Location.ID, Equipment.ID, charID, date)
+
+
+  #add any missing columns
+  sumstat_long_cols <- c("ana_startdate7", "ana_startdate30", "ana_enddate7", "ana_enddate30", "ma.max7_DQL",
+                         "ma.min7_DQL", "ma.mean7_DQL", "ma.mean30_DQL")
+
+  missing_cols <- setdiff(sumstat_long_cols, names(sumstat_long))
+
+  sumstat_long[missing_cols] <- NA
 
   # AWQMS summary stats -----------------------------------------------------
 
