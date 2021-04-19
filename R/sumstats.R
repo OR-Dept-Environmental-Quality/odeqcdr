@@ -139,41 +139,41 @@ sumstats <-function(results, deployment, project_id) {
         # If there are at least 6 values, then calculate 7 day min and mean
         # Assigns data back to daydat_station
         daydat_station2 <- daydat_station %>%
-          ungroup() %>%
-          group_by(mloc_equip) %>%
-          mutate(row = row_number(),
+          dplyr::ungroup() %>%
+          dplyr::group_by(mloc_equip) %>%
+          dplyr::mutate(row = row_number(),
                  dyDQL = factor(dyDQL, levels = c("A", "B", "E"), ordered = T),
-                 d = runner(x = data.frame(dyMean_run = dyMean, dyMin_run = dyMin, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d = runner::runner(x = data.frame(dyMean_run = dyMean, dyMin_run = dyMin, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                            dDTmax_run = dDTmax),
                             k = "7 days",
                             lag = 0,
                             idx = date,
                             f = function(x) list(x)),
-                 d30 = runner(x = data.frame(dyMean_run = dyMean, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d30 =  runner::runner(x = data.frame(dyMean_run = dyMean, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                              dDTmax_run = dDTmax),
                               k = "30 days",
                               lag = 0,
                               idx = date,
                               f = function(x) list(x))) %>%
-          mutate(d = purrr::map(d, ~ .x %>%
-                                  dplyr::summarise(ma.mean7 = case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMean_run),
-                                                                        length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMean_run),
+          dplyr::mutate(d = purrr::map(d, ~ .x %>%
+                                  dplyr::summarise(ma.mean7 = dplyr::case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMean_run),
+                                                                               dplyr::length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMean_run),
                                                                         max(dyDQL_run) == 'E' & length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~
                                                                           mean(dyMean_run[dyDQL_run  %in% c('A', 'B')]),
                                                                         length(dyMean_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  mean(dyMean_run),
                                                                         TRUE ~ NA_real_),
-                                                   ma.mean7_DQL = case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 7 ~ "A",
+                                                   ma.mean7_DQL = dplyr::case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 7 ~ "A",
                                                                             length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ 'B',
                                                                             max(dyDQL_run) == 'E' & length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~ 'B',
                                                                             length(dyMean_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  'E',
                                                                             TRUE ~ NA_character_),
-                                                   ma.min7 = case_when(length(dyMin_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMin_run),
+                                                   ma.min7 = dplyr::case_when(length(dyMin_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMin_run),
                                                                        length(dyMin_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMin_run),
                                                                        max(dyDQL_run) == 'E' & length(dyMin_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~
                                                                          mean(dyMin_run[dyDQL_run  %in% c('A', 'B')]),
                                                                        length(dyMin_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  mean(dyMin_run),
                                                                        TRUE ~ NA_real_),
-                                                   ma.min7_DQL = case_when(length(dyMin_run[dyDQL_run %in% c('A')]) == 7 ~ 'A',
+                                                   ma.min7_DQL = dplyr::case_when(length(dyMin_run[dyDQL_run %in% c('A')]) == 7 ~ 'A',
                                                                            length(dyMin_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ 'B',
                                                                            max(dyDQL_run) == 'E' & length(dyMin_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~ 'B',
                                                                            length(dyMin_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~ 'E',
@@ -183,14 +183,14 @@ sumstats <-function(results, deployment, project_id) {
                                                    act_enddate7   = max(dDTmax_run))
 
           ))%>%
-          mutate(d30 = purrr::map(d30, ~ .x %>%
-                                    dplyr::summarise(ma.mean30 = case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 30 ~ mean(dyMean_run),
+          dplyr::mutate(d30 = purrr::map(d30, ~ .x %>%
+                                    dplyr::summarise(ma.mean30 = dplyr::case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 30 ~ mean(dyMean_run),
                                                                           length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 29 & max(dyDQL_run) != 'E' ~ mean(dyMean_run),
                                                                           max(dyDQL_run) == 'E' & length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 29 ~
                                                                             mean(dyMean_run[dyDQL_run  %in% c('A', 'B')]),
                                                                           length(dyMean_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 29 ~  mean(dyMean_run),
                                                                           TRUE ~ NA_real_),
-                                                     ma.mean30_DQL = case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 30 ~ "A",
+                                                     ma.mean30_DQL = dplyr::case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 30 ~ "A",
                                                                               length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 29 & max(dyDQL_run) != 'E' ~ 'B',
                                                                               max(dyDQL_run) == 'E' & length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 29 ~ 'B',
                                                                               length(dyMean_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 29 ~  'E',
@@ -202,13 +202,13 @@ sumstats <-function(results, deployment, project_id) {
           )) %>%
           tidyr::unnest_wider(d) %>%
           tidyr::unnest_wider(d30) %>%
-          mutate(ma.mean7 = ifelse(row < 7, NA, ma.mean7),
+          dplyr::mutate(ma.mean7 = ifelse(row < 7, NA, ma.mean7),
                  ma.mean7_DQL = ifelse(row < 7, NA, as.character(ma.mean7_DQL)),
                  ma.min7 = ifelse(row < 7, NA, ma.min7),
                  ma.min7_DQL = ifelse(row < 7, NA, as.character(ma.min7_DQL)),
                  ma.mean30 = ifelse(row < 30, NA, ma.mean30),
                  ma.mean30_DQL = ifelse(row < 30, NA, as.character(ma.mean30_DQL))) %>%
-          select(-row)
+          dplyr::select(-row)
 
 
 
@@ -233,8 +233,8 @@ sumstats <-function(results, deployment, project_id) {
 
         #Filter dataset to only look at 1 monitoring location at a time
         daydat_station <- daydat %>%
-          ungroup() %>%
-          group_by(mloc_equip) %>%
+          dplyr::ungroup() %>%
+          dplyr::group_by(mloc_equip) %>%
           dplyr::filter(hrNday >= 22)
 
 
@@ -248,25 +248,25 @@ sumstats <-function(results, deployment, project_id) {
 
 
         daydat_station2 <- daydat_station %>%
-          ungroup() %>%
-          group_by(mloc_equip) %>%
-          mutate(row = row_number(),
+          dplyr::ungroup() %>%
+          dplyr::group_by(mloc_equip) %>%
+          dplyr::mutate(row = row_number(),
                  dyDQL = factor(dyDQL, levels = c("A", "B", "E"), ordered = T),
-                 d = runner(x = data.frame(dyMax_run = dyMax, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d = runner::runner(x = data.frame(dyMax_run = dyMax, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                            dDTmax_run = dDTmax),
                             k = "7 days",
                             lag = 0,
                             idx = date,
                             f = function(x) list(x))) %>%
-          mutate(d = purrr::map(d, ~ .x %>%
-                                  dplyr::summarise(ma.max7 = case_when(length(dyMax_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMax_run),
+          dplyr::mutate(d = purrr::map(d, ~ .x %>%
+                                  dplyr::summarise(ma.max7 = dplyr::case_when(length(dyMax_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMax_run),
                                                                        length(dyMax_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMax_run),
                                                                        max(dyDQL_run) == 'E' & length(dyMax_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~
                                                                          mean(dyMax_run[dyDQL_run  %in% c('A', 'B')]),
                                                                        length(dyMax_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  mean(dyMax_run),
                                                                        TRUE ~ NA_real_
                                   ),
-                                  ma.max7_DQL = case_when(length(dyMax_run[dyDQL_run %in% c('A')]) == 7 ~ 'A',
+                                  ma.max7_DQL = dplyr::case_when(length(dyMax_run[dyDQL_run %in% c('A')]) == 7 ~ 'A',
                                                           length(dyMax_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ 'B',
                                                           max(dyDQL_run) == 'E' & length(dyMax_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~ 'B',
                                                           length(dyMax_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  'E'
@@ -277,9 +277,9 @@ sumstats <-function(results, deployment, project_id) {
 
                                 ))%>%
           tidyr::unnest_wider(d) %>%
-          mutate(ma.max7 = ifelse(row < 7, NA, ma.max7),
+          dplyr::mutate(ma.max7 = ifelse(row < 7, NA, ma.max7),
                  ma.max7_DQL = ifelse(row < 7, NA, as.character(ma.max7_DQL))) %>%
-          select(-row)
+          dplyr::select(-row)
 
 
 
