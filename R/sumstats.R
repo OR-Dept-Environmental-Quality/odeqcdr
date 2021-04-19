@@ -20,9 +20,9 @@
 sumstats <-function(results, deployment, project_id) {
 
   # Testing parameters
-  results=df.results.final
-  deployment=df1.deployment
-  project_id=df0.projects$Project.ID
+  # results=df.results.final
+  # deployment=df1.deployment
+  # project_id=df0.projects$Project.ID
 
 
   # convert F to C, filter out rejected data, and create datetime column
@@ -158,7 +158,7 @@ sumstats <-function(results, deployment, project_id) {
                               f = function(x) list(x))) %>%
           dplyr::mutate(d = purrr::map(d, ~ .x %>%
                                   dplyr::summarise(ma.mean7 = dplyr::case_when(length(dyMean_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMean_run),
-                                                                               dplyr::length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMean_run),
+                                                                               length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMean_run),
                                                                         max(dyDQL_run) == 'E' & length(dyMean_run[dyDQL_run %in% c('A', 'B')]) >= 6 ~
                                                                           mean(dyMean_run[dyDQL_run  %in% c('A', 'B')]),
                                                                         length(dyMean_run[dyDQL_run %in% c('A', 'B', 'E')]) >= 6 ~  mean(dyMean_run),
@@ -253,7 +253,7 @@ sumstats <-function(results, deployment, project_id) {
           dplyr::group_by(mloc_equip) %>%
           dplyr::mutate(row = dplyr::row_number(),
                  dyDQL = factor(dyDQL, levels = c("A", "B", "E"), ordered = T),
-                 d = runner::runner(x = data.frame(dyMax_run = dyMax, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d = runner(x = data.frame(dyMax_run = dyMax, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                            dDTmax_run = dDTmax),
                                     k = "7 days",
                                     lag = 0,
