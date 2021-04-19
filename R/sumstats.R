@@ -13,15 +13,16 @@
 #' @param results Data frame of the results data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
 #' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
 #' @param project_id Unique Project ID from the projects data frame generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()]. Only accepts one project ID.
+#' @importFrom runner "runner"
 #' @export
 #' @return returned data frame.
 
 sumstats <-function(results, deployment, project_id) {
 
   # Testing parameters
-  # results=df.results.final
-  # deployment=df1.deployment
-  # project_id=df0.projects$Project.ID
+  results=df.results.final
+  deployment=df1.deployment
+  project_id=df0.projects$Project.ID
 
 
   # convert F to C, filter out rejected data, and create datetime column
@@ -141,15 +142,15 @@ sumstats <-function(results, deployment, project_id) {
         daydat_station2 <- daydat_station %>%
           dplyr::ungroup() %>%
           dplyr::group_by(mloc_equip) %>%
-          dplyr::mutate(row = row_number(),
+          dplyr::mutate(row = dplyr::row_number(),
                  dyDQL = factor(dyDQL, levels = c("A", "B", "E"), ordered = T),
-                 d = runner::runner(x = data.frame(dyMean_run = dyMean, dyMin_run = dyMin, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d = runner(x = data.frame(dyMean_run = dyMean, dyMin_run = dyMin, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                            dDTmax_run = dDTmax),
                             k = "7 days",
                             lag = 0,
                             idx = date,
                             f = function(x) list(x)),
-                 d30 =  runner::runner(x = data.frame(dyMean_run = dyMean, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
+                 d30 =  runner(x = data.frame(dyMean_run = dyMean, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                              dDTmax_run = dDTmax),
                               k = "30 days",
                               lag = 0,
@@ -250,14 +251,14 @@ sumstats <-function(results, deployment, project_id) {
         daydat_station2 <- daydat_station %>%
           dplyr::ungroup() %>%
           dplyr::group_by(mloc_equip) %>%
-          dplyr::mutate(row = row_number(),
+          dplyr::mutate(row = dplyr::row_number(),
                  dyDQL = factor(dyDQL, levels = c("A", "B", "E"), ordered = T),
                  d = runner::runner(x = data.frame(dyMax_run = dyMax, dyDQL_run = dyDQL, dDTmin_run = dDTmin,
                                            dDTmax_run = dDTmax),
-                            k = "7 days",
-                            lag = 0,
-                            idx = date,
-                            f = function(x) list(x))) %>%
+                                    k = "7 days",
+                                    lag = 0,
+                                    idx = date,
+                                    f = function(x) list(x))) %>%
           dplyr::mutate(d = purrr::map(d, ~ .x %>%
                                   dplyr::summarise(ma.max7 = dplyr::case_when(length(dyMax_run[dyDQL_run %in% c('A')]) == 7 ~ mean(dyMax_run),
                                                                        length(dyMax_run[dyDQL_run %in% c('A', 'B')]) >= 6 & max(dyDQL_run) != 'E' ~ mean(dyMax_run),
