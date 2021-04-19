@@ -276,7 +276,8 @@ sumstats2 <-function(results, deployment, project_id) {
                   ActEndTime = format(dDTmax, "%H:%M"),
                   RsltType = "Calculated",
                   ActStartTimeZone = Activity.Start.End.Time.Zone,
-                  ActEndTimeZone = ActiActivity.Start.End.Time.Zone,
+                  ActEndTimeZone = Activity.Start.End.Time.Zone,
+                  AnaStartTimeZone = Activity.Start.End.Time.Zone,
                   AnaEndTimeZone = Activity.Start.End.Time.Zone,
                   Result = round(Result, digits = 2)
     ) %>%
