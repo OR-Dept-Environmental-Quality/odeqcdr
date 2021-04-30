@@ -20,9 +20,9 @@
 sumstats <-function(results, deployment, project_id) {
 
   # Testing parameters
-  results=df.results.final
-  deployment=df1.deployment
-  project_id=df0.projects$Project.ID
+  # results=df.results.final
+  # deployment=df1.deployment
+  # project_id=df0.projects$Project.ID
 
 
   # convert F to C, filter out rejected data, and create datetime column
