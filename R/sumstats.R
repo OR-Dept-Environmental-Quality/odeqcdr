@@ -20,9 +20,9 @@
 sumstats <-function(results, deployment, project_id) {
 
   # Testing parameters
-  # results=df.results.final
-  # deployment=df1.deployment
-  # project_id=df0.projects$Project.ID
+  results=df.results.final
+  deployment=df1.deployment
+  project_id=df0.projects$Project.ID
 
 
   # convert F to C, filter out rejected data, and create datetime column
@@ -317,6 +317,16 @@ sumstats <-function(results, deployment, project_id) {
   # Bind list to dataframe
   sumstat <- dplyr::bind_rows(sumstatlist)
 
+  #add any missing cols
+  sumstat_long_cols <- c("ana_startdate7", "ana_startdate30", "ana_enddate7", "ana_enddate30", "ma.max7_DQL",
+                         "ma.min7_DQL", "ma.mean7_DQL", "ma.mean30_DQL", "dyMax", "dyMin", "dyMean","ma.min7",
+                         "ma.mean7", "ma.max7", "ma.mean30")
+
+  missing_cols <- setdiff(sumstat_long_cols, names(sumstat))
+
+  sumstat[missing_cols] <- NA
+
+
   #Pivot summary statistics from wide format into long format
   #rename summary statistics to match AWQMS Import COnfiguration
   sumstat_long <- sumstat %>%
@@ -342,13 +352,13 @@ sumstats <-function(results, deployment, project_id) {
     dplyr::arrange(Monitoring.Location.ID, Equipment.ID, charID, date)
 
 
-  #add any missing columns
-  sumstat_long_cols <- c("ana_startdate7", "ana_startdate30", "ana_enddate7", "ana_enddate30", "ma.max7_DQL",
-                         "ma.min7_DQL", "ma.mean7_DQL", "ma.mean30_DQL")
-
-  missing_cols <- setdiff(sumstat_long_cols, names(sumstat_long))
-
-  sumstat_long[missing_cols] <- NA
+  # #add any missing columns
+  # sumstat_long_cols <- c("ana_startdate7", "ana_startdate30", "ana_enddate7", "ana_enddate30", "ma.max7_DQL",
+  #                        "ma.min7_DQL", "ma.mean7_DQL", "ma.mean30_DQL")
+  #
+  # missing_cols <- setdiff(sumstat_long_cols, names(sumstat_long))
+  #
+  # sumstat_long[missing_cols] <- NA
 
   # AWQMS summary stats -----------------------------------------------------
 
