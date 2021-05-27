@@ -1,13 +1,10 @@
-#Volmon example Version 0.1.0
-
+#Volmon example Version 0.1.1
 
 library(dplyr)
 library(lutz)
 library(odeqcdr)
 library(writexl)
 library(magrittr)
-
-
 
 # Setup -----------------------------------------------------------------------------------------------------------
 
@@ -34,8 +31,6 @@ xlsx_output <- "Siuslaw_WC_2018_Continuous_Temp_export.xlsx"
 
 #changelog output
 changelog <-  'Siuslaw_WC_2018_Continuous_Temp_changelog'
-
-
 
 #- Import the Data -------------------------------------------------------------
 
@@ -187,12 +182,12 @@ df1.audits$audit.datetime.end  <- odeqcdr::dst_check(df=df1.audits,
 
 df1.deployment$Deployment.Start.Date <- odeqcdr::dt_combine(df=df1.deployment,
                                                             date_col = "Deployment.Start.Date",
-                                                            time_val = "00:00:00",
+                                                            time_col = NULL,
                                                             tz_col="tz_name")
 
 df1.deployment$Deployment.End.Date <- odeqcdr::dt_combine(df=df1.deployment,
                                                           date_col = "Deployment.End.Date",
-                                                          time_val = "23:59:00",
+                                                          time_col = NULL,
                                                           tz_col="tz_name")
 
 #- Apply any corrections back to date and time columns Adds Comments -----------
@@ -363,7 +358,7 @@ df.results.final <- dplyr::filter(df7.results, deployed)
 
 # Generate Summary Stats -------------------------------------------------------
 
-df.sumstats <- odeqcdr::sumstats_DQL(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
+df.sumstats <- odeqcdr::sumstats(results=df.results.final, deployment=df1.deployment, project_id=df1.projects$Project.ID)
 
 
 #- Output updated data back to xlsx template -----------------------------------
