@@ -30,9 +30,10 @@
 
 contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                                  timezone = "PDT", append_ordeq = TRUE) {
-
+  # Testing
   #library(readxl)
   #file <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
+  file <- paste0(input_dir,"/",xlsx_input)
 
   options(scipen=999)
 
@@ -267,11 +268,13 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
 
   audit_import <- dplyr::mutate(audit_import, Characteristic.Name = param_transform(Characteristic.Name)) %>%
+    dplyr::mutate(date_char = strftime(Activity.Start.Date, format = "%Y-%m-%d", origin = "1970-01-01", tz = "UTC"),
+                  time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz ="UTC"),
+                  datetime_char = paste(date_char, time_char),
+                  Activity.Start.Date.Time=lubridate::ymd_hms(datetime_char, tz="UTC")) %>%
     dplyr::group_by(Equipment.ID, Monitoring.Location.ID, Characteristic.Name) %>%
-    dplyr::summarise(Deployment.Start.Date = min(Activity.Start.Date),
-                     Deployment.End.Date = max(Activity.Start.Date))
-
-
+    dplyr::summarise(Deployment.Start.Date = min(Activity.Start.Date.Time),
+                     Deployment.End.Date = max(Activity.Start.Date.Time))
 
   #Bring in masterinfo
   deployment_col_types <- c('text', 'text', 'text', 'text', 'numeric', 'numeric', 'text', 'numeric')
