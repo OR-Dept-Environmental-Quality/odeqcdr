@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^data_raw$
 ^shiny_app$
+^.github$
 ^.*_old\\.R$
 ^example\\.R$
 ^.*\\.xlsx$
