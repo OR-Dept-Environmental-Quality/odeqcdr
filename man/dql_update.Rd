@@ -11,9 +11,9 @@ dql_update(df, rows, DQL, comment = NA_character_)
 
 \item{rows}{Rows to modify. Get these from reviewing the shinyapp}
 
-\item{comment}{Comment to be used in Result.Comment field}
+\item{DQL}{Updated final DQL value}
 
-\item{dql}{Updated final DQL value}
+\item{comment}{Comment to be used in Result.Comment field}
 }
 \value{
 Dataframe with updated DQL and comment

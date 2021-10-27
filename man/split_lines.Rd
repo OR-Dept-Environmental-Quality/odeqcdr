@@ -7,11 +7,11 @@
 split_lines(input_lines, max_length, id)
 }
 \arguments{
+\item{input_lines}{data.frame of class sf with LINESTRING sfc column.}
+
 \item{max_length}{maximum segment length to return}
 
 \item{id}{name of ID column in data.frame}
-
-\item{lines}{data.frame of class sf with LINESTRING sfc column.}
 }
 \value{
 only the split lines.

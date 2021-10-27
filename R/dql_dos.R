@@ -4,7 +4,7 @@
 #'  results, as the measurements are taken from the same sensor. This is consistent with how the lab treats DOsaturation
 #'  DQLs. This cript should be run after DO concentration results have been assigned final grades.
 #'
-#'@param results Dataframe of results after manual grade corrections have been applied to DO concentration values
+#'@param df Dataframe of results after manual grade corrections have been applied to DO concentration values. Default is results.
 #'@export
 #'@return Dataframe of all results with final grade.
 

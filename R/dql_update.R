@@ -6,7 +6,7 @@
 #'
 #' @param df Dataframe to modify. Should be df4.results. No need to specify if part or pipe structure
 #' @param rows Rows to modify. Get these from reviewing the shinyapp
-#' @param dql Updated final DQL value
+#' @param DQL Updated final DQL value
 #' @param comment Comment to be used in Result.Comment field
 #' @export
 #' @return Dataframe with updated DQL and comment

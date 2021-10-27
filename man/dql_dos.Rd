@@ -7,7 +7,7 @@
 dql_dos(df = results)
 }
 \arguments{
-\item{results}{Dataframe of results after manual grade corrections have been applied to DO concentration values}
+\item{df}{Dataframe of results after manual grade corrections have been applied to DO concentration values. Default is results.}
 }
 \value{
 Dataframe of all results with final grade.
