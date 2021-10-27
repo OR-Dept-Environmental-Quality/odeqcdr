@@ -14,8 +14,8 @@ valid_values <- function(col=NULL) {
 
   #- General -------------------------------------------------------------------
 
-  Characteristic.Name <- c("Algae, blue-green (phylum cyanophyta) density",
-                           "Chlorophyll",
+  Characteristic.Name <- c("Phycocyanin (probe relative fluorescence)",
+                           "Chlorophyll a (probe relative fluorescence)",
                            "Chlorophyll a",
                            "Conductivity",
                            "Depth",
