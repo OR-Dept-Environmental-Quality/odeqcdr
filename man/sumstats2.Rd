@@ -17,7 +17,7 @@ sumstats2(results, deployment, project_id)
 returned data frame.
 }
 \description{
-Calculates summary statistics but does not determine DQLs. Returns a data frame formatted for AWQMS upload. sumstats2 works much faster compared to \link{sumstats}.
+Calculates summary statistics but does not determine DQLs. Returns a data frame formatted for AWQMS upload. Version 0.12, commit 8de029f2565fe4645a06e6eaee36f545557888db was the last instance where this function was the original sumstats.
 }
 \details{
 Summary statistics calculated include:
