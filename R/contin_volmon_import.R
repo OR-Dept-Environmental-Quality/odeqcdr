@@ -64,9 +64,9 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
                      grepl("cond", tolower(col)) ~ "Conductivity",
                      tolower(col) == 'q_r' ~ 'Flow',
                      grepl("flow", tolower(col)) ~ "Flow",
-                     grepl("chl", tolower(col)) ~ "Chlorophyll a",
+                     grepl("rchl", tolower(col)) ~ "Chlorophyll a (probe relative fluorescence)",
                      grepl("depth", tolower(col)) ~ "Depth",
-                     grepl("bga", tolower(col)) ~ "Algae, blue-green (phylum cyanophyta) density",
+                     grepl("rbga", tolower(col)) ~ "Phycocyanin (probe relative fluorescence)",
                      TRUE ~ col)
   }
 
