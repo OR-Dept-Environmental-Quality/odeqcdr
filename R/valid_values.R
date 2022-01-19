@@ -223,7 +223,9 @@ valid_values <- function(col=NULL) {
                                    "150.2",
                                    "170.1",
                                    "180.1",
-                                   "D5413(A)")
+                                   "D5413(A)",
+                                   "YSI Continuous Probe",
+                                   "dtl-ptnv")
 
   Result.Value.Type <- c("Actual",
                          "Blank Corrected Calc",
