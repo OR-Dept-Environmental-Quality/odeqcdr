@@ -33,7 +33,8 @@ sumstats <-function(results, deployment, project_id) {
                   Result.Unit=dplyr::case_when(Result.Unit=="deg F" ~ "deg C",
                                                Result.Unit=="ug/l" ~ "mg/l",
                                                TRUE ~ Result.Unit)) %>%
-    dplyr::filter(Result.Status.ID != "Rejected" | rDQL != 'C') %>%
+    dplyr::filter(Result.Status.ID != "Rejected") %>%
+    dplyr::filter(rDQL != "C") %>%
     dplyr::mutate(time_char = strftime(Activity.Start.Time, format = "%H:%M:%S", tz = lubridate::tz(Activity.Start.Time)),
                   datetime =lubridate::ymd_hms(paste(as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time)), time_char)),
                   Activity.Start.Date = as.Date(Activity.Start.Date, tz = lubridate::tz(Activity.Start.Time))
@@ -377,6 +378,7 @@ sumstats <-function(results, deployment, project_id) {
                                                                  charID == "Conductivity" ~ "120.1",
                                                                  charID == "Chlorophyll a (probe relative fluorescence)" ~ "YSI Continuous Probe",
                                                                  charID == "Phycocyanin (probe relative fluorescence)" ~ "YSI Continuous Probe",
+                                                                 charID == "Depth" ~ "dtl-ptnv",
                                                                  charID == "Dissolved oxygen (DO)" ~ "NFM 6.2.1-LUM",
                                                                  charID == "Dissolved oxygen saturation" ~ "NFM 6.2.1-LUM",
                                                                  charID == "pH" ~ "150.1",
