@@ -77,7 +77,7 @@ dt_combine <- function(df, date_col="Activity.Start.Date", time_col="Activity.St
     dplyr::select(date_char, time_char, tz_vector=!!tz_col) %>%
     dplyr::mutate(tz_vector=dplyr::case_when(tz_vector %in% c("PST", "PDT") ~ "America/Los_Angeles",
                                              tz_vector %in% c("MST", "MDT") ~ "America/Boise",
-                                      TRUE ~ tz_vector),
+                                             TRUE ~ tz_vector),
                   datetime_char=paste(date_char, time_char),
                   datetime_utc=lubridate::ymd_hms(datetime_char, tz="UTC")) %>%
     dplyr::rowwise() %>%
