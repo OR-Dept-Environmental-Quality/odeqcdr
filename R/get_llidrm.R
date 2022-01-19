@@ -28,6 +28,9 @@ get_llidrm <- function(llid, x, y, max_length=82, return_sf=FALSE){
   # max_length=150
   # return_sf=FALSE
 
+  warning("get_llidrm is deprecated and will be removed soon. Please
+  transistion to the get_llidrm function in the 'odeqmloctools' package instead.")
+
   # Oregon GIC Lambert (ft) NAD83(HARN)
   to_crs <- 2994
 

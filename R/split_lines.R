@@ -8,6 +8,10 @@
 #' @export
 #'
 split_lines <- function(input_lines, max_length, id) {
+
+  warning("split_lines is deprecated and will be removed soon. Please
+  transistion to the split_lines function in the 'odeqmloctools' package instead.")
+
   if(max_length < 10) warning("short max length detected, do you have your units right?")
 
   # Adds vertices to the line so there are enough to collect when using lwgeom::st_linesubstring

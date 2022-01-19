@@ -19,6 +19,9 @@
 
 get_measure <- function(pid, x, y, max_length=25, return_sf=FALSE){
 
+  warning("get_measure is deprecated and will be removed soon. Please
+  transistion to the get_measure function in the 'odeqmloctools' package instead.")
+
   # Test data
   #pid="165555667"
   #reachcode="18010206003567"
