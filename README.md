@@ -14,7 +14,7 @@ devtools::install_github('OR-Dept-Environmental-Quality/odeqcdr', host = 'https:
 
 This outlines the general workflow using the odeqcdr functions. Not all steps are included.
 
-See `example.R` for a specfic example.
+See `example.R` for a specific example.
 
 
 ```R
