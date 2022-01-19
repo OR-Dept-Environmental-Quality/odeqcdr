@@ -13,12 +13,14 @@ Launches a Shiny app
 A shiny application to review data
 }
 \details{
-The data must first be formatted as a named list and saved as an RData file.
+The data must first be formatted as a named list and saved as an .RData file.
 
 The object must be named 'shiny_list' with the named listed elements as follows:
-'Deployment'
-'Audit_Stats'
-'Results_Anom'
+\itemize{
+\item 'Deployment'
+\item 'Audit_Stats'
+\item 'Results_Anom'
+}
 }
 \examples{
 

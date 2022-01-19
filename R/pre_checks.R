@@ -5,7 +5,7 @@
 #' missing values in required columns, invalid domain values, and flags potential errors.
 #' If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 #'
-#' Complete list of checks
+#' Complete list of checks:
 #'
 #' Organizational Details worksheet checks:
 #' 1.	Missing Organization Name

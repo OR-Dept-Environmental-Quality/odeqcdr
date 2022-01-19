@@ -2,22 +2,24 @@
 #'
 #' Retrieve monitoring results from Oregon DEQ's continuous data submission template version 2, 3, or volmon.
 #' This function will read the template and return a list with each list element holding a
-#' dataframe of the information for each spreadsheet. Any rows with all NAs are removed.
+#' data frame of the information for each spreadsheet. Any rows with all NAs are removed.
 #'
-#' The function returns a named list holding each worksheet from the xlsx. The name of each list element is the same as the xlsx:
+#' The function returns a named list holding each worksheet from the xlsx. The
+#' name of each list element is the same as the xlsx:
+#' \itemize{
+#'   \item Organization_Details
+#'   \item Projects
+#'   \item Monitoring_Locations
+#'   \item Deployment
+#'   \item New_Equipment (version 3 only)
+#'   \item Results
+#'   \item PrePost
+#'   \item Audit_Data
+#' }
 #'
-#'   Organization_Details
-#'   Projects
-#'   Monitoring_Locations
-#'   Deployment
-#'   New_Equipment (version 3 only)
-#'   Results
-#'   PrePost
-#'   Audit_Data
+#' Column names are made into syntactically valid names acceptable by R.
 #'
-#'   Column names are made into syntactically valid names acceptable by R.
-#'
-#'   This function relies heavily upon the [readxl] package.
+#' This function relies heavily upon the \code{readxl} package.
 #'
 #' @param file The path and file name to template xlsx file.
 #' @param sheets Optional vector identifying sheets to import. Default is a vector of all sheets to be imported.
@@ -26,7 +28,7 @@
 #' @param project Optional variable identifying project. Only used when ver="volmon". Default is project="ODEQVolMonWQProgram".
 #' @param timezone Optional variable setting time zone. Only used when ver="volmon". Default is timezone="PDT".
 #' @param append_ordeq Optional boolean to append "-ORDEQ" to monitoring locations. Only used when ver="volmon". Default is TRUE.
-#' @seealso [readxl::read_excel()]
+#' @seealso \code{\link[readxl]{read_excel}}
 #' @export
 #' @return list of each continuous template data
 

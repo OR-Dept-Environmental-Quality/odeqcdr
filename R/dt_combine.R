@@ -1,6 +1,6 @@
 #' Combine PoSIXct date, time, and timezone columns into a single POSIXct datetime.
 #'
-#' This function will combine POSIXct date and time values pulled from an excel using [odeqcdr::contin_import()] to make a POSIXct datetime.
+#' This function will combine POSIXct date and time values pulled from an excel using \code{\link{contin_import}} to make a POSIXct datetime.
 #' There are various options on how to handle the time and timezone column. If the datetime falls in a daylight savings break NA is returned.
 #'
 #' @param df Data frame to be evaluated.
@@ -8,9 +8,9 @@
 #' @param time_col Column name in df holding the POSIXct time values. Default is "Activity.Start.Time". If NULL uses date_col or time_val if provided.
 #' @param time_val string in format 'hh:mm:ss' representing the time to use for all rows. Default is NULL. If NULL uses date_col or time_col if provided.
 #' @param tz_col Column name in df holding the timezone string values. Acceptable values
-#' include "PST", "PDT", "MST", "MDT" or Olson Names such as 'America/Los_Angeles' for Pacific Time
-#' zone or 'America/Boise' for Mountain time zone.
-#' See OlsonNames() for more info. Default is tz_col="Activity.Start.End.Time.Zone".
+#'        include "PST", "PDT", "MST", "MDT" or Olson Names such as 'America/Los_Angeles' for Pacific Time
+#'        zone or 'America/Boise' for Mountain time zone.
+#'         See \code{\link[base]{OlsonNames}} for more info. Default is tz_col="Activity.Start.End.Time.Zone".
 #' @export
 #' @return vector of POSIXct datetime
 

@@ -7,11 +7,11 @@
 contin_results_csv(path = NULL, format = "\%Y/\%m/\%d \%H:\%M:\%S")
 }
 \arguments{
-\item{path}{The path to the directory where the csv files are saved. Default is NULL which implements the \link{choose.dir} function on windows OS
-or \link[rstudioapi:file-dialogs]{rstudioapi::selectDirectory} on Mac/Linux OS when using Rstudio. If Rstudio is not available a path must be provided.}
+\item{path}{The path to the directory where the csv files are saved. Default is NULL which implements the \code{\link[utils]{choose.dir}} function on windows OS
+or code{\link[rstudioapi]{selectDirectory}} on Mac/Linux OS when using Rstudio. If Rstudio is not available a path must be provided.}
 
 \item{format}{A character string giving the date-time format of the input from columns 'Activity.Start.Date' and 'Activity.Start.Time'.
-Same as used by \link{strptime}. The format is used for conversion to POSIXct where the timezone tz='UTC'. The default is the same as what is required in the continuous
+Same as used by \code{\link[base]{strptime}}. The format is used for conversion to POSIXct where the timezone tz='UTC'. The default is the same as what is required in the continuous
 data submission template: "\%Y/\%m/\%d \%H:\%M:\%S".}
 }
 \value{
@@ -19,7 +19,7 @@ data frame
 }
 \description{
 Retrieve monitoring results from Oregon DEQ's continuous data submission template v2.03 that has been saved as a csv
-This function will read all csv files from a selected directory, combine them all using \link{rbind} and return them as a single dataframe.
+This function will read all csv files from a selected directory, combine them all using \code{\link[base]{rbind}} and return them as a single dataframe.
 The column names and date-time formats must be the same in every csv file.
 }
 \details{

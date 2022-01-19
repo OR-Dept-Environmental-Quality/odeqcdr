@@ -7,9 +7,9 @@
 anomaly_check(results, deployment, return_df = FALSE)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link{contin_impor}}.}
 
-\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{deployment}{Data frame of the deployment data generated using \code{\link{contin_import}}.}
 
 \item{return_df}{Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.}
 }
@@ -35,7 +35,7 @@ data by month and stream order.
 A datetine shift is evaluated by checking that the daily maximum water temperature
 occurs between 13:00 and 19:00. If the daily maximum falls outside this hour range the function
 flags all temperature results on that day as an anomaly where dt_shift=TRUE.
-See \code{\link[=dt_shift]{dt_shift()}} to run this check without all the other anomaly checks.
+See \code{\link{dt_shift}} to run this check without all the other anomaly checks.
 A datetime shift may indicate an issue with the time not being adjusted to the correct time zone
 (i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results.
 

@@ -16,7 +16,7 @@ contin_volmon_import(
 
 \item{project}{Optional variable identifying project. ODEQ volmon's program (ODEQVolMonWQProgram) is the default}
 
-\item{timezone}{Optionalvariable setting time zone. Defaults to "PDT"}
+\item{timezone}{Optional variable setting time zone. Defaults to "PDT"}
 
 \item{append_ordeq}{Optional boolean to append "-ORDEQ" to monitoring locations. Default is TRUE.}
 }
@@ -24,8 +24,10 @@ contin_volmon_import(
 list of each continuous template data
 }
 \description{
-This functions uses the volmon data template as an input and returns a list with each element that matches the output
-of contin_import(). This function does the same thing as contin_import() but uses the different template.
+This functions uses the volmon data template as an input and returns a list
+with each element that matches the output
+of \code{\link{contin_import}}. This function does the same thing as
+\code{\link{contin_import}} but uses the different template.
 }
 \details{
 This function will read the template and return a list with each list element holding a
@@ -43,8 +45,8 @@ Audit_Data
 
 Column names are made into syntactically valid names acceptable by R.
 
-This function relies heavily upon the \link{readxl} package.
+This function relies heavily upon the \code{readxl} package.
 }
 \seealso{
-\code{\link[readxl:read_excel]{readxl::read_excel()}}, \code{\link[=contin_import]{contin_import()}}
+\code{\link[readxl]{read_excel}}, \code{\link{contin_import}}
 }

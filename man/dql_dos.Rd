@@ -15,5 +15,5 @@ Dataframe of all results with final grade.
 \description{
 This function takes the accDQL, precDQL, and rDQL from DO concentration results and applies them to DO saturation
 results, as the measurements are taken from the same sensor. This is consistent with how the lab treats DOsaturation
-DQLs. This cript should be run after DO concentration results have been assigned final grades.
+DQLs. This script should be run after DO concentration results have been assigned final grades.
 }

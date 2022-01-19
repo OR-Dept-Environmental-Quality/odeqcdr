@@ -64,7 +64,6 @@ back to standard time occurred on November 1, 2020 at 2:00 AM resulting in a rep
 between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it is likely
 the adjustment to standard time was not made.
 }
-
 When one of the conditions are detected, the time at the beginning
 of the deployment period is considered the correct time and the appropriate UTC offset is applied
 for daylight savings from that point forward. Use 'base_offset' if a specific

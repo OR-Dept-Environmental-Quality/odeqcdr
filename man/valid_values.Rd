@@ -7,9 +7,11 @@
 valid_values(col = NULL)
 }
 \arguments{
-\item{col}{Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
-The name can be formatted as shown in the xlsx template or in R format derived using \code{\link[=make.names]{make.names()}}. if col=NULL All valid values are
-returned as a list with the column name as the list lookup. Default is NULL}
+\item{col}{Name of the column in the continuous data submission template xlsx
+file v2.03 to return valid values. The name can be formatted as shown
+in the xlsx template or in R format derived using \code{\link[base]{make.names}}.
+if col=NULL All valid values are returned as a list with the column
+name as the list lookup. Default is NULL.}
 }
 \value{
 vector of valid values or list of all valid values.

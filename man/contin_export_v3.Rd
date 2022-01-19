@@ -34,7 +34,7 @@ contin_export_v3(
 
 \item{audits}{data frame holding Audit_Data}
 
-\item{sumstats}{Optional data frame holding the AWQMS summary statistics generated using \link{sumstats}. Default is NULL.}
+\item{sumstats}{Optional data frame holding the AWQMS summary statistics generated using \code{\link{sumstats}}. Default is NULL.}
 
 \item{equipment}{Optional data frame holding equipment Info. Default is NULL.}
 }
@@ -44,8 +44,8 @@ This function will export a list with each element holding a data frame of the i
 The cell colors and quality control elements from the actual template are not included in the output xlsx.
 }
 \details{
-This function relies upon the \link{openxlsx} package.
+This function relies upon the \code{openxlsx} package.
 }
 \seealso{
-\link{openxlsx}
+\code{openxlsx}
 }

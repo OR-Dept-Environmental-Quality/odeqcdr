@@ -4,11 +4,11 @@
 #' used to select a specific reach from the feature service. The LLID is split into 150 foot segments with a vertex on either end of the segment.
 #' The x and y coordinates are snapped to the nearest vertex. The river mile is calculated based on the distance from downstream end of the LLID.
 #' The feature data is projected into ESPG:2994 (Oregon Lambert NAD83 HARN) for all operations. Units are feet. If return_sf=TRUE the sf is projected into ESPG:4326 (WGS84)
-#' which is the expected default for [leaflet].
+#' which is the expected default for \code{\link[leaflet]{leaflet}}.
 #'
-#' This function is intended to be a helper function for [odeqcdr::launch_map] although it may be used independently as well.
+#' This function is intended to be a helper function for \code{\link{launch_map}} although it may be used independently as well.
 #'
-#' The LLID feature service can be accessed at https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/
+#' The LLID feature service can be accessed at \url{https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/DEQ_Streams/MapServer/0/}
 #'
 #' @param llid The LLID value as a string.
 #' @param x The longitude in decimal degrees

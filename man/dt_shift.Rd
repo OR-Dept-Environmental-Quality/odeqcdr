@@ -7,7 +7,7 @@
 dt_shift(results, return_df = FALSE)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link{contin_import}}.}
 
 \item{return_df}{TRUE means the results data frame will be returned with the dt_shift column. FALSE only returns the dt_shift vector. Default is FALSE.}
 }

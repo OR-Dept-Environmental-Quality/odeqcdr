@@ -7,17 +7,19 @@
 sumstats2(results, deployment, project_id)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}.}
 
-\item{deployment}{Data frame of the deployment data generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}.}
+\item{deployment}{Data frame of the deployment data generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}.}
 
-\item{project_id}{Unique Project ID from the projects data frame generated using \code{\link[=contin_import]{contin_import()}} or \code{\link[=contin_volmon_import]{contin_volmon_import()}}. Only accepts one project ID.}
+\item{project_id}{Unique Project ID from the projects data frame generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}. Only accepts one project ID.}
 }
 \value{
 returned data frame.
 }
 \description{
-Calculates summary statistics but does not determine DQLs. Returns a data frame formatted for AWQMS upload. Version 0.12, commit 8de029f2565fe4645a06e6eaee36f545557888db was the last instance where this function was the original sumstats.
+Calculates summary statistics but does not determine DQLs. Returns a data frame
+formatted for AWQMS upload. Version 0.12, commit 8de029f2565fe4645a06e6eaee36f545557888db
+was the last instance where this function was the original sumstats.
 }
 \details{
 Summary statistics calculated include:

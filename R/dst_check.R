@@ -5,19 +5,19 @@
 #' be used on timeseries occurring on or after the start of standard time on October 27, 1985 at 2:01 AM.
 #'
 #' The dst check fails and time is adjusted when either of the two conditions occur:
-#'
-#' 1. When there are results recorded between 2:00 AM and 2:59 AM when daylight savings begins.
+#' \enumerate{
+#' \item When there are results recorded between 2:00 AM and 2:59 AM when daylight savings begins.
 #'    As an example, in 2020 the switch from standard time to daylight time (+1 hour) occurred
 #'    on March 8, 2020 at 2:00 AM. In a time series where samples are collected
 #'    every 30 minutes there should be no results recorded from 2:00 AM until 2:59 AM.
 #'    If there are results recorded during this period it's likely an adjustment
 #'    to daylight savings time was not made.
-#' 2. When there is only one timestamp recorded for any results between 1:00 AM and 1:59 AM
+#' \item When there is only one timestamp recorded for any results between 1:00 AM and 1:59 AM
 #'    after the transition back to standard time (-1 hour). As an example, in 2020 the switch from daylight savings
 #'    back to standard time occurred on November 1, 2020 at 2:00 AM resulting in a repeat of time
 #'    between 1:00 AM and 1:59 AM. If there are not duplicate time stamps recorded it is likely
 #'    the adjustment to standard time was not made.
-#'
+#' }
 #' When one of the conditions are detected, the time at the beginning
 #' of the deployment period is considered the correct time and the appropriate UTC offset is applied
 #' for daylight savings from that point forward. Use 'base_offset' if a specific

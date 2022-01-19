@@ -1,6 +1,6 @@
 #' Launch a web map in a browser to review and edit monitoring location information
 #'
-#' @param mloc Data frame of the monitoring location data generated using [odeqcdr::contin_import()].
+#' @param mloc Data frame of the monitoring location data generated using \code{\link{contin_import}}.
 #' @param px_ht Height of the map in pixels. Default is 470 which fits on most standard laptop screens. The minimum height is 300 pixels.
 #' @export
 #' @return Launches a leaflet map within a Shiny app. Returns mloc data frame with any saved changes on app close.

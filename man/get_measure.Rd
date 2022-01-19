@@ -24,10 +24,10 @@ sf object with data frame columns for Permanent_Identifier, ReachCode, measure, 
 \description{
 The function will query Oregon DEQ's NHD feature service to determine the measure value along a target NHD flowline. The Permanent Identifier (pid) is
 used to select a specific reach from the feature service. The x and y coordinates are snapped to the nearest vertex on the selected flowline and the measure value determined.
-If return_sf=TRUE the sf is projected into ESPG:4326 (WGS84) which is the expected default for \link{leaflet}.
+If return_sf=TRUE the sf is projected into ESPG:4326 (WGS84) which is the expected default for \code{\link[leaflet]{leaflet}}.
 }
 \details{
-This function is intended to be a helper function for \link{launch_map} although it may be used independently as well.
+This function is intended to be a helper function for \code{\link{launch_map}} although it may be used independently as well.
 
-The feature service can be accessed at https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1
+The feature service can be accessed at \url{https://arcgis.deq.state.or.us/arcgis/rest/services/WQ/NHDH_ORDEQ/MapServer/1}
 }

@@ -44,7 +44,7 @@ missing values in required columns, invalid domain values, and flags potential e
 If a check result is TRUE, it means the check failed and something is missing or there is an invalid value.
 }
 \details{
-Complete list of checks
+Complete list of checks:
 
 Organizational Details worksheet checks:
 \enumerate{

@@ -7,7 +7,7 @@
 #' (i.e. still in UTC/GMT), a copy/paste/transcription error, or invalid results. results dataframe must
 #' have a column called 'datetime' formatted as POSIXct.
 #'
-#' @param results Data frame of the results data generated using [odeqcdr::contin_import()].
+#' @param results Data frame of the results data generated using \code{\link{contin_import}}.
 #' @param return_df TRUE means the results data frame will be returned with the dt_shift column. FALSE only returns the dt_shift vector. Default is FALSE.
 #' @export
 #' @return data frame.

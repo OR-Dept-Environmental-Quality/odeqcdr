@@ -8,9 +8,10 @@ valid_values_check(col, vals)
 }
 \arguments{
 \item{col}{Name of the column in the continuous data submission template xlsx file v2.03 to return valid values.
-col is passed to \link{valid_values} to get the valid values.
-The col name can be formatted as shown in the xlsx template or in R format derived using \link{make.names}.
-If you need to determine the correct value for col see \link{cols_audit}, \link{cols_deploy}, \link{cols_mloc}, \link{cols_prepost}, or \link{cols_results}.}
+col is passed to \code{\link{valid_values}} to get the valid values.
+The col name can be formatted as shown in the xlsx template or in R format derived using \code{\link[base]{make.names}}.
+If you need to determine the correct value for col see \code{\link{cols_audit}},
+\code{\link{cols_deploy}}, \code{\link{cols_mloc}}, \code{\link{cols_prepost}}, or \code{\link{cols_results}}.}
 
 \item{vals}{Vector of values to evaluate.}
 }
@@ -23,5 +24,5 @@ data submission template xlsx file v2.03 are valid values. Returns TRUE if valid
 NA is included as a valid value for columns that are optional or conditional.
 }
 \seealso{
-\link{valid_values}
+\code{\link{valid_values}}
 }

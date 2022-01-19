@@ -10,9 +10,9 @@
 #'
 #' Rolling means are trailing means reported on the last day of the 7-day or 30-day period.
 #'
-#' @param results Data frame of the results data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
-#' @param deployment Data frame of the deployment data generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()].
-#' @param project_id Unique Project ID from the projects data frame generated using [odeqcdr::contin_import()] or [odeqcdr::contin_volmon_import()]. Only accepts one project ID.
+#' @param results Data frame of the results data generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}.
+#' @param deployment Data frame of the deployment data generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}.
+#' @param project_id Unique Project ID from the projects data frame generated using \code{\link{contin_import}} or \code{\link{contin_volmon_import}}. Only accepts one project ID.
 #' @importFrom runner "runner"
 #' @export
 #' @return returned data frame.

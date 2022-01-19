@@ -7,7 +7,7 @@
 launch_map(mloc, px_ht = 470)
 }
 \arguments{
-\item{mloc}{Data frame of the monitoring location data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{mloc}{Data frame of the monitoring location data generated using \code{\link{contin_import}}.}
 
 \item{px_ht}{Height of the map in pixels. Default is 470 which fits on most standard laptop screens. The minimum height is 300 pixels.}
 }

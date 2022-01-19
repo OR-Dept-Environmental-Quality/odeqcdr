@@ -1,7 +1,9 @@
 #' Import continuous information from volmon data template.
 #'
-#' This functions uses the volmon data template as an input and returns a list with each element that matches the output
-#' of contin_import(). This function does the same thing as contin_import() but uses the different template.
+#' This functions uses the volmon data template as an input and returns a list
+#' with each element that matches the output
+#' of \code{\link{contin_import}}. This function does the same thing as
+#' \code{\link{contin_import}} but uses the different template.
 #'
 #' This function will read the template and return a list with each list element holding a
 #' dataframe of the information for each spreadsheet. Any rows with all NAs are removed.
@@ -18,13 +20,13 @@
 #'
 #'   Column names are made into syntactically valid names acceptable by R.
 #'
-#'   This function relies heavily upon the [readxl] package.
+#'   This function relies heavily upon the \code{readxl} package.
 #'
 #' @param file The path and file name to template xlsx file.
 #' @param project Optional variable identifying project. ODEQ volmon's program (ODEQVolMonWQProgram) is the default
-#' @param timezone Optionalvariable setting time zone. Defaults to "PDT"
+#' @param timezone Optional variable setting time zone. Defaults to "PDT"
 #' @param append_ordeq Optional boolean to append "-ORDEQ" to monitoring locations. Default is TRUE.
-#' @seealso [readxl::read_excel()], [odeqcdr::contin_import()]
+#' @seealso \code{\link[readxl]{read_excel}}, \code{\link{contin_import}}
 #' @export
 #' @return list of each continuous template data
 
@@ -33,7 +35,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
   # Testing
   #library(readxl)
   #file <- "WorkingCopy_Siuslaw_WC_2018_Continuous_Temp.xlsx"
-  file <- paste0(input_dir,"/",xlsx_input)
+  #file <- paste0(input_dir,"/",xlsx_input)
 
   options(scipen=999)
 

@@ -24,12 +24,12 @@ dt_combine(
 \item{tz_col}{Column name in df holding the timezone string values. Acceptable values
 include "PST", "PDT", "MST", "MDT" or Olson Names such as 'America/Los_Angeles' for Pacific Time
 zone or 'America/Boise' for Mountain time zone.
-See OlsonNames() for more info. Default is tz_col="Activity.Start.End.Time.Zone".}
+See \code{\link[base]{OlsonNames}} for more info. Default is tz_col="Activity.Start.End.Time.Zone".}
 }
 \value{
 vector of POSIXct datetime
 }
 \description{
-This function will combine POSIXct date and time values pulled from an excel using \code{\link[=contin_import]{contin_import()}} to make a POSIXct datetime.
+This function will combine POSIXct date and time values pulled from an excel using \code{\link{contin_import}} to make a POSIXct datetime.
 There are various options on how to handle the time and timezone column. If the datetime falls in a daylight savings break NA is returned.
 }

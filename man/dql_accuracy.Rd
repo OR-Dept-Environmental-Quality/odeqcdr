@@ -7,9 +7,9 @@
 dql_accuracy(prepost, results, prepost_only = FALSE)
 }
 \arguments{
-\item{prepost}{Data frame of the prepost data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{prepost}{Data frame of the prepost data generated using \code{\link{contin_import}}.}
 
-\item{results}{Data frame of the results data generated using \code{\link[=contin_import]{contin_import()}}.}
+\item{results}{Data frame of the results data generated using \code{\link{contin_import}}.}
 
 \item{prepost_only}{Boolean to indicate if the prepost data frame should be returned with a new columns for the accuracy DQL,
 and absolute difference between the result and references values. Default is FALSE.}
@@ -23,11 +23,11 @@ The data quality levels are assigned following DEQ’s Data Quality Matrix (DEQ,
 The data quality matrix defines the accuracy and precision criteria for equipment calibration and field audits respectively respectively.
 }
 \details{
-use \code{\link[=dql_precision]{dql_precision()}} to assign the data quality level using field duplicates, field audits, or split samples.
+use \code{\link{dql_precision}} to assign the data quality level using field duplicates, field audits, or split samples.
 
 Inputs into this function must retrieved from Oregon DEQ's continuous data submission template xlsx file v2.03.
-Use \code{\link[=contin_import]{contin_import()}} to get the list that hold the data frames used for this function's inputs.
+Use \code{\link{contin_import}} to get the list that hold the data frames used for this function's inputs.
 
 Oregon Department of Environmental Quality (DEQ). 2013. "Data validation criteria for water quality parameters measured in the field.
-DEQ04-LAB-0003-QAG Version5.0." http://www.oregon.gov/deq/FilterDocs/DataQualMatrix.pdf
+DEQ04-LAB-0003-QAG Version5.0." \url{http://www.oregon.gov/deq/FilterDocs/DataQualMatrix.pdf}
 }

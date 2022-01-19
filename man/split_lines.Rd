@@ -18,5 +18,5 @@ only the split lines.
 }
 \description{
 Splits lines longer than a given threshold into the minimum number of pieces to all be under the given threshold. Full credit for this function goes to
-David Blodgett at the USGS. Code obtained from: https://gist.github.com/dblodgett-usgs/cf87392c02d73f1b7d16153d2b66a8f3
+David Blodgett at the USGS. Code obtained from: \url{https://gist.github.com/dblodgett-usgs/cf87392c02d73f1b7d16153d2b66a8f3}
 }
