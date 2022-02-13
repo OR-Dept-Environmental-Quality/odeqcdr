@@ -8,7 +8,7 @@
 launch_map <- function(mloc, px_ht=470){
 
   warning("launch_map is deprecated and will be removed soon. Please
-  transistion to the launch_map function in the 'odeqmloctools' package instead.")
+  transition to the launch_map function in the 'odeqmloctools' package instead.")
 
   if(!is.numeric(px_ht)) {stop("px_ht is not a numeric value.")}
 
