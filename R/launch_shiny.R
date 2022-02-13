@@ -192,7 +192,7 @@ launch_shiny <- function(){
         if("datetime" %in% names(df)) {
           # rename result datetime
 
-          df <- dplyr::rename(df, Result.datetime=datetime)
+          df <- dplyr::rename(df, Logger.datetime=datetime)
         }
 
         if(!"rDQL" %in% names(df)) {
@@ -209,13 +209,34 @@ launch_shiny <- function(){
             dplyr::select(-Audit.Result.Status.ID)
         }
 
+        # This if statement updates col names in audit data frames
+        # developed with odeqcdr > version 0.14.
+
+        if("Logger.Result.Value" %in% names(df)){
+
+          df <- dplyr::rename(df, Audit.Result.Value = Result.Value)
+        }
+
+        # These if statements updates col names in audit data frames
+        # developed with odeqcdr version 0.10 - version 0.14.
+
+        if("Result.datetime" %in% names(df)){
+
+          df <- dplyr::rename(df, Logger.datetime = Result.datetime)
+        }
+
+        if("Result.Value" %in% names(df)){
+
+          df <- dplyr::rename(df, Logger.Result.Value = Result.Value)
+        }
+
 
         dt <- df %>%
-          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Result.datetime,
-                        Result.Value, diff.minutes, diff.Result, precDQL, rDQL, Result.Status.ID,
+          dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Logger.datetime,
+                        Logger.Result.Value, diff.minutes, diff.Result, precDQL, rDQL, Result.Status.ID,
                         Row=row.audits) %>%
           dplyr::mutate(audit.datetime.start=format(audit.datetime.start, format="%Y-%m-%d %H:%M %Z"),
-                        Result.datetime=format(Result.datetime, format="%Y-%m-%d %H:%M %Z"))
+                        Logger.datetime=format(Logger.datetime, format="%Y-%m-%d %H:%M %Z"))
 
         DT::datatable(data=shiny::isolate(dt), selection = "none",
                       options = list(lengthChange=FALSE, searching=FALSE, searchable = FALSE),
