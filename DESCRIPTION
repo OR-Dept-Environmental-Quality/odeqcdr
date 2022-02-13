@@ -1,15 +1,15 @@
 Package: odeqcdr
 Title: ODEQ Continuous Data Review
-Version: 0.14
+Version: 0.20
 Authors@R: 
     c(person(given = "Ryan",
            family = "Michie",
            role = c("aut", "cre"),
-           email = "Ryan.Michie@deq.state.or.us"),
+           email = "Ryan.Michie@deq.oregon.gov"),
       person(given = "Travis",
            family = "Pritchard",
            role = c("aut"),
-           email = "Travis.Pritchard@deq.state.or.us"))
+           email = "Travis.Pritchard@deq.oregon.gov"))
 Description: This package provides QA/QC support for review of continuous data entered into the Oregon Department of Environmental Quality's continuous water quality data templates.
 Depends:
     R (>= 3.5),
