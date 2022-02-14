@@ -119,12 +119,62 @@ launch_shiny <- function(){
         # named shiny_list
         load(input$rdata$datapath)
 
-        df.audit.stats <-  shiny_list[["Audit_Stats"]] %>%
+        df <-  shiny_list[["Audit_Stats"]] %>%
           dplyr::mutate(Deployment=paste(Monitoring.Location.ID, Equipment.ID, Characteristic.Name, sep = " - ")) %>%
           dplyr::filter(Deployment==input$selectDeployment) %>%
           dplyr::select(-Deployment)
 
-        df.audit.stats
+
+        # These if statements update col names in older audit dataframes
+        # developed with odeqcdr < v 0.10.
+
+        if("DQL_prec" %in% names(df)) {
+
+          df <- dplyr::rename(df, precDQL=DQL_prec)
+        }
+
+        if("datetime" %in% names(df)) {
+          # rename result datetime
+
+          df <- dplyr::rename(df, Logger.datetime=datetime)
+        }
+
+        if(!"rDQL" %in% names(df)) {
+          # Add rDQL
+
+          df <- df %>%
+            dplyr::mutate(rDQL=precDQL)
+        }
+
+        if("Audit.Result.Status.ID" %in% names(df)){
+
+          df <- df %>%
+            dplyr::mutate(Result.Status.ID=Audit.Result.Status.ID) %>%
+            dplyr::select(-Audit.Result.Status.ID)
+        }
+
+        # This if statement updates col names in audit data frames
+        # developed with odeqcdr > version 0.14.
+
+        if("Logger.Result.Value" %in% names(df) & "Result.Value" %in% names(df)){
+
+          df <- dplyr::rename(df, Audit.Result.Value = Result.Value)
+        }
+
+        # These if statements updates col names in audit data frames
+        # developed with odeqcdr version 0.10 - version 0.14.
+
+        if("Result.datetime" %in% names(df)){
+
+          df <- dplyr::rename(df, Logger.datetime = Result.datetime)
+        }
+
+        if("Result.Value" %in% names(df)){
+
+          df <- dplyr::rename(df, Logger.Result.Value = Result.Value)
+        }
+
+        df
 
       })
 
@@ -180,56 +230,6 @@ launch_shiny <- function(){
       output$audit_dt <- DT::renderDT({
 
         df <- audit_data_reactive()
-
-        # These if statements update col names in older audit dataframes
-        # developed with odeqcdr < v 0.10.
-
-        if("DQL_prec" %in% names(df)) {
-
-          df <- dplyr::rename(df, precDQL=DQL_prec)
-        }
-
-        if("datetime" %in% names(df)) {
-          # rename result datetime
-
-          df <- dplyr::rename(df, Logger.datetime=datetime)
-        }
-
-        if(!"rDQL" %in% names(df)) {
-          # Add rDQL
-
-          df <- df %>%
-            dplyr::mutate(rDQL=precDQL)
-        }
-
-        if("Audit.Result.Status.ID" %in% names(df)){
-
-          df <- df %>%
-            dplyr::mutate(Result.Status.ID=Audit.Result.Status.ID) %>%
-            dplyr::select(-Audit.Result.Status.ID)
-        }
-
-        # This if statement updates col names in audit data frames
-        # developed with odeqcdr > version 0.14.
-
-        if("Logger.Result.Value" %in% names(df)){
-
-          df <- dplyr::rename(df, Audit.Result.Value = Result.Value)
-        }
-
-        # These if statements updates col names in audit data frames
-        # developed with odeqcdr version 0.10 - version 0.14.
-
-        if("Result.datetime" %in% names(df)){
-
-          df <- dplyr::rename(df, Logger.datetime = Result.datetime)
-        }
-
-        if("Result.Value" %in% names(df)){
-
-          df <- dplyr::rename(df, Logger.Result.Value = Result.Value)
-        }
-
 
         dt <- df %>%
           dplyr::select(Monitoring.Location.ID, audit.datetime.start, Audit.Result.Value, Logger.datetime,
