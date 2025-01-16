@@ -24,7 +24,7 @@
 #' Also calculated for each deployment is the absolute change from one result value to the next along the timseries. The change
 #' is normalized per hour. The output value is saved to the column 'delta_per_hour'.
 #'
-#' @param results Data frame of the results data generated using \code{\link{contin_impor}}.
+#' @param results Data frame of the results data generated using \code{\link{contin_import}}.
 #' @param deployment Data frame of the deployment data generated using \code{\link{contin_import}}.
 #' @param return_df Boolean to indicate if the results data frame should be returned with each of the anomaly stats and final anomaly results. Default is FALSE.
 #' @export

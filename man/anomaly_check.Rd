@@ -7,7 +7,7 @@
 anomaly_check(results, deployment, return_df = FALSE)
 }
 \arguments{
-\item{results}{Data frame of the results data generated using \code{\link{contin_impor}}.}
+\item{results}{Data frame of the results data generated using \code{\link{contin_import}}.}
 
 \item{deployment}{Data frame of the deployment data generated using \code{\link{contin_import}}.}
 
