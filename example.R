@@ -284,7 +284,7 @@ df4.results <- df3.results %>%
 # First add Stream Order
 df5.results <- df4.results %>%
   dplyr::left_join(df1.mloc[,c("Monitoring.Location.ID", "Reachcode", "Permanent.Identifier")], by = "Monitoring.Location.ID") %>%
-  dplyr::left_join(odeqcdr::ornhd[,c("StreamOrder", "Permanent_Identifier")], by = c("Permanent.Identifier" = "Permanent_Identifier")) %>%
+  dplyr::left_join(odeqmloctools::ornhd[,c("StreamOrder", "Permanent_Identifier")], by = c("Permanent.Identifier" = "Permanent_Identifier")) %>%
   dplyr::distinct() %>%
   dplyr::ungroup()
 
@@ -328,7 +328,7 @@ df6.results <- df5.results %>%
 
 df4.audits.dql <- df3.audits.dql %>%
   odeqcdr::dql_update(rows = c(),
-                      DQL = "",
+                      DQL = "A",
                       comment = "")
 
 df7.results <- odeqcdr::status_update(df6.results)
