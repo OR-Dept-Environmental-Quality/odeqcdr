@@ -11,10 +11,10 @@
 
 status_update <- function(df){
 
-  df2 <- dplyr::mutate(df, Result.Status.ID = case_when(rDQL %in%  c("A", "B", "E", "F") ~ "Final",
-                                               rDQL %in%  c("C", "D") ~ "Rejected",
-                                               TRUE ~ Result.Status.ID)
-                  )
+  df2 <- dplyr::mutate(df, Result.Status.ID = dplyr::case_when(rDQL %in%  c("A", "B", "E", "F") ~ "Final",
+                                                               rDQL %in%  c("C", "D") ~ "Rejected",
+                                                               TRUE ~ Result.Status.ID)
+  )
 
   return(df2)
 
