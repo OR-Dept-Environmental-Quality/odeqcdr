@@ -87,7 +87,7 @@ df1.results.units <- dplyr::select(df1.results, row.results, Result.Unit.orig=Re
  df1.projects <- df0.projects
 #- Review Monitoring Location Info----------------------------------------------
 
- odeqcdr::launch_map(mloc=df0.mloc)
+ odeqmloctools::launch_map(mloc=df0.mloc)
 
 # Make manual changes to the xlsx spreadsheet and re import if needed:
 # df1.mloc <- odeqcdr::contin_import(file=xlsx_input, sheets=c("Monitoring_Locations"))[["Monitoring_Locations"]]
