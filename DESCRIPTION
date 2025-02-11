@@ -1,6 +1,6 @@
 Package: odeqcdr
 Title: ODEQ Continuous Data Review
-Version: 0.3
+Version: 0.31
 Authors@R: 
     c(person(given = "Ryan",
            family = "Michie",
@@ -21,7 +21,7 @@ Imports:
     lubridate (>= 1.7.0),
     lutz (>= 0.3.1),
     magrittr (>= 1.5),
-    odeqmloctools (>= 0.9),
+    odeqmloctools (>= 0.91),
     openxlsx (>= 4.2.0),
     readxl (>= 1.3.0),
     runner (>= 0.3.8),
@@ -30,6 +30,8 @@ Imports:
     stringr (>= 1.4),
     tidyr (>= 1.0.0),
     zoo (>= 1.8.0),
+Remotes:
+    github::OR-Dept-Environmental-Quality/odeqmloctools@HEAD
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
