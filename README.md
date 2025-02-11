@@ -6,8 +6,18 @@ A R package that provides QA/QC support for review of continuous data entered in
 ## Install
 
 ```R
-devtools::install_github('OR-Dept-Environmental-Quality/odeqcdr', host = 'https://api.github.com', 
-                         dependencies= TRUE, force = TRUE, upgrade='never')
+library(remotes)
+
+remotes::install_github(repo = 'OR-Dept-Environmental-Quality/odeqcdr', 
+                        host = 'https://api.github.com', 
+                        dependencies= TRUE, force = TRUE, upgrade='never')
+
+# Suggest installing odeqmloctools for location review
+remotes::install_github(repo = 'OR-Dept-Environmental-Quality/odeqmloctools', 
+                        host = 'https://api.github.com', 
+                        dependencies= TRUE, force = TRUE, upgrade='never')
+                        
+                        
 ```
 
 ## General Workflow
@@ -18,6 +28,9 @@ See `example.R` for a specific example.
 
 
 ```R
+
+library(odeqmloctools)
+
 #- Import the xlsx template -
 odeqcdr::contin_import()
 
@@ -26,8 +39,8 @@ odeqcdr::contin_import()
 #- Completeness Pre checks -
 odeqcdr::pre_checks()
 
-#- Monitoring location checks -
-odeqcdr::launch_map()
+#- Monitoring location review -
+odeqmloctools::launch_map()
 
 #- Datetime Checks -
 
