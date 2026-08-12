@@ -293,7 +293,7 @@ contin_volmon_import <- function(file, project = 'ODEQVolMonWQProgram',
 
 
   deployment_import <- audit_import %>%
-    left_join(deployment_info_import, by = c("Equipment.ID", "Monitoring.Location.ID"))
+    dplyr::left_join(deployment_info_import, by = c("Equipment.ID", "Monitoring.Location.ID"))
 
   deployment_import <- dplyr::mutate(deployment_import,
                                      Sample.Depth.Unit = "m",
