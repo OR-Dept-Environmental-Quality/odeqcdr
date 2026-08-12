@@ -1,6 +1,6 @@
 Package: odeqcdr
 Title: ODEQ Continuous Data Review
-Version: 0.31
+Version: 0.4
 Authors@R: 
     c(person(given = "Ryan",
            family = "Michie",
@@ -17,7 +17,7 @@ Imports:
     cellranger (>= 1.1.0),
     dplyr (>= 1.0.0),
     DT (>= 0.15),
-    ggplot2 (>= 3.3.0),
+    ggplot2 (>= 3.4.0),
     lubridate (>= 1.7.0),
     lutz (>= 0.3.1),
     magrittr (>= 1.5),
