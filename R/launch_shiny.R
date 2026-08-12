@@ -422,6 +422,10 @@ launch_shiny <- function(){
         # table to nearby rows and summarize the selected rows
         # in the printout
 
+        # A brush release can sometime generate a plot click.
+        # This ignores the click so the table rows stay.
+        shiny::req(is.null(input$plot_brush))
+
         proxy1 <- DT::dataTableProxy("results_dt")
 
         result_data <- result_data_reactive() %>%
