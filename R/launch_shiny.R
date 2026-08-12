@@ -41,7 +41,7 @@ launch_shiny <- function(){
                                                                                                         label="Choose RData File", multiple = FALSE, width='100%',
                                                                                                         accept=c(".RData",".Rda"), buttonLabel="Select Data"))))),
                         shiny::tabPanel("Plot",
-                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=8, shiny::uiOutput("selectDeployment")),
+                                        shiny::fluidPage(shiny::fluidRow(shiny::column(width=8, shiny::uiOutput("selectDeployment_ui")),
                                                                          shiny::column(width=2, align = "left",
                                                                                        shiny::actionButton(inputId="PREVIOUS", label="Previous", style = "margin-top: 25px;"),
                                                                                        shiny::actionButton(inputId="NEXT", label="Next", style = "margin-top: 25px;"))),
@@ -69,7 +69,9 @@ launch_shiny <- function(){
 
     server = shiny::shinyServer(function(input, output, session) {
 
-      output$selectDeployment <- shiny::renderUI({
+      output$selectDeployment_ui <- shiny::renderUI({
+
+        shiny::req(input$rdata$datapath)
 
         deploy_choices <- NULL
 
@@ -106,6 +108,9 @@ launch_shiny <- function(){
       })
 
       deploy_select_reactive <- shiny::reactive({
+
+        shiny::req(input$selectDeployment)
+
         # named shiny_list
 
         df.deploy <- deploy_data_reactive() %>%
@@ -115,6 +120,10 @@ launch_shiny <- function(){
       })
 
       audit_data_reactive <- shiny::reactive({
+
+        shiny::req(input$rdata$datapath,
+                   input$selectDeployment,
+                   cancelOutput = TRUE)
 
         # named shiny_list
         load(input$rdata$datapath)
@@ -179,6 +188,10 @@ launch_shiny <- function(){
       })
 
       result_data_reactive <- shiny::reactive({
+
+        shiny::req(input$rdata$datapath,
+                   input$selectDeployment,
+                   cancelOutput = TRUE)
 
         # named shiny_list
         load(input$rdata$datapath)
