@@ -59,7 +59,7 @@ launch_shiny <- function(){
                                                                                                                    click = "plot_click",
                                                                                                                    dblclick = "plot_dblclick",
                                                                                                                    brush = shiny::brushOpts(id = "plot_brush",
-                                                                                                                                            resetOnNew = TRUE)))),
+                                                                                                                                            resetOnNew = FALSE)))),
                                                          shiny::fluidRow(shiny::column(width=1, align = "right", shiny::h6("Table Rows")),
                                                                          shiny::column(width=9, align = "left", shiny::verbatimTextOutput("SELECTprintout", placeholder=TRUE))),
                                                          shiny::fluidRow(shiny::column(width=10, DT::dataTableOutput("results_dt"))),
@@ -362,6 +362,7 @@ launch_shiny <- function(){
             ranges$x <- c(as.POSIXct(brush$xmin, origin = "1970-01-01"),
                           as.POSIXct(brush$xmax, origin = "1970-01-01"))
             ranges$y <- c(brush$ymin, brush$ymax)
+            session$resetBrush("plot_brush")
           } else {
             ranges$x <- NULL
             ranges$y <- NULL
