@@ -584,14 +584,14 @@ launch_shiny <- function(){
 
         audit_data <- audit_data_reactive()
         p <- p +
-          ggplot2::geom_vline(xintercept = as.numeric(audit_data[,'audit.datetime.start']), color= 'green', size=1) +
+          ggplot2::geom_vline(xintercept = as.numeric(audit_data[,'audit.datetime.start']), color= 'green', linewidth=1) +
           ggplot2::geom_point(data = audit_data, ggplot2::aes(x = audit.datetime.start, y = Audit.Result.Value),
                               color = 'green', size = 4)
 
         deploy_data <- deploy_select_reactive()
         p <- p +
-          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.Start.Date']), color= 'black', size=1.5) +
-          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.End.Date']), color= 'black', size=1.5)
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.Start.Date']), color= 'black', linewidth=1.5) +
+          ggplot2::geom_vline(xintercept = as.numeric(deploy_data[,'Deployment.End.Date']), color= 'black', linewidth=1.5)
 
         p
       })
