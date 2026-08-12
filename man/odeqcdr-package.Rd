@@ -13,6 +13,7 @@ This package provides QA/QC support for review of continuous data entered into t
 
 Authors:
 \itemize{
+  \item Ryan Michie \email{Ryan.Michie@deq.oregon.gov}
   \item Travis Pritchard \email{Travis.Pritchard@deq.oregon.gov}
 }
 
