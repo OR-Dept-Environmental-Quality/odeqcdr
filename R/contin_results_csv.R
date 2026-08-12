@@ -25,14 +25,14 @@ contin_results_csv <- function(path=NULL, format="%Y/%m/%d %H:%M:%S") {
 
   if(is.null(path)) {
 
-    if(exists('utils::choose.dir')){
+    if (.Platform$OS.type == "windows"){
       # Windows
-      path<-choose.dir()
+      path <- utils::choose.dir()
     } else {
 
-      if(Sys.getenv("RSTUDIO") == "1"){
+      if (rstudioapi::isAvailable()){
         # Mac/Linux and running Rstudio
-        path<-rstudioapi::selectDirectory()
+        path <- rstudioapi::selectDirectory()
       } else {
         stop("path must be provided.")
       }
@@ -45,7 +45,7 @@ contin_results_csv <- function(path=NULL, format="%Y/%m/%d %H:%M:%S") {
 
   for(file in files) {
 
-    df <- read.csv(file=file, header = TRUE, stringsAsFactors = FALSE)
+    df <- utils::read.csv(file=file, header = TRUE, stringsAsFactors = FALSE)
 
     df.all <- rbind(df.all, df)
 
