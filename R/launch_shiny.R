@@ -540,18 +540,18 @@ launch_shiny <- function(){
 
         if("delta_per_hour" %in% names(result_data)) {
 
-        result_data <- result_data %>%
-          mutate(dph=dplyr::if_else(delta_per_hour >= input$dph, TRUE, FALSE),
-                 Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
-                 tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
+          result_data <- result_data %>%
+            dplyr::mutate(dph=dplyr::if_else(delta_per_hour >= input$dph, TRUE, FALSE),
+                          Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
+                          tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
 
         } else {
 
           result_data <- result_data %>%
-            mutate(delta_per_hour=NA,
-                   dph=NA,
-                   Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
-                   tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
+            dplyr::mutate(delta_per_hour=NA,
+                          dph=NA,
+                          Rejected=dplyr::if_else(Result.Status.ID=="Rejected", TRUE, FALSE),
+                          tselect=dplyr::if_else(row.results %in% tselect,TRUE, FALSE))
 
         }
 
